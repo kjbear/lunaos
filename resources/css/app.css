@@ -9,3 +9,43 @@
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
+
+/* Dark mode support */
+@variant dark (&:where(.dark, .dark *));
+
+/* Custom LunaOS theme */
+:root {
+    --color-luna-primary: #6366f1;
+    --color-luna-secondary: #8b5cf6;
+    --color-luna-accent: #f59e0b;
+}
+
+.dark {
+    --color-luna-primary: #818cf8;
+    --color-luna-secondary: #a78bfa;
+    --color-luna-accent: #fbbf24;
+}
+
+/* Smooth transitions for dark mode */
+html {
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+    background: #475569;
+}
