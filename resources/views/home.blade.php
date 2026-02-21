@@ -38,16 +38,17 @@
                 ⚡ HTMX Test
             </h2>
             <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                Click to load content via AJAX
+                Click to load status via AJAX
             </p>
             <button 
                 hx-get="/api/status"
                 hx-target="#htmx-result"
+                hx-swap="innerHTML"
                 class="px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg font-medium transition-colors"
             >
                 Load Status
             </button>
-            <div id="htmx-result" class="mt-4 text-sm"></div>
+            <div id="htmx-result" class="mt-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg text-sm font-mono"></div>
         </div>
 
         <!-- Dark Mode Test -->
