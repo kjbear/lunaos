@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\StatusController;
 use App\Http\Controllers\TaskManagerController;
 use App\Livewire\Counter;
+use App\Livewire\TaskManager;
 
 // Web routes
 Route::get('/', function () {
@@ -11,6 +12,7 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('/counter', Counter::class)->name('counter');
+Route::get('/tasks', TaskManager::class)->name('tasks');
 
 // API routes (unprotected for HTMX)
 Route::prefix('api')->name('api.')->group(function () {
