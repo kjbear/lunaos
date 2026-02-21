@@ -1,0 +1,44 @@
+# Laravel
+/vendor
+/node_modules
+/.npm
+/.pnp
+/.pnp.js
+
+# Build outputs
+/public/build
+/public/hot
+/public/storage
+/storage/*.key
+
+# Environment
+.env
+.env.backup
+.env.production
+.phpunit.result.cache
+Homestead.json
+Homestead.yaml
+npm-debug.log
+yarn-error.log
+
+# IDE
+/.idea
+/.vscode
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Laravel specific
+/bootstrap/cache/*
+!/bootstrap/cache/.gitignore
+
+# SQLite database (if stored outside project)
+# database/database.sqlite
+
+# Temporary files
+*.tmp
+*.temp
