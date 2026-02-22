@@ -6,6 +6,7 @@ use App\Http\Controllers\TaskManagerController;
 use App\Http\Controllers\OrgChartController;
 use App\Livewire\Counter;
 use App\Livewire\TaskManager;
+use App\Livewire\OrgChart;
 
 // Web routes
 Route::get('/', function () {
@@ -14,6 +15,9 @@ Route::get('/', function () {
 
 Route::get('/counter', Counter::class)->name('counter');
 Route::get('/tasks', TaskManager::class)->name('tasks');
+Route::get('/org-chart', function () {
+    return view('org-chart');
+})->name('org-chart');
 
 // API routes (unprotected for HTMX)
 Route::prefix('api')->name('api.')->group(function () {
