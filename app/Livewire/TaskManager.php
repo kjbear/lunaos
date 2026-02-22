@@ -120,6 +120,7 @@ class TaskManager extends Component
         return view('livewire.task-manager', [
             'stats' => $this->stats,
             'agents' => $this->agents,
+            'tasks' => $this->tasks,
         ]);
     }
 }
