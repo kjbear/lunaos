@@ -10,6 +10,8 @@ use App\Livewire\TaskManager;
 use App\Livewire\OrgChart;
 use App\Livewire\WorkspaceViewer;
 
+use App\Livewire\Calendar;
+
 // Web routes
 Route::get('/', function () {
     return view('home');
@@ -21,6 +23,7 @@ Route::get('/org-chart', function () {
     return view('org-chart');
 })->name('org-chart');
 Route::get('/workspace', WorkspaceViewer::class)->name('workspace');
+Route::get('/calendar', Calendar::class)->name('calendar');
 
 // API routes (unprotected for HTMX)
 Route::prefix('api')->name('api.')->group(function () {

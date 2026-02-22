@@ -161,33 +161,6 @@ class DatabaseSeeder extends Seeder
             'created_at' => now()->subMinutes(30),
         ]);
 
-        // Seed scheduled items
-        DB::table('scheduled_items')->insert([
-            'title' => 'Team standup',
-            'type' => 'meeting',
-            'start_time' => now()->addDay()->setTime(9, 0),
-            'end_time' => now()->addDay()->setTime(9, 15),
-            'agent' => 'Luna',
-            'priority' => 'normal',
-            'status' => 'pending',
-            'notes' => 'Daily sync with sub-agents',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-        
-        DB::table('scheduled_items')->insert([
-            'title' => 'Review PR #12',
-            'type' => 'task',
-            'start_time' => now()->addDay()->setTime(14, 0),
-            'end_time' => now()->addDay()->setTime(15, 0),
-            'agent' => 'Luna',
-            'priority' => 'high',
-            'status' => 'pending',
-            'notes' => 'Review database schema changes',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
         // Seed docs
         DB::table('docs')->insert([
             'slug' => 'getting-started',
@@ -267,6 +240,9 @@ LunaOS uses:
             'session_key' => 'main',
             'created_at' => now(),
         ]);
+
+        // Call scheduled items seeder
+        $this->call(ScheduledItemSeeder::class);
 
         $this->command->info('Database seeded successfully!');
     }

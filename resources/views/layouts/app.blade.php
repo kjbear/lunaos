@@ -60,7 +60,8 @@
                     <span class="text-lg">📄</span>
                     <span class="font-medium">Docs</span>
                 </a>
-                <a href="#" class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0]">
+                <a href="{{ route('calendar') }}" 
+                   class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] {{ request()->routeIs('calendar') ? 'active' : '' }}">
                     <span class="text-lg">📅</span>
                     <span class="font-medium">Calendar</span>
                 </a>
