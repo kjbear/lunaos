@@ -3,11 +3,16 @@
 namespace App\Livewire;
 
 use Livewire\Component;
+use Livewire\WithPagination;
 use App\Models\Task;
 use App\Models\Agent;
 
 class TaskManager extends Component
 {
+    use WithPagination;
+
+    protected $paginationTheme = 'tailwind';
+
     // Filters
     public string $statusFilter = 'all';
     public ?int $agentFilter = null;
@@ -21,46 +26,74 @@ class TaskManager extends Component
     public bool $isLive = true;
     public ?string $lastRefreshed = null;
 
-    // Stats
-    public int $totalTasks = 0;
-    public int $activeTasks = 0;
-    public int $pendingTasks = 0;
-    public int $completedTasks = 0;
-    public int $totalTokens = 0;
-    public string $totalCost = '0.00';
+    // Pagination
+    public int $perPage = 20;
 
-    // Data
-    public $tasks;
-    public $agents;
-
-    protected $listeners = ['refreshTasks' => '$refresh'];
+    protected $listeners = ['refreshTasks' => 'refresh'];
 
     public function mount(): void
     {
-        $this->loadData();
         $this->lastRefreshed = now()->format('H:i:s');
     }
 
     public function updated($property): void
     {
-        // Reload data when filters change
-        $this->loadData();
+        // Reset pagination when filters change
+        $this->resetPage();
     }
 
-    public function loadData(): void
+    public function refresh(): void
     {
-        // Load stats
-        $this->totalTasks = Task::count();
-        $this->activeTasks = Task::running()->count();
-        $this->pendingTasks = Task::pending()->count();
-        $this->completedTasks = Task::completed()->count();
-        $this->totalTokens = Task::sum('tokens_used');
-        $this->totalCost = number_format(Task::sum('cost'), 2);
+        $this->lastRefreshed = now()->format('H:i:s');
+    }
 
-        // Load agents for filter
-        $this->agents = Agent::select('id', 'name')->get();
+    public function toggleLive(): void
+    {
+        $this->isLive = !$this->isLive;
 
-        // Build query
+        if ($this->isLive) {
+            $this->lastRefreshed = now()->format('H:i:s');
+        }
+    }
+
+    public function sortBy(string $field): void
+    {
+        if ($this->sortField === $field) {
+            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortField = $field;
+            $this->sortDirection = 'desc';
+        }
+        $this->resetPage();
+    }
+
+    public function clearFilters(): void
+    {
+        $this->statusFilter = 'all';
+        $this->agentFilter = null;
+        $this->priorityFilter = 'all';
+        $this->resetPage();
+    }
+
+    public function getStatsProperty(): array
+    {
+        return [
+            'total' => Task::count(),
+            'running' => Task::running()->count(),
+            'pending' => Task::pending()->count(),
+            'completed' => Task::completed()->count(),
+            'totalTokens' => Task::sum('tokens_used'),
+            'totalCost' => number_format(Task::sum('cost'), 2),
+        ];
+    }
+
+    public function getAgentsProperty()
+    {
+        return Agent::select('id', 'name')->get();
+    }
+
+    public function getTasksProperty()
+    {
         $query = Task::with('agent');
 
         // Apply filters
@@ -79,42 +112,7 @@ class TaskManager extends Component
         // Apply sorting
         $query->orderBy($this->sortField, $this->sortDirection);
 
-        $this->tasks = $query->limit(50)->get();
-        $this->lastRefreshed = now()->format('H:i:s');
-    }
-
-    public function toggleLive(): void
-    {
-        $this->isLive = !$this->isLive;
-
-        if ($this->isLive) {
-            $this->loadData();
-        }
-    }
-
-    public function refresh(): void
-    {
-        $this->loadData();
-    }
-
-    public function sortBy(string $field): void
-    {
-        if ($this->sortField === $field) {
-            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
-        } else {
-            $this->sortField = $field;
-            $this->sortDirection = 'desc';
-        }
-
-        $this->loadData();
-    }
-
-    public function clearFilters(): void
-    {
-        $this->statusFilter = 'all';
-        $this->agentFilter = null;
-        $this->priorityFilter = 'all';
-        $this->loadData();
+        return $query->paginate($this->perPage);
     }
 
     public function render()

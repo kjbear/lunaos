@@ -33,27 +33,27 @@
     <!-- Stats Cards -->
     <div class="grid grid-cols-2 md:grid-cols-6 gap-4">
         <div class="bg-[#1a1a2e] rounded-lg p-4 border border-[#2a2a40] card-glow">
-            <div class="text-2xl font-bold text-[#e4e4f0]">{{ $totalTasks }}</div>
+            <div class="text-2xl font-bold text-[#e4e4f0]">{{ $stats['total'] }}</div>
             <div class="text-xs text-[#6b6b80]">Total Tasks</div>
         </div>
         <div class="bg-[#1a1a2e] rounded-lg p-4 border border-[#2a2a40] card-glow">
-            <div class="text-2xl font-bold text-[#f59e0b]">{{ $activeTasks }}</div>
+            <div class="text-2xl font-bold text-[#f59e0b]">{{ $stats['running'] }}</div>
             <div class="text-xs text-[#6b6b80]">Running</div>
         </div>
         <div class="bg-[#1a1a2e] rounded-lg p-4 border border-[#2a2a40] card-glow">
-            <div class="text-2xl font-bold text-[#3b82f6]">{{ $pendingTasks }}</div>
+            <div class="text-2xl font-bold text-[#3b82f6]">{{ $stats['pending'] }}</div>
             <div class="text-xs text-[#6b6b80]">Pending</div>
         </div>
         <div class="bg-[#1a1a2e] rounded-lg p-4 border border-[#2a2a40] card-glow">
-            <div class="text-2xl font-bold text-[#10b981]">{{ $completedTasks }}</div>
+            <div class="text-2xl font-bold text-[#10b981]">{{ $stats['completed'] }}</div>
             <div class="text-xs text-[#6b6b80]">Completed</div>
         </div>
         <div class="bg-[#1a1a2e] rounded-lg p-4 border border-[#2a2a40] card-glow">
-            <div class="text-2xl font-bold text-[#e4e4f0]">{{ number_format($totalTokens) }}</div>
+            <div class="text-2xl font-bold text-[#e4e4f0]">{{ number_format($stats['totalTokens']) }}</div>
             <div class="text-xs text-[#6b6b80]">Tokens Used</div>
         </div>
         <div class="bg-[#1a1a2e] rounded-lg p-4 border border-[#2a2a40] card-glow">
-            <div class="text-2xl font-bold text-[#7c3aed]">${{ $totalCost }}</div>
+            <div class="text-2xl font-bold text-[#7c3aed]">${{ $stats['totalCost'] }}</div>
             <div class="text-xs text-[#6b6b80]">Total Cost</div>
         </div>
     </div>
