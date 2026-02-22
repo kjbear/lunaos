@@ -24,6 +24,12 @@ Route::get('/workspace', function () {
 Route::get('/calendar', function () {
     return view('calendar');
 })->name('calendar');
+Route::get('/docs', function () {
+    return view('docs');
+})->name('docs');
+Route::get('/standup', function () {
+    return view('standup');
+})->name('standup');
 
 // API routes (unprotected for HTMX)
 Route::prefix('api')->name('api.')->group(function () {

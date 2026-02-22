@@ -20,6 +20,9 @@ class DatabaseSeeder extends Seeder
         DB::table('tasks')->truncate();
         DB::table('workspace_configs')->truncate();
         DB::table('agents')->truncate();
+        DB::table('standup_action_items')->truncate();
+        DB::table('standup_deliverables')->truncate();
+        DB::table('standups')->truncate();
         DB::statement('PRAGMA foreign_keys = ON');
 
         // Seed agents (hierarchy: Kyle → Luna → Subagents)
@@ -243,6 +246,81 @@ LunaOS uses:
 
         // Call scheduled items seeder
         $this->call(ScheduledItemSeeder::class);
+
+        // Add more docs
+        DB::table('docs')->insert([
+            'slug' => 'task-manager',
+            'title' => 'Task Manager',
+            'section' => 'features',
+            'content' => '# Task Manager
+
+The Task Manager module provides real-time visibility into all agent tasks.
+
+## Features
+
+- **Live Updates**: Tasks sync every 10 seconds
+- **Filtering**: By status, agent, priority, date
+- **Sorting**: By cost, tokens, time, status
+- **Stats**: Active count, total sessions, tokens used, cost
+
+## Usage
+
+Navigate to `/tasks` to view the task dashboard.',
+            'order' => 3,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        
+        DB::table('docs')->insert([
+            'slug' => 'org-chart',
+            'title' => 'Organization Chart',
+            'section' => 'features',
+            'content' => '# Organization Chart
+
+The Org Chart displays the team hierarchy and model health.
+
+## Hierarchy
+
+```
+Kyle (CEO)
+└── Luna (AI PM)
+    ├── Builder (Code Gen)
+    ├── Scribe (Docs)
+    └── Tester (QA)
+```
+
+## Model Health
+
+- GLM-5: Primary model (~45 tok/s)
+- Dolphin 3.0: Sidecar model (~18 tok/s)',
+            'order' => 4,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        // Seed a sample standup
+        $standupId = DB::table('standups')->insertGetId([
+            'date' => now()->format('Y-m-d'),
+            'team' => 'LunaOS Team',
+            'facilitator' => 'Luna',
+            'transcript' => 'Today we completed the UI design system implementation. The Task Manager, Workspace, and Calendar modules are all working. Tomorrow we will finish Docs and Standup recording.',
+            'status' => 'completed',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        
+        DB::table('standup_deliverables')->insert([
+            ['standup_id' => $standupId, 'title' => 'UI Design System implementation', 'order' => 0, 'created_at' => now(), 'updated_at' => now()],
+            ['standup_id' => $standupId, 'title' => 'Task Manager with pagination', 'order' => 1, 'created_at' => now(), 'updated_at' => now()],
+            ['standup_id' => $standupId, 'title' => 'Workspace file viewer', 'order' => 2, 'created_at' => now(), 'updated_at' => now()],
+            ['standup_id' => $standupId, 'title' => 'Calendar week view', 'order' => 3, 'created_at' => now(), 'updated_at' => now()],
+        ]);
+        
+        DB::table('standup_action_items')->insert([
+            ['standup_id' => $standupId, 'title' => 'Finish Docs module', 'assigned_to' => 'Luna', 'completed' => false, 'created_at' => now(), 'updated_at' => now()],
+            ['standup_id' => $standupId, 'title' => 'Implement Standup recording', 'assigned_to' => 'Luna', 'completed' => false, 'created_at' => now(), 'updated_at' => now()],
+            ['standup_id' => $standupId, 'title' => 'Add Global Search', 'assigned_to' => 'Luna', 'completed' => false, 'created_at' => now(), 'updated_at' => now()],
+        ]);
 
         $this->command->info('Database seeded successfully!');
     }

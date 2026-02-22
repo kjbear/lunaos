@@ -56,7 +56,8 @@
                     <span class="text-lg">📁</span>
                     <span class="font-medium">Workspace</span>
                 </a>
-                <a href="#" class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0]">
+                <a href="{{ route('docs') }}" 
+                   class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] {{ request()->routeIs('docs') ? 'active' : '' }}">
                     <span class="text-lg">📄</span>
                     <span class="font-medium">Docs</span>
                 </a>
@@ -65,7 +66,8 @@
                     <span class="text-lg">📅</span>
                     <span class="font-medium">Calendar</span>
                 </a>
-                <a href="#" class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0]">
+                <a href="{{ route('standup') }}" 
+                   class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] {{ request()->routeIs('standup') ? 'active' : '' }}">
                     <span class="text-lg">🎤</span>
                     <span class="font-medium">Standup</span>
                 </a>
