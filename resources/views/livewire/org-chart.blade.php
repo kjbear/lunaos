@@ -18,17 +18,17 @@
         </div>
     </div>
 
-    <!-- Stats Row - Left Aligned, Fixed 200px Width -->
+    <!-- Stats Row - Left Aligned, Fixed 150px Width -->
     <div class="flex flex-wrap gap-3 justify-start">
-        <div class="bg-white dark:bg-gray-800 rounded-lg px-3 py-2 border border-gray-200 dark:border-gray-700" style="width: 200px;">
+        <div class="bg-white dark:bg-gray-800 rounded-lg px-3 py-2 border border-gray-200 dark:border-gray-700" style="width: 150px;">
             <div class="text-lg font-bold text-gray-900 dark:text-white">{{ $stats['total'] ?? 0 }}</div>
             <div class="text-xs text-gray-500 dark:text-gray-400">Total Agents</div>
         </div>
-        <div class="bg-white dark:bg-gray-800 rounded-lg px-3 py-2 border border-gray-200 dark:border-gray-700" style="width: 200px;">
+        <div class="bg-white dark:bg-gray-800 rounded-lg px-3 py-2 border border-gray-200 dark:border-gray-700" style="width: 150px;">
             <div class="text-lg font-bold text-green-600 dark:text-green-400">{{ $stats['online'] ?? 0 }}</div>
             <div class="text-xs text-gray-500 dark:text-gray-400">Online</div>
         </div>
-        <div class="bg-white dark:bg-gray-800 rounded-lg px-3 py-2 border border-gray-200 dark:border-gray-700" style="width: 200px;">
+        <div class="bg-white dark:bg-gray-800 rounded-lg px-3 py-2 border border-gray-200 dark:border-gray-700" style="width: 150px;">
             <div class="text-lg font-bold text-gray-400">{{ $stats['offline'] ?? 0 }}</div>
             <div class="text-xs text-gray-500 dark:text-gray-400">Offline</div>
         </div>
