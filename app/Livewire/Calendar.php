@@ -3,11 +3,9 @@
 namespace App\Livewire;
 
 use Livewire\Component;
-use Livewire\Attributes\Layout;
 use App\Models\ScheduledItem;
 use Carbon\Carbon;
 
-#[Layout('layouts.app')]
 class Calendar extends Component
 {
     public string $currentWeekStart;
@@ -17,13 +15,14 @@ class Calendar extends Component
 
     public function mount(): void
     {
-        $this->currentWeekStart = now()->startOfWeek()->format('Y-m-d');
+        $this->currentWeekStart = Carbon::now()->startOfWeek()->format('Y-m-d');
         $this->loadWeek();
     }
 
     public function loadWeek(): void
     {
         $startOfWeek = Carbon::parse($this->currentWeekStart);
+        $endOfWeek = $startOfWeek->copy()->endOfWeek();
         
         // Generate week days
         $this->weekDays = [];
@@ -39,7 +38,10 @@ class Calendar extends Component
         }
 
         // Load events for the week
-        $events = ScheduledItem::forCalendar($this->currentWeekStart)
+        $events = ScheduledItem::where('status', 'pending')
+            ->where('start_time', '>=', $startOfWeek)
+            ->where('start_time', '<=', $endOfWeek)
+            ->orderBy('start_time')
             ->get()
             ->map(function ($event) {
                 return [
@@ -84,7 +86,7 @@ class Calendar extends Component
 
     public function goToToday(): void
     {
-        $this->currentWeekStart = now()->startOfWeek()->format('Y-m-d');
+        $this->currentWeekStart = Carbon::now()->startOfWeek()->format('Y-m-d');
         $this->loadWeek();
     }
 
@@ -119,6 +121,7 @@ class Calendar extends Component
 
     public function render()
     {
-        return view('livewire.calendar');
+        return view('livewire.calendar')
+            ->layout('layouts.app');
     }
 }

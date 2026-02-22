@@ -11,7 +11,8 @@ class WorkspaceService
 
     public function __construct()
     {
-        $this->workspacePath = config('lunaos.workspace_path', base_path('../'));
+        // Hardcode path for now since config might be cached
+        $this->workspacePath = '/Users/kobear/.openclaw/workspace';
     }
 
     /**
@@ -21,7 +22,6 @@ class WorkspaceService
     {
         return Cache::remember('workspace.files', 300, function () {
             $files = [];
-            $directories = [];
 
             // Core files we want to show
             $coreFiles = [
