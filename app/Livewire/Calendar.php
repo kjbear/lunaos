@@ -45,17 +45,17 @@ class Calendar extends Component
                 return [
                     'id' => $event->id,
                     'title' => $event->title,
-                    'date' => $event->starts_at->format('Y-m-d'),
-                    'time' => $event->starts_at->format('H:i'),
-                    'hour' => (int) $event->starts_at->format('H'),
-                    'duration' => $event->ends_at 
-                        ? $event->starts_at->diffInMinutes($event->ends_at)
+                    'date' => $event->start_time->format('Y-m-d'),
+                    'time' => $event->start_time->format('H:i'),
+                    'hour' => (int) $event->start_time->format('H'),
+                    'duration' => $event->end_time 
+                        ? $event->start_time->diffInMinutes($event->end_time)
                         : 60,
                     'color' => $event->color,
                     'icon' => $event->icon,
                     'priority' => $event->priority_stars,
-                    'description' => $event->description,
-                    'type' => $event->source_type,
+                    'description' => $event->notes,
+                    'type' => $event->type,
                 ];
             })
             ->groupBy('date')

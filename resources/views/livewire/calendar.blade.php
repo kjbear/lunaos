@@ -177,10 +177,10 @@
                     <div class="bg-[#252542] rounded-lg p-3">
                         <span class="text-xs text-[#6b6b80] uppercase">Time</span>
                         <div class="text-sm text-[#e4e4f0] mt-1">
-                            {{ $selectedEvent->starts_at->format('l, F j, Y') }}<br>
-                            {{ $selectedEvent->starts_at->format('H:i') }}
-                            @if($selectedEvent->ends_at)
-                                — {{ $selectedEvent->ends_at->format('H:i') }}
+                            {{ $selectedEvent->start_time->format('l, F j, Y') }}<br>
+                            {{ $selectedEvent->start_time->format('H:i') }}
+                            @if($selectedEvent->end_time)
+                                — {{ $selectedEvent->end_time->format('H:i') }}
                             @endif
                         </div>
                     </div>
@@ -190,15 +190,15 @@
                             <span class="text-xs text-[#6b6b80] uppercase">Priority</span>
                             <div class="text-sm text-[#e4e4f0] mt-1">{{ $selectedEvent->priority_stars }}</div>
                         </div>
-                        <span class="badge {{ $selectedEvent->status === 'completed' ? 'badge-success' : 'badge-warning' }}">
-                            {{ ucfirst($selectedEvent->status) }}
+                        <span class="badge {{ $selectedEvent->status === 'completed' ? 'badge-success' : ($selectedEvent->status === 'in_progress' ? 'badge-info' : 'badge-warning') }}">
+                            {{ ucfirst(str_replace('_', ' ', $selectedEvent->status)) }}
                         </span>
                     </div>
                     
-                    @if($selectedEvent->description)
+                    @if($selectedEvent->notes)
                         <div class="border-t border-[#2a2a40] pt-3">
-                            <span class="text-xs text-[#6b6b80] uppercase">Description</span>
-                            <p class="text-sm text-[#a0a0b8] mt-1">{{ $selectedEvent->description }}</p>
+                            <span class="text-xs text-[#6b6b80] uppercase">Notes</span>
+                            <p class="text-sm text-[#a0a0b8] mt-1">{{ $selectedEvent->notes }}</p>
                         </div>
                     @endif
                 </div>

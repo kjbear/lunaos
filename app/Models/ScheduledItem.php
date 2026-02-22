@@ -10,42 +10,37 @@ class ScheduledItem extends Model
     use HasFactory;
 
     protected $fillable = [
-        'source_type',
-        'source_id',
         'title',
-        'description',
-        'starts_at',
-        'ends_at',
-        'timezone',
-        'recurrence_rule',
+        'type',
+        'start_time',
+        'end_time',
+        'agent',
         'priority',
         'status',
-        'assignee_id',
-        'metadata',
+        'notes',
     ];
 
     protected $casts = [
-        'starts_at' => 'datetime',
-        'ends_at' => 'datetime',
-        'metadata' => 'array',
-        'priority' => 'integer',
+        'start_time' => 'datetime',
+        'end_time' => 'datetime',
     ];
 
-    // Source types
-    const SOURCE_CRON = 'cron';
-    const SOURCE_REMINDER = 'reminder';
-    const SOURCE_CALENDAR = 'calendar';
-    const SOURCE_EMAIL = 'email';
-    const SOURCE_TASK = 'task';
+    // Types
+    const TYPE_TASK = 'task';
+    const TYPE_REMINDER = 'reminder';
+    const TYPE_MEETING = 'meeting';
+    const TYPE_DEADLINE = 'deadline';
+    const TYPE_OTHER = 'other';
 
     // Priority levels
-    const PRIORITY_LOW = 1;
-    const PRIORITY_NORMAL = 2;
-    const PRIORITY_HIGH = 3;
-    const PRIORITY_CRITICAL = 4;
+    const PRIORITY_LOW = 'low';
+    const PRIORITY_NORMAL = 'normal';
+    const PRIORITY_HIGH = 'high';
+    const PRIORITY_CRITICAL = 'critical';
 
     // Statuses
     const STATUS_PENDING = 'pending';
+    const STATUS_IN_PROGRESS = 'in_progress';
     const STATUS_COMPLETED = 'completed';
     const STATUS_CANCELLED = 'cancelled';
 
@@ -54,12 +49,11 @@ class ScheduledItem extends Model
      */
     public function getColorAttribute(): string
     {
-        return match($this->source_type) {
-            self::SOURCE_CRON => 'cron',      // red
-            self::SOURCE_REMINDER => 'reminder', // orange
-            self::SOURCE_CALENDAR => 'calendar', // green
-            self::SOURCE_EMAIL => 'email',     // blue
-            self::SOURCE_TASK => 'task',      // purple
+        return match($this->type) {
+            self::TYPE_REMINDER => 'reminder', // orange
+            self::TYPE_MEETING => 'calendar',  // green
+            self::TYPE_DEADLINE => 'cron',     // red
+            self::TYPE_TASK => 'task',         // purple
             default => 'default',
         };
     }
@@ -69,12 +63,11 @@ class ScheduledItem extends Model
      */
     public function getIconAttribute(): string
     {
-        return match($this->source_type) {
-            self::SOURCE_CRON => '⚙️',
-            self::SOURCE_REMINDER => '⏰',
-            self::SOURCE_CALENDAR => '📅',
-            self::SOURCE_EMAIL => '📧',
-            self::SOURCE_TASK => '📋',
+        return match($this->type) {
+            self::TYPE_REMINDER => '⏰',
+            self::TYPE_MEETING => '📅',
+            self::TYPE_DEADLINE => '⚠️',
+            self::TYPE_TASK => '📋',
             default => '📌',
         };
     }
@@ -98,9 +91,9 @@ class ScheduledItem extends Model
      */
     public function scopeUpcoming($query, $days = 28)
     {
-        return $query->where('starts_at', '>=', now())
-                     ->where('starts_at', '<=', now()->addDays($days))
-                     ->orderBy('starts_at');
+        return $query->where('start_time', '>=', now())
+                     ->where('start_time', '<=', now()->addDays($days))
+                     ->orderBy('start_time');
     }
 
     /**
@@ -112,21 +105,21 @@ class ScheduledItem extends Model
         $startOfWeek = $date->copy()->startOfWeek();
         $endOfWeek = $date->copy()->endOfWeek();
 
-        return $query->where('starts_at', '>=', $startOfWeek)
-                     ->where('starts_at', '<=', $endOfWeek)
-                     ->orderBy('starts_at');
+        return $query->where('start_time', '>=', $startOfWeek)
+                     ->where('start_time', '<=', $endOfWeek)
+                     ->orderBy('start_time');
     }
 
     /**
-     * Scope by source type
+     * Scope by type
      */
     public function scopeByType($query, string $type)
     {
-        return $query->where('source_type', $type);
+        return $query->where('type', $type);
     }
 
     /**
-     * Scope by status
+     * Scope for pending items
      */
     public function scopePending($query)
     {
@@ -134,7 +127,7 @@ class ScheduledItem extends Model
     }
 
     /**
-     * Scope for calendar display (only pending)
+     * Scope for calendar display
      */
     public function scopeForCalendar($query, $date = null)
     {
