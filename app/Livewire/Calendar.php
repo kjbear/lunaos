@@ -3,9 +3,11 @@
 namespace App\Livewire;
 
 use Livewire\Component;
+use Livewire\Attributes\Layout;
 use App\Models\ScheduledItem;
 use Carbon\Carbon;
 
+#[Layout('layouts.app')]
 class Calendar extends Component
 {
     public string $currentWeekStart;

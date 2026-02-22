@@ -3,8 +3,10 @@
 namespace App\Livewire;
 
 use Livewire\Component;
+use Livewire\Attributes\Layout;
 use App\Services\WorkspaceService;
 
+#[Layout('layouts.app')]
 class WorkspaceViewer extends Component
 {
     public ?string $selectedFile = null;
