@@ -121,7 +121,6 @@ class Calendar extends Component
 
     public function render()
     {
-        return view('livewire.calendar')
-            ->layout('layouts.app');
+        return view('livewire.calendar');
     }
 }
