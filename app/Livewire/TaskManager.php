@@ -117,6 +117,9 @@ class TaskManager extends Component
 
     public function render()
     {
-        return view('livewire.task-manager');
+        return view('livewire.task-manager', [
+            'stats' => $this->stats,
+            'agents' => $this->agents,
+        ]);
     }
 }
