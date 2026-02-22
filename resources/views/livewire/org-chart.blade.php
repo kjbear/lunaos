@@ -66,16 +66,12 @@
         @endphp
 
         @foreach($tree as $rootAgent)
-            <!-- Level 0: CEO/Owner -->
+            <!-- ROOT LEVEL: CEO -->
             <div class="flex flex-col items-center">
-                <div
-                    wire:click="selectAgent({{ $rootAgent['id'] }})"
-                    class="relative cursor-pointer transform transition-transform hover:scale-105"
-                >
+                <!-- CEO Card -->
+                <div wire:click="selectAgent({{ $rootAgent['id'] }})" class="cursor-pointer transform transition-transform hover:scale-105">
                     @php $colors = $roleColors[$rootAgent['role']] ?? $roleColors['coordinator']; @endphp
-                    <!-- Card -->
                     <div class="{{ $colors['bg'] }} {{ $colors['border'] }} border-2 rounded-xl p-4 w-56 shadow-sm hover:shadow-md transition-shadow">
-                        <!-- Avatar and Status -->
                         <div class="flex items-center space-x-3 mb-2">
                             <div class="relative">
                                 <div class="w-12 h-12 {{ $colors['avatar'] }} rounded-full flex items-center justify-center text-white font-bold text-lg">
@@ -88,110 +84,92 @@
                                 <div class="text-xs {{ $colors['text'] }} uppercase font-medium">{{ $rootAgent['role'] }}</div>
                             </div>
                         </div>
-                        <!-- Description -->
-                        <p class="text-xs text-gray-600 dark:text-gray-400 mb-2">
-                            {{ $roleDescriptions[$rootAgent['role']] ?? 'Team member' }}
-                        </p>
-                        <!-- Model Pill -->
+                        <p class="text-xs text-gray-600 dark:text-gray-400 mb-2">{{ $roleDescriptions[$rootAgent['role']] ?? 'Team member' }}</p>
                         @if($rootAgent['model'])
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {{ $modelColors[$rootAgent['model']] ?? 'bg-gray-100 text-gray-700' }}">
-                                {{ $rootAgent['model'] }}
-                            </span>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {{ $modelColors[$rootAgent['model']] ?? 'bg-gray-100 text-gray-700' }}">{{ $rootAgent['model'] }}</span>
                         @else
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400">
-                                Human
-                            </span>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400">Human</span>
                         @endif
                     </div>
                 </div>
 
-                <!-- Connector Line to Level 1 -->
+                <!-- Vertical connector to Level 1 -->
                 @if(!empty($rootAgent['children']))
-                    <div class="w-px h-8 bg-gray-300 dark:bg-gray-600"></div>
+                    <div class="w-0.5 h-8 bg-gray-300 dark:bg-gray-600"></div>
                 @endif
 
-                <!-- Level 1: Coordinator -->
-                @foreach($rootAgent['children'] as $level1)
+                <!-- LEVEL 1: Coordinator(s) -->
+                @if(!empty($rootAgent['children']))
                     <div class="flex flex-col items-center">
-                        <div
-                            wire:click="selectAgent({{ $level1['id'] }})"
-                            class="relative cursor-pointer transform transition-transform hover:scale-105"
-                        >
-                            @php $colors1 = $roleColors[$level1['role']] ?? $roleColors['coordinator']; @endphp
-                            <!-- Card -->
-                            <div class="{{ $colors1['bg'] }} {{ $colors1['border'] }} border-2 rounded-xl p-4 w-56 shadow-sm hover:shadow-md transition-shadow">
-                                <div class="flex items-center space-x-3 mb-2">
-                                    <div class="relative">
-                                        <div class="w-12 h-12 {{ $colors1['avatar'] }} rounded-full flex items-center justify-center text-white font-bold text-lg">
-                                            {{ strtoupper(substr($level1['name'], 0, 1)) }}
+                        @foreach($rootAgent['children'] as $level1)
+                            <!-- Coordinator Card -->
+                            <div wire:click="selectAgent({{ $level1['id'] }})" class="cursor-pointer transform transition-transform hover:scale-105 mb-4">
+                                @php $colors1 = $roleColors[$level1['role']] ?? $roleColors['coordinator']; @endphp
+                                <div class="{{ $colors1['bg'] }} {{ $colors1['border'] }} border-2 rounded-xl p-4 w-56 shadow-sm hover:shadow-md transition-shadow">
+                                    <div class="flex items-center space-x-3 mb-2">
+                                        <div class="relative">
+                                            <div class="w-12 h-12 {{ $colors1['avatar'] }} rounded-full flex items-center justify-center text-white font-bold text-lg">
+                                                {{ strtoupper(substr($level1['name'], 0, 1)) }}
+                                            </div>
+                                            <div class="absolute -bottom-0.5 -right-0.5 w-4 h-4 {{ $statusColors[$level1['status']] ?? 'bg-gray-400' }} rounded-full border-2 border-white dark:border-gray-800 {{ $level1['status'] === 'online' ? 'animate-pulse ring-2' : '' }}"></div>
                                         </div>
-                                        <div class="absolute -bottom-0.5 -right-0.5 w-4 h-4 {{ $statusColors[$level1['status']] ?? 'bg-gray-400' }} rounded-full border-2 border-white dark:border-gray-800 {{ $level1['status'] === 'online' ? 'animate-pulse ring-2' : '' }}"></div>
+                                        <div>
+                                            <div class="font-semibold text-gray-900 dark:text-white">{{ $level1['name'] }}</div>
+                                            <div class="text-xs {{ $colors1['text'] }} uppercase font-medium">{{ $level1['role'] }}</div>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <div class="font-semibold text-gray-900 dark:text-white">{{ $level1['name'] }}</div>
-                                        <div class="text-xs {{ $colors1['text'] }} uppercase font-medium">{{ $level1['role'] }}</div>
-                                    </div>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400 mb-2">{{ $roleDescriptions[$level1['role']] ?? 'Team member' }}</p>
+                                    @if($level1['model'])
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {{ $modelColors[$level1['model']] ?? 'bg-gray-100 text-gray-700' }}">{{ $level1['model'] }}</span>
+                                    @endif
                                 </div>
-                                <p class="text-xs text-gray-600 dark:text-gray-400 mb-2">
-                                    {{ $roleDescriptions[$level1['role']] ?? 'Team member' }}
-                                </p>
-                                @if($level1['model'])
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {{ $modelColors[$level1['model']] ?? 'bg-gray-100 text-gray-700' }}">
-                                        {{ $level1['model'] }}
-                                    </span>
-                                @endif
                             </div>
-                        </div>
 
-                        <!-- Connector Line to Level 2 -->
-                        @if(!empty($level1['children']))
-                            <div class="w-px h-8 bg-gray-300 dark:bg-gray-600"></div>
-                        @endif
+                            <!-- Vertical connector to Level 2 -->
+                            @if(!empty($level1['children']))
+                                <div class="w-0.5 h-8 bg-gray-300 dark:bg-gray-600 mb-4"></div>
+                            @endif
 
-                        <!-- Level 2: Subagents (horizontal) -->
-                        @if(!empty($level1['children']))
-                            <div class="flex items-start space-x-4">
-                                @foreach($level1['children'] as $level2)
-                                    <div class="flex flex-col items-center">
-                                        <!-- Horizontal connector -->
-                                        <div class="w-px h-4 bg-gray-300 dark:bg-gray-600"></div>
-                                        <div
-                                            wire:click="selectAgent({{ $level2['id'] }})"
-                                            class="relative cursor-pointer transform transition-transform hover:scale-105"
-                                        >
-                                            @php $colors2 = $roleColors[$level2['role']] ?? $roleColors['coordinator']; @endphp
-                                            <!-- Smaller Card -->
-                                            <div class="{{ $colors2['bg'] }} {{ $colors2['border'] }} border-2 rounded-lg p-3 w-44 shadow-sm hover:shadow-md transition-shadow">
-                                                <div class="flex items-center space-x-2 mb-1">
-                                                    <div class="relative">
-                                                        <div class="w-8 h-8 {{ $colors2['avatar'] }} rounded-full flex items-center justify-center text-white font-bold text-sm">
-                                                            {{ strtoupper(substr($level2['name'], 0, 1)) }}
+                            <!-- LEVEL 2: Subagents (horizontal row) -->
+                            @if(!empty($level1['children']))
+                                <div class="flex justify-center items-start gap-4">
+                                    @foreach($level1['children'] as $level2)
+                                        <div class="flex flex-col items-center">
+                                            <!-- Vertical connector from above -->
+                                            <div class="w-0.5 h-4 bg-gray-300 dark:bg-gray-600"></div>
+                                            <!-- Subagent Card -->
+                                            <div wire:click="selectAgent({{ $level2['id'] }})" class="cursor-pointer transform transition-transform hover:scale-105">
+                                                @php $colors2 = $roleColors[$level2['role']] ?? $roleColors['coordinator']; @endphp
+                                                <div class="{{ $colors2['bg'] }} {{ $colors2['border'] }} border-2 rounded-lg p-3 w-40 shadow-sm hover:shadow-md transition-shadow">
+                                                    <div class="flex items-center space-x-2 mb-1">
+                                                        <div class="relative">
+                                                            <div class="w-8 h-8 {{ $colors2['avatar'] }} rounded-full flex items-center justify-center text-white font-bold text-sm">
+                                                                {{ strtoupper(substr($level2['name'], 0, 1)) }}
+                                                            </div>
+                                                            <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 {{ $statusColors[$level2['status']] ?? 'bg-gray-400' }} rounded-full border-2 border-white dark:border-gray-800"></div>
                                                         </div>
-                                                        <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 {{ $statusColors[$level2['status']] ?? 'bg-gray-400' }} rounded-full border-2 border-white dark:border-gray-800"></div>
+                                                        <div>
+                                                            <div class="font-medium text-gray-900 dark:text-white text-sm">{{ $level2['name'] }}</div>
+                                                            <div class="text-xs {{ $colors2['text'] }} uppercase">{{ $level2['role'] }}</div>
+                                                        </div>
                                                     </div>
-                                                    <div>
-                                                        <div class="font-medium text-gray-900 dark:text-white text-sm">{{ $level2['name'] }}</div>
-                                                        <div class="text-xs {{ $colors2['text'] }} uppercase">{{ $level2['role'] }}</div>
-                                                    </div>
+                                                    @if($level2['model'])
+                                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium {{ $modelColors[$level2['model']] ?? 'bg-gray-100 text-gray-700' }}">{{ $level2['model'] }}</span>
+                                                    @endif
                                                 </div>
-                                                @if($level2['model'])
-                                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium {{ $modelColors[$level2['model']] ?? 'bg-gray-100 text-gray-700' }}">
-                                                        {{ $level2['model'] }}
-                                                    </span>
-                                                @endif
                                             </div>
                                         </div>
-                                    </div>
-                                @endforeach
-                            </div>
-                        @endif
+                                    @endforeach
+                                </div>
+                            @endif
+                        @endforeach
                     </div>
-                @endforeach
+                @endif
             </div>
         @endforeach
     </div>
 
-    <!-- Selected Agent Details -->
+    <!-- Selected Agent Modal -->
     @if($selectedAgent)
         <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" wire:click="clearSelection">
             <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full mx-4 p-6" wire:click.stop>
