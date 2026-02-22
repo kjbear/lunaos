@@ -216,14 +216,5 @@
     </div>
 
     <!-- Pagination -->
-    @if($tasks->hasPages())
-    <div class="flex items-center justify-between">
-        <div class="text-sm text-[#6b6b80]">
-            Showing {{ $tasks->firstItem() }} to {{ $tasks->lastItem() }} of {{ $tasks->total() }} tasks
-        </div>
-        <div class="flex gap-2">
-            {{ $tasks->links() }}
-        </div>
-    </div>
-    @endif
+    {{ $tasks->links('vendor.pagination.livewire-default') }}
 </div>
