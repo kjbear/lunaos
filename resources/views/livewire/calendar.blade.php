@@ -35,7 +35,7 @@
         <div class="col-span-3">
             <div class="bg-[#1a1a2e] rounded-lg border border-[#2a2a40] overflow-hidden">
                 <!-- Day Headers -->
-                <div class="grid grid-cols-7 border-b border-[#2a2a40]">
+                <div class="grid grid-cols-7 border-b border-[#2a2a40] ml-14">
                     @foreach($weekDays as $day)
                         <div class="p-3 text-center {{ $day['isToday'] ? 'bg-[#7c3aed]/10' : 'bg-[#12121f]' }}">
                             <div class="text-xs text-[#6b6b80] uppercase">{{ $day['dayName'] }}</div>
@@ -47,37 +47,46 @@
                 </div>
 
                 <!-- Time Grid -->
-                <div class="relative" style="height: 600px; overflow-y: auto;">
-                    <!-- Hour Lines -->
-                    <div class="absolute inset-0">
+                <div class="flex" style="height: 660px; overflow-y: auto;">
+                    <!-- Time Labels Column -->
+                    <div class="w-14 flex-shrink-0 bg-[#12121f] border-r border-[#2a2a40]">
                         @for($hour = 8; $hour <= 18; $hour++)
-                            <div class="h-[60px] border-b border-[#1f1f35] relative">
-                                <span class="absolute left-0 -top-2 text-xs text-[#6b6b80] w-12 text-right pr-2">
+                            <div class="h-[60px] border-b border-[#1f1f35] flex items-start justify-end pr-2 pt-0">
+                                <span class="text-xs text-[#6b6b80]">
                                     {{ sprintf('%02d:00', $hour) }}
                                 </span>
                             </div>
                         @endfor
                     </div>
 
-                    <!-- Events Grid -->
-                    <div class="grid grid-cols-7 ml-12 relative">
+                    <!-- Days Grid -->
+                    <div class="flex-1 grid grid-cols-7 relative">
                         @foreach($weekDays as $dayIndex => $day)
-                            <div class="col-span-1 relative" style="height: 660px;">
+                            <div class="relative border-r border-[#1f1f35] last:border-r-0" style="height: 660px;">
+                                <!-- Hour lines -->
+                                @for($hour = 8; $hour <= 18; $hour++)
+                                    <div class="absolute w-full h-[60px] border-b border-[#1f1f35]" style="top: {{ ($hour - 8) * 60 }}px;"></div>
+                                @endfor
+
+                                <!-- Events for this day -->
                                 @php
                                     $dayEvents = $events[$day['date']] ?? [];
                                 @endphp
                                 @foreach($dayEvents as $event)
                                     @php
-                                        $top = (($event['hour'] - 8) * 60) + (int)substr($event['time'], 3, 2);
-                                        $height = min($event['duration'], 60);
+                                        // Calculate position: each hour is 60px, starting at 8am
+                                        $hour = (int) substr($event['time'], 0, 2);
+                                        $minute = (int) substr($event['time'], 3, 2);
+                                        $top = (($hour - 8) * 60) + $minute;
+                                        $height = max($event['duration'], 30); // minimum 30px height
                                     @endphp
                                     <button
                                         wire:click="selectEvent({{ $event['id'] }})"
-                                        class="absolute left-1 right-1 rounded-md p-2 text-xs text-left transition-transform hover:scale-105 event-{{ $event['color'] }}"
-                                        style="top: {{ $top }}px; min-height: {{ $height }}px;"
+                                        class="absolute mx-1 rounded p-1.5 text-xs text-left overflow-hidden transition-transform hover:scale-105 hover:z-10"
+                                        style="top: {{ $top }}px; height: {{ $height }}px; left: 2px; right: 2px;"
                                     >
-                                        <div class="font-medium truncate">{{ $event['title'] }}</div>
-                                        <div class="text-xs opacity-75">{{ $event['time'] }}</div>
+                                        <div class="font-medium truncate event-{{ $event['color'] }}">{{ $event['title'] }}</div>
+                                        <div class="text-[10px] opacity-75">{{ $event['time'] }}</div>
                                     </button>
                                 @endforeach
                             </div>
@@ -92,6 +101,9 @@
             <!-- Mini Month Calendar -->
             <div class="bg-[#1a1a2e] rounded-lg border border-[#2a2a40] p-4">
                 <h3 class="text-sm font-semibold text-[#e4e4f0] mb-3">{{ now()->format('F Y') }}</h3>
+                <div class="grid grid-cols-7 gap-1 text-center text-xs text-[#6b6b80] mb-1">
+                    <div>S</div><div>M</div><div>T</div><div>W</div><div>T</div><div>F</div><div>S</div>
+                </div>
                 <div class="grid grid-cols-7 gap-1 text-center text-xs">
                     @php
                         $monthStart = now()->startOfMonth();
@@ -121,24 +133,20 @@
                 <h3 class="text-sm font-semibold text-[#e4e4f0] mb-3">Event Types</h3>
                 <div class="space-y-2 text-xs">
                     <div class="flex items-center gap-2">
-                        <div class="w-3 h-3 rounded-sm event-cron"></div>
-                        <span class="text-[#a0a0b8]">Cron Jobs</span>
+                        <div class="w-3 h-3 rounded-sm bg-[#ef4444]"></div>
+                        <span class="text-[#a0a0b8]">Deadline</span>
                     </div>
                     <div class="flex items-center gap-2">
-                        <div class="w-3 h-3 rounded-sm event-reminder"></div>
-                        <span class="text-[#a0a0b8]">Reminders</span>
+                        <div class="w-3 h-3 rounded-sm bg-[#f59e0b]"></div>
+                        <span class="text-[#a0a0b8]">Reminder</span>
                     </div>
                     <div class="flex items-center gap-2">
-                        <div class="w-3 h-3 rounded-sm event-calendar"></div>
-                        <span class="text-[#a0a0b8]">Calendar Events</span>
+                        <div class="w-3 h-3 rounded-sm bg-[#10b981]"></div>
+                        <span class="text-[#a0a0b8]">Meeting</span>
                     </div>
                     <div class="flex items-center gap-2">
-                        <div class="w-3 h-3 rounded-sm event-email"></div>
-                        <span class="text-[#a0a0b8]">Email Tasks</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <div class="w-3 h-3 rounded-sm event-task"></div>
-                        <span class="text-[#a0a0b8]">Plane Tasks</span>
+                        <div class="w-3 h-3 rounded-sm bg-[#8b5cf6]"></div>
+                        <span class="text-[#a0a0b8]">Task</span>
                     </div>
                 </div>
             </div>
@@ -165,7 +173,7 @@
                         <span class="text-2xl">{{ $selectedEvent->icon }}</span>
                         <div>
                             <h3 class="font-semibold text-[#e4e4f0]">{{ $selectedEvent->title }}</h3>
-                            <p class="text-xs text-[#6b6b80]">{{ ucfirst($selectedEvent->source_type) }}</p>
+                            <p class="text-xs text-[#6b6b80]">{{ ucfirst($selectedEvent->type) }}</p>
                         </div>
                     </div>
                     <button wire:click="clearSelection" class="p-1 text-[#6b6b80] hover:text-[#e4e4f0]">

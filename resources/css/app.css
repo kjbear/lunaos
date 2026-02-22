@@ -173,6 +173,43 @@ html {
 }
 
 /* Event type colors for calendar */
+.event-cron, .event-deadline {
+    background-color: rgba(239, 68, 68, 0.2);
+    border-left: 3px solid #ef4444;
+    color: #fca5a5;
+}
+
+.event-reminder {
+    background-color: rgba(245, 158, 11, 0.2);
+    border-left: 3px solid #f59e0b;
+    color: #fcd34d;
+}
+
+.event-calendar, .event-meeting {
+    background-color: rgba(16, 185, 129, 0.2);
+    border-left: 3px solid #10b981;
+    color: #6ee7b7;
+}
+
+.event-email {
+    background-color: rgba(59, 130, 246, 0.2);
+    border-left: 3px solid #3b82f6;
+    color: #93c5fd;
+}
+
+.event-task {
+    background-color: rgba(139, 92, 246, 0.2);
+    border-left: 3px solid #8b5cf6;
+    color: #c4b5fd;
+}
+
+.event-default {
+    background-color: rgba(107, 107, 128, 0.2);
+    border-left: 3px solid #6b6b80;
+    color: #a0a0b8;
+}
+
+/* Event type colors for calendar */
 .event-cron {
     background-color: rgba(239, 68, 68, 0.1);
     border-left: 2px solid var(--color-event-cron);

@@ -51,8 +51,8 @@ class ScheduledItem extends Model
     {
         return match($this->type) {
             self::TYPE_REMINDER => 'reminder', // orange
-            self::TYPE_MEETING => 'calendar',  // green
-            self::TYPE_DEADLINE => 'cron',     // red
+            self::TYPE_MEETING => 'meeting',   // green
+            self::TYPE_DEADLINE => 'deadline', // red
             self::TYPE_TASK => 'task',         // purple
             default => 'default',
         };
