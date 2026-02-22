@@ -22,12 +22,23 @@ class DatabaseSeeder extends Seeder
         DB::table('agents')->truncate();
         DB::statement('PRAGMA foreign_keys = ON');
 
-        // Seed agents
+        // Seed agents (hierarchy: Kyle → Luna → Subagents)
+        $kyleId = DB::table('agents')->insertGetId([
+            'name' => 'Kyle', 
+            'role' => 'ceo', 
+            'model' => null, 
+            'status' => 'online', 
+            'parent_id' => null,
+            'created_at' => now(), 
+            'updated_at' => now()
+        ]);
+        
         $lunaId = DB::table('agents')->insertGetId([
             'name' => 'Luna', 
             'role' => 'coordinator', 
             'model' => 'GLM-5', 
-            'status' => 'online', 
+            'status' => 'online',
+            'parent_id' => $kyleId,
             'created_at' => now(), 
             'updated_at' => now()
         ]);
@@ -36,7 +47,28 @@ class DatabaseSeeder extends Seeder
             'name' => 'Builder', 
             'role' => 'code_gen', 
             'model' => 'Dolphin 3.0', 
-            'status' => 'offline', 
+            'status' => 'offline',
+            'parent_id' => $lunaId,
+            'created_at' => now(), 
+            'updated_at' => now()
+        ]);
+        
+        DB::table('agents')->insert([
+            'name' => 'Scribe', 
+            'role' => 'docs', 
+            'model' => 'Dolphin 3.0', 
+            'status' => 'offline',
+            'parent_id' => $lunaId,
+            'created_at' => now(), 
+            'updated_at' => now()
+        ]);
+        
+        DB::table('agents')->insert([
+            'name' => 'Tester', 
+            'role' => 'qa', 
+            'model' => 'Dolphin 3.0', 
+            'status' => 'offline',
+            'parent_id' => $lunaId,
             'created_at' => now(), 
             'updated_at' => now()
         ]);
