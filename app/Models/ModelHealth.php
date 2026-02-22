@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class ModelHealth extends Model
 {
+    protected $table = 'model_health';
+
     public $timestamps = false;
 
     protected $fillable = [
