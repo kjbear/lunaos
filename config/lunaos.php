@@ -3,23 +3,11 @@
 return [
     /*
     |--------------------------------------------------------------------------
-    | LunaOS Configuration
+    | Workspace Path
     |--------------------------------------------------------------------------
     |
-    | Configuration values for the LunaOS dashboard application.
+    | The path to the workspace directory containing configuration files.
     |
     */
-
-    // HTTP Basic Auth credentials
-    'auth_username' => env('LUNAOS_AUTH_USERNAME', 'admin'),
-    'auth_password' => env('LUNAOS_AUTH_PASSWORD', 'changeme'),
-
-    // Application settings
-    'name' => env('APP_NAME', 'LunaOS'),
-    'version' => '0.1.0',
-
-    // Dashboard settings
-    'default_timezone' => env('LUNAOS_TIMEZONE', 'America/New_York'),
-    'date_format' => 'M j, Y',
-    'time_format' => 'g:i A',
+    'workspace_path' => env('LUNAOS_WORKSPACE_PATH', base_path('../')),
 ];

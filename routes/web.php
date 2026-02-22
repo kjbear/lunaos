@@ -4,9 +4,11 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\StatusController;
 use App\Http\Controllers\TaskManagerController;
 use App\Http\Controllers\OrgChartController;
+use App\Http\Controllers\WorkspaceController;
 use App\Livewire\Counter;
 use App\Livewire\TaskManager;
 use App\Livewire\OrgChart;
+use App\Livewire\WorkspaceViewer;
 
 // Web routes
 Route::get('/', function () {
@@ -18,6 +20,7 @@ Route::get('/tasks', TaskManager::class)->name('tasks');
 Route::get('/org-chart', function () {
     return view('org-chart');
 })->name('org-chart');
+Route::get('/workspace', WorkspaceViewer::class)->name('workspace');
 
 // API routes (unprotected for HTMX)
 Route::prefix('api')->name('api.')->group(function () {
@@ -34,4 +37,8 @@ Route::prefix('api')->name('api.')->group(function () {
     Route::get('/org-chart/stats', [OrgChartController::class, 'stats'])->name('org-chart.stats');
     Route::get('/org-chart/health', [OrgChartController::class, 'health'])->name('org-chart.health');
     Route::get('/org-chart/{agent}', [OrgChartController::class, 'show'])->name('org-chart.show');
+
+    // Workspace API
+    Route::get('/workspace', [WorkspaceController::class, 'index'])->name('workspace.index');
+    Route::get('/workspace/{path}', [WorkspaceController::class, 'show'])->name('workspace.show')->where('path', '.*');
 });
