@@ -14,6 +14,9 @@ return [
     // OpenClaw Gateway URL (local instance)
     'openclaw_url' => env('OPENCLAW_URL', 'http://127.0.0.1:18789'),
 
+    // LunaOS Base URL (Herd local domain)
+    'base_url' => env('LUNAOS_URL', 'http://lunaos.test'),
+
     // OpenClaw Gateway auth token
     'openclaw_token' => env('OPENCLAW_TOKEN', ''),
 
