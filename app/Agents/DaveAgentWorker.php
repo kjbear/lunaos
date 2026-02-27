@@ -10,22 +10,23 @@ use Laravel\Ai\Enums\Lab;
 /**
  * Dave - PHP Development Agent Worker
  * 
- * Handles all PHP/Laravel development tasks using Qwen3-Coder via Ollama Cloud.
+ * Worker-tier agent responsible for:
+ * - Writing PHP/Laravel code
+ * - Creating Livewire components
+ * - Building API endpoints
+ * - Refactoring existing code
+ * - Fixing bugs
  * 
- * Workflow:
- * 1. Poll for tasks assigned to 'dave'
- * 2. Spawn DaveCoder agent with Qwen3-Coder model
- * 3. Pass task description to generate code
- * 4. DaveCoder returns structured JSON with files
- * 5. Write files to workspace
- * 6. Git commit and create PR
- * 7. Advance workflow to QA (Sam)
+ * Uses Qwen3-Coder via Ollama Cloud for code generation
+ * Polls every 30 seconds for development tasks
  */
 class DaveAgentWorker extends AgentWorker
 {
     public string $name = 'dave';
     
-    public int $pollInterval = 30; // 30 seconds
+    public AgentType $type = AgentType::WORKER;
+    
+    public int $pollInterval = 30; // 30 seconds (fast polling for execution)
     
     public array $capabilities = ['php', 'laravel', 'livewire', 'blade', 'api', 'refactor', 'bugfix'];
     
