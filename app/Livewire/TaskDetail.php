@@ -9,14 +9,24 @@ use App\Models\AgentActivity;
 
 class TaskDetail extends Component
 {
-    public Task $task;
+    public ?Task $task = null;
     public $activities = [];
     public $agent = null;
 
-    public function mount(Task|int $task)
+    public function mount($task = null)
     {
-        // Handle both route model binding (Task object) and plain int
-        $this->task = $task instanceof Task ? $task : Task::findOrFail($task);
+        // Handle string ID or Task model from route binding
+        if (is_string($task)) {
+            $this->task = Task::findOrFail($task);
+        } elseif ($task instanceof Task) {
+            $this->task = $task;
+        } elseif (request()->route('task')) {
+            $routeTask = request()->route('task');
+            $this->task = $routeTask instanceof Task ? $routeTask : Task::findOrFail($routeTask);
+        } else {
+            abort(404, 'Task not found');
+        }
+        
         $this->loadActivities();
         $this->loadAgent();
     }
@@ -30,14 +40,9 @@ class TaskDetail extends Component
 
     public function loadAgent(): void
     {
-        if ($this->task->assigned_to) {
+        if ($this->task && $this->task->assigned_to) {
             $this->agent = Agent::where('name', $this->task->assigned_to)->first();
         }
-    }
-
-    public function getTaskTitleProperty(): string
-    {
-        return $this->task->title;
     }
 
     public function getStatusBadgeClassProperty(): string
