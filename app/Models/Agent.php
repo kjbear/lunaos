@@ -5,11 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class Agent extends Model
 {
     protected $fillable = [
         'name',
+        'type',
         'role',
         'model',
         'provider',
@@ -19,11 +21,14 @@ class Agent extends Model
         'status',
         'parent_id',
         'emoji',
+        'runtime_location',
+        'last_location_check',
     ];
 
     protected $casts = [
         'status' => 'string',
         'model_settings' => 'array',
+        'last_location_check' => 'datetime',
     ];
 
     /**
@@ -41,7 +46,32 @@ class Agent extends Model
         'emoji' => '🤖',
         'avatar' => '🤖',
         'provider' => 'ollama',
+        'runtime_location' => 'php', // Default to PHP/Laravel
     ];
+
+    /**
+     * Get runtime location badge class for UI display.
+     */
+    public function getRuntimeLocationBadgeClassAttribute(): string
+    {
+        return match($this->runtime_location) {
+            'openclaw' => 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',
+            'php' => 'bg-purple-500/20 text-purple-400 border-purple-500/30',
+            default => 'bg-slate-500/20 text-slate-400 border-slate-500/30',
+        };
+    }
+
+    /**
+     * Get runtime location display label.
+     */
+    public function getRuntimeLocationLabelAttribute(): string
+    {
+        return match($this->runtime_location) {
+            'openclaw' => '🌐 OpenClaw Gateway',
+            'php' => '⚡ PHP/Laravel',
+            default => 'Unknown',
+        };
+    }
 
     /**
      * Get the parent agent.

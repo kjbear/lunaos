@@ -34,7 +34,10 @@
             </div>
             <div>
                 <div class="text-white font-semibold">{{ ucfirst($agent->name) }}</div>
-                <div class="text-sm text-slate-400">{{ $agent->title }} • {{ $agent->model }} @ {{ $agent->provider }}</div>
+                <div class="text-sm text-slate-400 mb-2">{{ $agent->title ?? 'Agent' }} • {{ $agent->model }} @ {{ $agent->provider }}</div>
+                <span class="inline-flex items-center px-2 py-1 rounded text-xs font-semibold border {{ $agent->runtime_location_badge_class }}">
+                    {{ $agent->runtime_location_label }}
+                </span>
             </div>
         </div>
     </div>

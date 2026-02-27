@@ -112,12 +112,21 @@
                         <!-- Dave -->
                         <div class="flex flex-col items-center">
                             <div style="background: linear-gradient(to bottom, rgb(34,211,238), rgba(34,211,238,0.5));" class="w-0.5 h-8 mb-4"></div>
+                            @php
+                                $dave = \App\Models\Agent::where('name', 'dave')->first();
+                                $runtimeClass = $dave?->runtime_location_badge_class ?? 'bg-slate-500/20 text-slate-400 border-slate-500/30';
+                                $runtimeLabel = $dave?->runtime_location_label ?? 'Unknown';
+                            @endphp
                             <div class="group">
                                 <div class="relative bg-[#252542] border-2 border-cyan-400 rounded-xl p-4 w-40 text-center hover:border-cyan-300 hover:shadow-lg hover:shadow-cyan-500/20 transition-all cursor-pointer">
                                     <div class="text-4xl mb-2">💻</div>
                                     <div class="font-semibold text-white mb-1">Dave</div>
                                     <div class="text-xs text-slate-400 mb-2">PHP Coder</div>
-                                    <span style="background: rgba(34,211,238,0.2);" class="inline-flex items-center px-2 py-0.5 rounded text-xs border border-cyan-400 text-cyan-200">Dolphin 3.0</span>
+                                    <span style="background: rgba(34,211,238,0.2);" class="inline-flex items-center px-2 py-0.5 rounded text-xs border border-cyan-400 text-cyan-200 mb-2">Dolphin 3.0</span>
+                                    <br>
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs border {{ $runtimeClass }}">
+                                        {{ $runtimeLabel }}
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -125,12 +134,21 @@
                         <!-- Maya -->
                         <div class="flex flex-col items-center">
                             <div style="background: linear-gradient(to bottom, rgb(34,211,238), rgba(34,211,238,0.5));" class="w-0.5 h-8 mb-4"></div>
+                            @php
+                                $maya = \App\Models\Agent::where('name', 'maya')->first();
+                                $mayaRuntimeClass = $maya?->runtime_location_badge_class ?? 'bg-slate-500/20 text-slate-400 border-slate-500/30';
+                                $mayaRuntimeLabel = $maya?->runtime_location_label ?? 'Unknown';
+                            @endphp
                             <div class="group">
                                 <div class="relative bg-[#252542] border-2 border-pink-400 rounded-xl p-4 w-40 text-center hover:border-pink-300 hover:shadow-lg hover:shadow-pink-500/20 transition-all cursor-pointer">
                                     <div class="text-4xl mb-2">🎨</div>
                                     <div class="font-semibold text-white mb-1">Maya</div>
                                     <div class="text-xs text-slate-400 mb-2">Frontend</div>
-                                    <span style="background: rgba(34,211,238,0.2);" class="inline-flex items-center px-2 py-0.5 rounded text-xs border border-cyan-400 text-cyan-200">Dolphin 3.0</span>
+                                    <span style="background: rgba(34,211,238,0.2);" class="inline-flex items-center px-2 py-0.5 rounded text-xs border border-cyan-400 text-cyan-200 mb-2">Dolphin 3.0</span>
+                                    <br>
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs border {{ $mayaRuntimeClass }}">
+                                        {{ $mayaRuntimeLabel }}
+                                    </span>
                                 </div>
                             </div>
                         </div>
