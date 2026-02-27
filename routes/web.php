@@ -52,6 +52,9 @@ Route::get('/hr/{id}/workspace', function ($id) {
     return view('hr-workspace', ['id' => $id]);
 })->name('hr.workspace');
 
+// Agent Management
+Route::get('/agents', App\Livewire\Agents\AgentList::class)->name('agents.index');
+
 // Projects Module
 Route::view('/projects', 'projects')->name('projects');
 Route::get('/projects/{id}', function ($id) {
