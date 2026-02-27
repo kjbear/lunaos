@@ -23,11 +23,15 @@ class Agent extends Model
         'emoji',
         'runtime_location',
         'last_location_check',
+        'strategy_class',
+        'step_filter',
+        'workflow_config',
     ];
 
     protected $casts = [
         'status' => 'string',
         'model_settings' => 'array',
+        'workflow_config' => 'array',
         'last_location_check' => 'datetime',
     ];
 
