@@ -26,8 +26,9 @@ Route::get('/counter', Counter::class)->name('counter');
 Route::view('/mission-control', 'pages.mission-control-original')->name('mission-control.original');
 Route::view('/mission-control-polished', 'pages.mission-control-polished')->name('mission-control.polished');
 
-// Redirect /tasks to original mission control
+// Task routes
 Route::get('/tasks', fn() => redirect()->route('mission-control.polished'))->name('tasks');
+Route::get('/tasks/{task}', \App\Livewire\TaskDetail::class)->name('tasks.show');
 Route::get('/org-chart', function () {
     return view('org-chart');
 })->name('org-chart');
