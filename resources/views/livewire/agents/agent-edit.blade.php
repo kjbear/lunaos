@@ -1,10 +1,5 @@
-@extends('components.layouts.app')
-
-@section('title', 'Edit Agent - LunaOS')
-
-@section('content')
 <div class="max-w-4xl mx-auto">
-    <!-- Header -->
+    <!-- Header with Gradient -->
     <div class="mb-8">
         <div class="flex items-center gap-4 mb-4">
             <a href="{{ route('agents.index') }}" class="text-slate-400 hover:text-purple-400 transition-colors">
@@ -15,7 +10,7 @@
             <div class="flex items-center gap-4">
                 <span class="text-4xl">{{ $agent->emoji ?? '🤖' }}</span>
                 <div>
-                    <h1 class="text-3xl font-bold text-white">Edit Agent: {{ ucfirst($agent->name) }}</h1>
+                    <h1 class="text-3xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">Edit Agent: {{ ucfirst($agent->name) }}</h1>
                     <p class="text-slate-400">{{ $agent->role }}</p>
                 </div>
             </div>
@@ -38,9 +33,9 @@
     <!-- Edit Form -->
     <form wire:submit="save" class="space-y-6">
         <!-- Basic Info Card -->
-        <div class="bg-slate-800/50 rounded-2xl border border-white/10 p-6">
+        <div class="bg-gradient-to-br from-[#1a1a2e] to-[#12121f] rounded-2xl border border-[#2a2a40]/50 p-6 shadow-xl">
             <h2 class="text-xl font-bold text-white mb-6 flex items-center gap-3">
-                <span class="w-8 h-8 rounded-lg bg-purple-600/20 flex items-center justify-center text-purple-400">📝</span>
+                <span class="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center text-purple-400 border border-purple-500/30">📝</span>
                 Basic Information
             </h2>
             
@@ -74,9 +69,9 @@
         </div>
 
         <!-- Strategy & Workflow Card -->
-        <div class="bg-slate-800/50 rounded-2xl border border-white/10 p-6">
+        <div class="bg-gradient-to-br from-[#1a1a2e] to-[#12121f] rounded-2xl border border-[#2a2a40]/50 p-6 shadow-xl">
             <h2 class="text-xl font-bold text-white mb-6 flex items-center gap-3">
-                <span class="w-8 h-8 rounded-lg bg-blue-600/20 flex items-center justify-center text-blue-400">⚙️</span>
+                <span class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500/20 to-cyan-500/20 flex items-center justify-center text-blue-400 border border-blue-500/30">⚙️</span>
                 Strategy & Workflow
             </h2>
             
@@ -107,9 +102,9 @@
         </div>
 
         <!-- AI Model Configuration Card -->
-        <div class="bg-slate-800/50 rounded-2xl border border-white/10 p-6">
+        <div class="bg-gradient-to-br from-[#1a1a2e] to-[#12121f] rounded-2xl border border-[#2a2a40]/50 p-6 shadow-xl">
             <h2 class="text-xl font-bold text-white mb-6 flex items-center gap-3">
-                <span class="w-8 h-8 rounded-lg bg-green-600/20 flex items-center justify-center text-green-400">🧠</span>
+                <span class="w-8 h-8 rounded-lg bg-gradient-to-br from-green-500/20 to-emerald-500/20 flex items-center justify-center text-green-400 border border-green-500/30">🧠</span>
                 AI Model Configuration
             </h2>
             
@@ -159,9 +154,9 @@
         </div>
 
         <!-- Runtime & Status Card -->
-        <div class="bg-slate-800/50 rounded-2xl border border-white/10 p-6">
+        <div class="bg-gradient-to-br from-[#1a1a2e] to-[#12121f] rounded-2xl border border-[#2a2a40]/50 p-6 shadow-xl">
             <h2 class="text-xl font-bold text-white mb-6 flex items-center gap-3">
-                <span class="w-8 h-8 rounded-lg bg-amber-600/20 flex items-center justify-center text-amber-400">🖥️</span>
+                <span class="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500/20 to-orange-500/20 flex items-center justify-center text-amber-400 border border-amber-500/30">🖥️</span>
                 Runtime & Status
             </h2>
             
@@ -184,9 +179,9 @@
         </div>
 
         <!-- System Prompt Card -->
-        <div class="bg-slate-800/50 rounded-2xl border border-white/10 p-6">
+        <div class="bg-gradient-to-br from-[#1a1a2e] to-[#12121f] rounded-2xl border border-[#2a2a40]/50 p-6 shadow-xl">
             <h2 class="text-xl font-bold text-white mb-6 flex items-center gap-3">
-                <span class="w-8 h-8 rounded-lg bg-pink-600/20 flex items-center justify-center text-pink-400">💬</span>
+                <span class="w-8 h-8 rounded-lg bg-gradient-to-br from-pink-500/20 to-rose-500/20 flex items-center justify-center text-pink-400 border border-pink-500/30">💬</span>
                 System Prompt
             </h2>
             
@@ -215,4 +210,3 @@
         </div>
     </form>
 </div>
-@endsection
