@@ -15,9 +15,10 @@ class TaskDetail extends Component
     public $activities = [];
     public $agent = null;
 
-    public function mount(int $task)
+    public function mount(Task|int $task)
     {
-        $this->task = Task::findOrFail($task);
+        // Handle both route model binding (Task object) and plain int
+        $this->task = $task instanceof Task ? $task : Task::findOrFail($task);
         $this->loadActivities();
         $this->loadAgent();
     }
