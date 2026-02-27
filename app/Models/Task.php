@@ -79,6 +79,14 @@ class Task extends Model
     }
     
     /**
+     * Get the agent assigned to this task.
+     */
+    public function agent(): BelongsTo
+    {
+        return $this->belongsTo(Agent::class, 'assigned_to', 'name');
+    }
+
+    /**
      * Get the repository for this task.
      */
     public function repository(): BelongsTo
