@@ -26,12 +26,15 @@ class Agent extends Model
         'strategy_class',
         'step_filter',
         'workflow_config',
+        'skill_doc_path',
+        'skill_metadata',
     ];
 
     protected $casts = [
         'status' => 'string',
         'model_settings' => 'array',
         'workflow_config' => 'array',
+        'skill_metadata' => 'array',
         'last_location_check' => 'datetime',
     ];
 

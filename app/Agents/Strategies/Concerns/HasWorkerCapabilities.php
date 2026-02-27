@@ -20,19 +20,76 @@ trait HasWorkerCapabilities
 {
     /**
      * Call AI agent with configured model and return parsed response.
+     * Includes skill doc context if configured.
      */
     protected function callAI(Agent $agent, string $prompt, int $maxTokens = 1000): string
     {
+        // Enhance prompt with skill doc if configured
+        $enhancedPrompt = $this->buildEnhancedPrompt($agent, $prompt);
+        
         $provider = $this->mapProvider($agent->provider);
         
         $response = Ai::agent()
             ->withLab($provider)
             ->withModel($agent->model)
-            ->withSystemPrompt($agent->system_prompt ?? '')
+            ->withSystemPrompt($enhancedPrompt)
             ->withMaxTokens($maxTokens)
-            ->run($prompt);
+            ->run('');
         
         return (string) $response;
+    }
+    
+    /**
+     * Build enhanced prompt with skill doc context.
+     */
+    protected function buildEnhancedPrompt(Agent $agent, string $taskPrompt): string
+    {
+        $systemPrompt = $agent->system_prompt ?? '';
+        
+        // Append skill doc if configured
+        if ($agent->skill_doc_path) {
+            $skillDoc = $this->loadSkillDoc($agent->skill_doc_path);
+            if ($skillDoc) {
+                $systemPrompt .= "\n\n### SKILL DEFINITION\n{$skillDoc}";
+            }
+        }
+        
+        // Append skill metadata constraints if present
+        if (!empty($agent->skill_metadata['constraints'])) {
+            $constraints = $agent->skill_metadata['constraints'];
+            $systemPrompt .= "\n\n### CONSTRAINTS\n";
+            
+            if (!empty($constraints['must_do'])) {
+                $systemPrompt .= "\n**MUST DO:**\n";
+                foreach ($constraints['must_do'] as $rule) {
+                    $systemPrompt .= "- {$rule}\n";
+                }
+            }
+            
+            if (!empty($constraints['must_not'])) {
+                $systemPrompt .= "\n**MUST NOT DO:**\n";
+                foreach ($constraints['must_not'] as $rule) {
+                    $systemPrompt .= "- {$rule}\n";
+                }
+            }
+        }
+        
+        return "{$systemPrompt}\n\n### TASK\n{$taskPrompt}";
+    }
+    
+    /**
+     * Load skill doc from filesystem.
+     */
+    protected function loadSkillDoc(string $skillDocPath): ?string
+    {
+        $fullPath = base_path($skillDocPath);
+        
+        if (!file_exists($fullPath)) {
+            \Illuminate\Support\Facades\Log::warning("Skill doc not found: {$skillDocPath}");
+            return null;
+        }
+        
+        return file_get_contents($fullPath);
     }
     
     /**
