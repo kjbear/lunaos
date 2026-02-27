@@ -13,6 +13,7 @@ use App\Livewire\KanbanBoard;
 use App\Livewire\HR\PersonaWorkspaceViewer;
 use App\Livewire\Projects\ProjectsIndex;
 use App\Livewire\Projects\ProjectRequirements;
+use App\Livewire\Agents\AgentList;
 use App\Livewire\Board\ExecutiveBoard;
 
 // Web routes
@@ -53,7 +54,9 @@ Route::get('/hr/{id}/workspace', function ($id) {
 })->name('hr.workspace');
 
 // Agent Management
-Route::get('/agents', App\Livewire\Agents\AgentList::class)->name('agents.index');
+Route::view('/agents', 'agents')->name('agents.index');
+Route::get('/agents/create', App\Livewire\Agents\AgentCreate::class)->name('agents.create');
+Route::get('/agents/{id}/edit', App\Livewire\Agents\AgentEdit::class)->name('agents.edit');
 
 // Projects Module
 Route::view('/projects', 'projects')->name('projects');

@@ -28,6 +28,10 @@ class Agent extends Model
         'workflow_config',
         'skill_doc_path',
         'skill_metadata',
+        'is_online',
+        'capabilities',
+        'settings',
+        'title',
     ];
 
     protected $casts = [
