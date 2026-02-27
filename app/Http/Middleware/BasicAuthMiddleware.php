@@ -15,8 +15,15 @@ class BasicAuthMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Skip authentication for health check endpoints
-        if ($request->is('up') || $request->is('health') || $request->is('api/health') || $request->is('api/status')) {
+        // Skip authentication for health check and public web views
+        if ($request->is('up') || 
+            $request->is('health') || 
+            $request->is('api/health') || 
+            $request->is('api/status') ||
+            $request->is('kanban') ||
+            $request->is('docs') ||
+            $request->is('docs/*') ||
+            $request->is('/')) {
             return $next($request);
         }
 
@@ -37,10 +44,17 @@ class BasicAuthMiddleware
         }
 
         // Return 401 Unauthorized with Basic Auth header
-        return response()->json([
-            'error' => 'Unauthorized',
-            'message' => 'Valid credentials required',
-        ], 401, [
+        // For HTML requests, show a login prompt; for API/JSON, return JSON error
+        if ($request->expectsJson() || $request->is('api/*')) {
+            return response()->json([
+                'error' => 'Unauthorized',
+                'message' => 'Valid credentials required',
+            ], 401, [
+                'WWW-Authenticate' => 'Basic realm="LunaOS"',
+            ]);
+        }
+        
+        return response('Unauthorized', 401, [
             'WWW-Authenticate' => 'Basic realm="LunaOS"',
         ]);
     }

@@ -2,11 +2,14 @@
 
 namespace App\Livewire;
 
+use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\Task;
 use App\Models\Agent;
+use App\Models\ActivityLog;
 
+#[Layout('layouts.app')]
 class TaskManager extends Component
 {
     use WithPagination;
@@ -29,11 +32,26 @@ class TaskManager extends Component
     // Pagination
     public int $perPage = 20;
 
+    // Highlight from search
+    public ?int $highlight = null;
+    
+    // Modal
+    public bool $showModal = false;
+    public ?int $selectedTaskId = null;
+    public $selectedTask = null;
+    public $taskActivities = [];
+
     protected $listeners = ['refreshTasks' => 'refresh'];
 
     public function mount(): void
     {
         $this->lastRefreshed = now()->format('H:i:s');
+        $this->highlight = request()->query('highlight');
+        
+        // Open task from query parameter
+        if (request()->query('task')) {
+            $this->showTask((int) request()->query('task'));
+        }
     }
 
     public function updated($property): void
@@ -113,6 +131,54 @@ class TaskManager extends Component
         $query->orderBy($this->sortField, $this->sortDirection);
 
         return $query->paginate($this->perPage);
+    }
+
+    /**
+     * Show task detail modal
+     */
+    public function showTask(int $id): void
+    {
+        $this->selectedTaskId = $id;
+        $this->selectedTask = Task::with('agent')->findOrFail($id);
+        $this->taskActivities = $this->getRelatedActivities($this->selectedTask);
+        $this->showModal = true;
+    }
+
+    /**
+     * Close task detail modal
+     */
+    public function closeModal(): void
+    {
+        $this->showModal = false;
+        $this->selectedTaskId = null;
+        $this->selectedTask = null;
+        $this->taskActivities = [];
+    }
+
+    /**
+     * Get activities related to this task
+     */
+    private function getRelatedActivities(Task $task): array
+    {
+        // Look for activities from the same agent within the task timeframe
+        $query = ActivityLog::query()
+            ->where('agent', $task->agent->name ?? 'Luna')
+            ->orderBy('created_at', 'desc');
+
+        // If task has started_at, use that as a starting point
+        if ($task->started_at) {
+            $query->where('created_at', '>=', $task->started_at);
+        } else {
+            // Otherwise, get activities from the task creation date
+            $query->where('created_at', '>=', $task->created_at);
+        }
+
+        // If task is completed, limit to activities before completion
+        if ($task->completed_at) {
+            $query->where('created_at', '<=', $task->completed_at);
+        }
+
+        return $query->limit(20)->get()->toArray();
     }
 
     public function render()

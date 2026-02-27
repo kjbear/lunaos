@@ -43,6 +43,20 @@ return [
             'transaction_mode' => 'DEFERRED',
         ],
 
+        'sqlite-projects' => [
+            'driver' => 'sqlite',
+            'database' => '/Users/kobear/.openclaw/workspace/projects.db',
+            'prefix' => '',
+            'foreign_key_constraints' => false,
+        ],
+
+        'sqlite-activity' => [
+            'driver' => 'sqlite',
+            'database' => '/Users/kobear/.openclaw/workspace/activity.db',
+            'prefix' => '',
+            'foreign_key_constraints' => false,
+        ],
+
         'mysql' => [
             'driver' => 'mysql',
             'url' => env('DB_URL'),

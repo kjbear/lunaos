@@ -1,7 +1,7 @@
-@extends('layouts.app')
+@extends('components.layouts.app')
 
-@section('title', 'Tasks')
+@section('title', 'Mission Control - Polished')
 
 @section('content')
-<livewire:task-manager />
+<livewire:mission-control-polished />
 @endsection

@@ -1,6 +1,6 @@
-@extends('layouts.app')
+@extends('components.layouts.app')
 
-@section('title', 'Standup')
+@section('title', 'Team Standup')
 
 @section('content')
 <livewire:standup-recorder />

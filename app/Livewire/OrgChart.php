@@ -3,70 +3,110 @@
 namespace App\Livewire;
 
 use Livewire\Component;
-use App\Models\Agent;
-use App\Models\ModelHealth;
 
 class OrgChart extends Component
 {
-    public $agents;
-    public $tree;
-    public $selectedAgent = null;
-    public $modelHealth = [];
-    public $stats = [];
-
-    protected $listeners = ['refreshOrgChart' => '$refresh'];
+    public array $team = [];
+    public ?array $selectedAgent = null;
 
     public function mount(): void
     {
-        $this->loadData();
+        $this->loadTeam();
     }
 
-    public function loadData(): void
+    public function loadTeam(): void
     {
-        // Build tree
-        $this->tree = $this->buildTree();
-        $this->agents = Agent::with('children')->get();
-
-        // Model health
-        $this->modelHealth = ModelHealth::where('checked_at', '>=', now()->subMinutes(30))
-            ->get()
-            ->keyBy('model');
-
-        // Stats
-        $this->stats = [
-            'total' => Agent::count(),
-            'online' => Agent::online()->count(),
-            'offline' => Agent::offline()->count(),
+        $this->team = [
+            // Depth 0: Luna (Main Assistant)
+            [
+                'id' => 'main',
+                'name' => 'Luna',
+                'role' => 'Main Assistant',
+                'model' => 'GLM-5',
+                'avatar' => '🌙',
+                'depth' => 0,
+                'children' => [
+                    // Depth 1: Project Manager
+                    [
+                        'id' => 'pm',
+                        'name' => 'Jordan',
+                        'role' => 'Project Manager',
+                        'model' => 'Dolphin 3.0',
+                        'avatar' => '📋',
+                        'depth' => 1,
+                        'children' => [
+                            // Depth 2: Specialists
+                            [
+                                'id' => 'dave',
+                                'name' => 'Dave',
+                                'role' => 'PHP Coder',
+                                'model' => 'Dolphin 3.0',
+                                'avatar' => '💻',
+                                'depth' => 2,
+                                'children' => [],
+                            ],
+                            [
+                                'id' => 'maya',
+                                'name' => 'Maya',
+                                'role' => 'Frontend',
+                                'model' => 'Dolphin 3.0',
+                                'avatar' => '🎨',
+                                'depth' => 2,
+                                'children' => [],
+                            ],
+                            [
+                                'id' => 'chen',
+                                'name' => 'Chen',
+                                'role' => 'DevOps',
+                                'model' => 'Dolphin 3.0',
+                                'avatar' => '🔧',
+                                'depth' => 2,
+                                'children' => [],
+                            ],
+                            [
+                                'id' => 'sam',
+                                'name' => 'Sam',
+                                'role' => 'Test Engineer',
+                                'model' => 'Dolphin 3.0',
+                                'avatar' => '✅',
+                                'depth' => 2,
+                                'children' => [],
+                            ],
+                            [
+                                'id' => 'alex',
+                                'name' => 'Alex',
+                                'role' => 'API Architect',
+                                'model' => 'Dolphin 3.0',
+                                'avatar' => '🔌',
+                                'depth' => 2,
+                                'children' => [],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
         ];
     }
 
-    protected function buildTree(): array
+    public function selectAgent(string $agentId): void
     {
-        $agents = Agent::with('children')->whereNull('parent_id')->get();
-        return $agents->map(fn ($agent) => $this->formatAgent($agent))->toArray();
+        $this->selectedAgent = $this->findAgent($agentId, $this->team);
     }
 
-    protected function formatAgent(Agent $agent): array
+    protected function findAgent(string $id, array $agents): ?array
     {
-        return [
-            'id' => $agent->id,
-            'name' => $agent->name,
-            'role' => $agent->role,
-            'model' => $agent->model,
-            'status' => $agent->status,
-            'children' => $agent->children->map(fn ($child) => $this->formatAgent($child))->toArray(),
-        ];
-    }
-
-    public function selectAgent(int $agentId): void
-    {
-        $this->selectedAgent = Agent::with(['parent', 'children', 'tasks' => fn ($q) => $q->latest()->limit(5)])
-            ->find($agentId);
-    }
-
-    public function clearSelection(): void
-    {
-        $this->selectedAgent = null;
+        foreach ($agents as $agent) {
+            if ($agent['id'] === $id) {
+                return $agent;
+            }
+            if (!empty($agent['children'])) {
+                $found = $this->findAgent($id, $agent['children']);
+                if ($found) {
+                    return $found;
+                }
+            }
+        }
+        return null;
     }
 
     public function render()

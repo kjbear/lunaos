@@ -33,6 +33,11 @@ class Standup extends Model
         return $this->hasMany(StandupActionItem::class)->orderBy('created_at');
     }
 
+    public function agentUpdates(): HasMany
+    {
+        return $this->hasMany(AgentUpdate::class)->orderBy('order');
+    }
+
     public function scopeCompleted($query)
     {
         return $query->where('status', self::STATUS_COMPLETED);

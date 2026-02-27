@@ -3,120 +3,107 @@
 namespace App\Livewire;
 
 use Livewire\Component;
-use App\Models\ScheduledItem;
 use Carbon\Carbon;
 
 class Calendar extends Component
 {
-    public string $currentWeekStart;
+    public int $currentMonth;
+    public int $currentYear;
+    public array $days = [];
     public array $events = [];
-    public array $weekDays = [];
-    public ?int $selectedEventId = null;
+    public ?int $selectedDay = null;
 
     public function mount(): void
     {
-        $this->currentWeekStart = Carbon::now()->startOfWeek()->format('Y-m-d');
-        $this->loadWeek();
+        $today = Carbon::now();
+        $this->currentMonth = $today->month;
+        $this->currentYear = $today->year;
+        $this->loadMonth();
     }
 
-    public function loadWeek(): void
+    public function loadMonth(): void
     {
-        $startOfWeek = Carbon::parse($this->currentWeekStart);
-        $endOfWeek = $startOfWeek->copy()->endOfWeek();
+        $firstDay = Carbon::create($this->currentYear, $this->currentMonth, 1);
+        $lastDay = $firstDay->copy()->endOfMonth();
+        $startGrid = $firstDay->copy()->startOfWeek();
+        $endGrid = $lastDay->copy()->endOfWeek();
+
+        // Sample events (no database dependency)
+        $this->events = [
+            [
+                [
+                    'id' => 1,
+                    'title' => 'Team Standup',
+                    'date' => Carbon::now()->format('Y-m-d'),
+                    'time' => '10:00',
+                    'type' => 'standup',
+                    'description' => 'Daily team sync',
+                ],
+                [
+                    'id' => 2,
+                    'title' => 'LunaOS Sprint Review',
+                    'date' => Carbon::now()->format('Y-m-d'),
+                    'time' => '14:00',
+                    'type' => 'meeting',
+                    'description' => 'Review UI redesign',
+                ],
+            ],
+        ];
+
+        // Generate calendar grid
+        $this->days = [];
+        $currentDay = $startGrid->copy();
         
-        // Generate week days
-        $this->weekDays = [];
-        for ($i = 0; $i < 7; $i++) {
-            $day = $startOfWeek->copy()->addDays($i);
-            $this->weekDays[] = [
-                'date' => $day->format('Y-m-d'),
-                'dayName' => $day->format('D'),
-                'dayNum' => $day->format('j'),
-                'month' => $day->format('M'),
-                'isToday' => $day->isToday(),
+        while ($currentDay <= $endGrid) {
+            $dayEvents = [];
+            foreach ($this->events[0] ?? [] as $event) {
+                if (Carbon::parse($event['date'])->format('j-n-Y') === $currentDay->format('j-n-Y')) {
+                    $dayEvents[] = $event;
+                }
+            }
+            
+            $this->days[] = [
+                'day' => (int) $currentDay->format('j'),
+                'month' => (int) $currentDay->format('n'),
+                'is_today' => $currentDay->isToday(),
+                'events' => $dayEvents,
             ];
+            $currentDay->addDay();
         }
-
-        // Load events for the week
-        $events = ScheduledItem::where('status', 'pending')
-            ->where('start_time', '>=', $startOfWeek)
-            ->where('start_time', '<=', $endOfWeek)
-            ->orderBy('start_time')
-            ->get()
-            ->map(function ($event) {
-                return [
-                    'id' => $event->id,
-                    'title' => $event->title,
-                    'date' => $event->start_time->format('Y-m-d'),
-                    'time' => $event->start_time->format('H:i'),
-                    'hour' => (int) $event->start_time->format('H'),
-                    'duration' => $event->end_time 
-                        ? $event->start_time->diffInMinutes($event->end_time)
-                        : 60,
-                    'color' => $event->color,
-                    'icon' => $event->icon,
-                    'priority' => $event->priority_stars,
-                    'description' => $event->notes,
-                    'type' => $event->type,
-                ];
-            })
-            ->groupBy('date')
-            ->toArray();
-
-        $this->events = $events;
     }
 
-    public function previousWeek(): void
+    public function previousMonth(): void
     {
-        $this->currentWeekStart = Carbon::parse($this->currentWeekStart)
-            ->subWeek()
-            ->startOfWeek()
-            ->format('Y-m-d');
-        $this->loadWeek();
+        $date = Carbon::create($this->currentYear, $this->currentMonth, 1)->subMonth();
+        $this->currentMonth = $date->month;
+        $this->currentYear = $date->year;
+        $this->loadMonth();
     }
 
-    public function nextWeek(): void
+    public function nextMonth(): void
     {
-        $this->currentWeekStart = Carbon::parse($this->currentWeekStart)
-            ->addWeek()
-            ->startOfWeek()
-            ->format('Y-m-d');
-        $this->loadWeek();
+        $date = Carbon::create($this->currentYear, $this->currentMonth, 1)->addMonth();
+        $this->currentMonth = $date->month;
+        $this->currentYear = $date->year;
+        $this->loadMonth();
     }
 
     public function goToToday(): void
     {
-        $this->currentWeekStart = Carbon::now()->startOfWeek()->format('Y-m-d');
-        $this->loadWeek();
+        $today = Carbon::now();
+        $this->currentMonth = $today->month;
+        $this->currentYear = $today->year;
+        $this->loadMonth();
     }
 
-    public function selectEvent(int $eventId): void
+    public function selectDay(int $day): void
     {
-        $this->selectedEventId = $eventId;
+        $this->selectedDay = $day;
     }
 
-    public function clearSelection(): void
+    public function getMonthNameProperty(): string
     {
-        $this->selectedEventId = null;
-    }
-
-    public function getSelectedEventProperty(): ?ScheduledItem
-    {
-        return $this->selectedEventId 
-            ? ScheduledItem::find($this->selectedEventId)
-            : null;
-    }
-
-    public function getWeekTitleProperty(): string
-    {
-        $start = Carbon::parse($this->currentWeekStart);
-        $end = $start->copy()->endOfWeek();
-        
-        if ($start->month === $end->month) {
-            return $start->format('F Y');
-        }
-        
-        return $start->format('F') . ' - ' . $end->format('F Y');
+        return Carbon::create($this->currentYear, $this->currentMonth, 1)->format('F');
     }
 
     public function render()

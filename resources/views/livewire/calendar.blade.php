@@ -1,216 +1,209 @@
 <div class="space-y-6">
-    <!-- Page Header -->
-    <div class="flex items-center justify-between">
-        <div>
-            <h1 class="text-2xl font-bold text-[#e4e4f0]">📅 Calendar</h1>
-            <p class="text-sm text-[#6b6b80] mt-1">{{ $this->weekTitle }}</p>
-        </div>
-        <div class="flex items-center gap-3">
-            <button
-                wire:click="goToToday"
-                class="btn btn-secondary text-sm"
-            >
-                Today
-            </button>
-            <div class="flex items-center gap-1">
-                <button
-                    wire:click="previousWeek"
-                    class="p-2 text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#252542] rounded-lg transition-colors"
-                >
-                    ←
-                </button>
-                <button
-                    wire:click="nextWeek"
-                    class="p-2 text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#252542] rounded-lg transition-colors"
-                >
-                    →
-                </button>
+    {{-- Polished Page Header with Calendar Context --}}
+    <header class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-950/80 via-purple-950/80 to-slate-900/80 backdrop-blur-xl border border-white/10 mb-8 shadow-2xl">
+        <div class="absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-purple-500/5 to-pink-500/5"></div>
+        <div class="relative flex items-center justify-between p-6">
+            <div class="flex items-center gap-5">
+                <div class="group relative">
+                    <div class="absolute inset-0 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-2xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity duration-500"></div>
+                    <div class="relative w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-400 via-blue-500 to-indigo-500 flex items-center justify-center text-3xl shadow-xl">📅</div>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold text-white tracking-tight">Team Calendar</h1>
+                    <p class="text-sm text-slate-400 font-medium mt-0.5">Deadlines, standups, and agent task due dates</p>
+                </div>
+            </div>
+            
+            {{-- Quick Stats --}}
+            <div class="flex items-center gap-3">
+                <div class="text-right">
+                    <div class="text-2xl font-bold text-white">{{ count($events[0] ?? []) }}</div>
+                    <div class="text-xs text-slate-400 font-semibold uppercase">This Month</div>
+                </div>
+                <div class="h-10 w-px bg-white/10"></div>
+                <div class="text-right">
+                    <div class="text-2xl font-bold text-amber-400">{{ collect($events[0] ?? [])->where('type', 'deadline')->count() }}</div>
+                    <div class="text-xs text-slate-400 font-semibold uppercase">Deadlines</div>
+                </div>
             </div>
         </div>
-    </div>
+    </header>
 
-    <!-- Main Content Grid -->
-    <div class="grid grid-cols-4 gap-6">
-        <!-- Week View -->
-        <div class="col-span-3">
-            <div class="bg-[#1a1a2e] rounded-lg border border-[#2a2a40] overflow-hidden">
-                <!-- Day Headers -->
-                <div class="grid grid-cols-7 border-b border-[#2a2a40] ml-14">
-                    @foreach($weekDays as $day)
-                        <div class="p-3 text-center {{ $day['isToday'] ? 'bg-[#7c3aed]/10' : 'bg-[#12121f]' }}">
-                            <div class="text-xs text-[#6b6b80] uppercase">{{ $day['dayName'] }}</div>
-                            <div class="text-lg font-semibold {{ $day['isToday'] ? 'text-[#7c3aed]' : 'text-[#e4e4f0]' }}">
-                                {{ $day['dayNum'] }}
-                            </div>
-                        </div>
+    {{-- Main Calendar Grid --}}
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {{-- Left: Month Grid (2 columns) --}}
+        <div class="lg:col-span-2">
+            {{-- Month Navigation --}}
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-3">
+                    <button wire:click="previousMonth" class="p-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-all">
+                        ◀
+                    </button>
+                    <button wire:click="goToToday" class="px-3 py-1.5 text-sm rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-all">
+                        Today
+                    </button>
+                    <button wire:click="nextMonth" class="p-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-all">
+                        ▶
+                    </button>
+                </div>
+                <div class="text-lg font-bold text-white">
+                    {{ $currentMonth }} {{ $currentYear }}
+                </div>
+            </div>
+
+            {{-- Calendar Card --}}
+            <div class="bg-slate-900/60 backdrop-blur-sm rounded-2xl border border-white/10 overflow-hidden">
+                {{-- Weekday Headers --}}
+                <div class="grid grid-cols-7 border-b border-white/10">
+                    @foreach(['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as $day)
+                    <div class="py-3 text-center text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                        {{ $day }}
+                    </div>
                     @endforeach
                 </div>
 
-                <!-- Time Grid -->
-                <div class="flex" style="height: 660px; overflow-y: auto;">
-                    <!-- Time Labels Column -->
-                    <div class="w-14 flex-shrink-0 bg-[#12121f] border-r border-[#2a2a40]">
-                        @for($hour = 8; $hour <= 18; $hour++)
-                            <div class="h-[60px] border-b border-[#1f1f35] flex items-start justify-end pr-2 pt-0">
-                                <span class="text-xs text-[#6b6b80]">
-                                    {{ sprintf('%02d:00', $hour) }}
-                                </span>
-                            </div>
-                        @endfor
-                    </div>
-
-                    <!-- Days Grid -->
-                    <div class="flex-1 grid grid-cols-7 relative">
-                        @foreach($weekDays as $dayIndex => $day)
-                            <div class="relative border-r border-[#1f1f35] last:border-r-0" style="height: 660px;">
-                                <!-- Hour lines -->
-                                @for($hour = 8; $hour <= 18; $hour++)
-                                    <div class="absolute w-full h-[60px] border-b border-[#1f1f35]" style="top: {{ ($hour - 8) * 60 }}px;"></div>
-                                @endfor
-
-                                <!-- Events for this day -->
-                                @php
-                                    $dayEvents = $events[$day['date']] ?? [];
-                                @endphp
-                                @foreach($dayEvents as $event)
-                                    @php
-                                        // Calculate position: each hour is 60px, starting at 8am
-                                        $hour = (int) substr($event['time'], 0, 2);
-                                        $minute = (int) substr($event['time'], 3, 2);
-                                        $top = (($hour - 8) * 60) + $minute;
-                                        $height = max($event['duration'], 30); // minimum 30px height
-                                    @endphp
-                                    <button
-                                        wire:click="selectEvent({{ $event['id'] }})"
-                                        class="absolute mx-1 rounded p-1.5 text-xs text-left overflow-hidden transition-transform hover:scale-105 hover:z-10"
-                                        style="top: {{ $top }}px; height: {{ $height }}px; left: 2px; right: 2px;"
-                                    >
-                                        <div class="font-medium truncate event-{{ $event['color'] }}">{{ $event['title'] }}</div>
-                                        <div class="text-[10px] opacity-75">{{ $event['time'] }}</div>
-                                    </button>
-                                @endforeach
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Mini Calendar & Legend -->
-        <div class="col-span-1 space-y-4">
-            <!-- Mini Month Calendar -->
-            <div class="bg-[#1a1a2e] rounded-lg border border-[#2a2a40] p-4">
-                <h3 class="text-sm font-semibold text-[#e4e4f0] mb-3">{{ now()->format('F Y') }}</h3>
-                <div class="grid grid-cols-7 gap-1 text-center text-xs text-[#6b6b80] mb-1">
-                    <div>S</div><div>M</div><div>T</div><div>W</div><div>T</div><div>F</div><div>S</div>
-                </div>
-                <div class="grid grid-cols-7 gap-1 text-center text-xs">
-                    @php
-                        $monthStart = now()->startOfMonth();
-                        $startDay = $monthStart->dayOfWeek;
-                    @endphp
-                    @for($i = 0; $i < $startDay; $i++)
-                        <div></div>
-                    @endfor
-                    @for($day = 1; $day <= now()->daysInMonth; $day++)
-                        @php
-                            $date = $monthStart->copy()->addDays($day - 1);
-                            $isToday = $date->isToday();
-                            $isCurrentWeek = $date->between(
-                                \Carbon\Carbon::parse($currentWeekStart),
-                                \Carbon\Carbon::parse($currentWeekStart)->endOfWeek()
-                            );
-                        @endphp
-                        <div class="w-6 h-6 flex items-center justify-center rounded {{ $isToday ? 'bg-[#7c3aed] text-white' : ($isCurrentWeek ? 'bg-[#252542] text-[#e4e4f0]' : 'text-[#6b6b80]') }}">
-                            {{ $day }}
-                        </div>
-                    @endfor
-                </div>
-            </div>
-
-            <!-- Event Type Legend -->
-            <div class="bg-[#1a1a2e] rounded-lg border border-[#2a2a40] p-4">
-                <h3 class="text-sm font-semibold text-[#e4e4f0] mb-3">Event Types</h3>
-                <div class="space-y-2 text-xs">
-                    <div class="flex items-center gap-2">
-                        <div class="w-3 h-3 rounded-sm bg-[#ef4444]"></div>
-                        <span class="text-[#a0a0b8]">Deadline</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <div class="w-3 h-3 rounded-sm bg-[#f59e0b]"></div>
-                        <span class="text-[#a0a0b8]">Reminder</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <div class="w-3 h-3 rounded-sm bg-[#10b981]"></div>
-                        <span class="text-[#a0a0b8]">Meeting</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <div class="w-3 h-3 rounded-sm bg-[#8b5cf6]"></div>
-                        <span class="text-[#a0a0b8]">Task</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Priority Legend -->
-            <div class="bg-[#1a1a2e] rounded-lg border border-[#2a2a40] p-4">
-                <h3 class="text-sm font-semibold text-[#e4e4f0] mb-3">Priority</h3>
-                <div class="space-y-2 text-xs text-[#a0a0b8]">
-                    <div>⭐⭐⭐ Critical</div>
-                    <div>⭐⭐ High</div>
-                    <div>⭐ Normal</div>
-                    <div>◇ Low</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Event Details Modal -->
-    @if($selectedEventId && $selectedEvent)
-        <div class="fixed inset-0 bg-black/70 flex items-center justify-center z-50" wire:click="clearSelection">
-            <div class="bg-[#1a1a2e] rounded-xl border border-[#2a2a40] shadow-xl max-w-md w-full mx-4 p-5" wire:click.stop>
-                <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center gap-3">
-                        <span class="text-2xl">{{ $selectedEvent->icon }}</span>
-                        <div>
-                            <h3 class="font-semibold text-[#e4e4f0]">{{ $selectedEvent->title }}</h3>
-                            <p class="text-xs text-[#6b6b80]">{{ ucfirst($selectedEvent->type) }}</p>
-                        </div>
-                    </div>
-                    <button wire:click="clearSelection" class="p-1 text-[#6b6b80] hover:text-[#e4e4f0]">
-                        ✕
-                    </button>
-                </div>
-                
-                <div class="space-y-3">
-                    <div class="bg-[#252542] rounded-lg p-3">
-                        <span class="text-xs text-[#6b6b80] uppercase">Time</span>
-                        <div class="text-sm text-[#e4e4f0] mt-1">
-                            {{ $selectedEvent->start_time->format('l, F j, Y') }}<br>
-                            {{ $selectedEvent->start_time->format('H:i') }}
-                            @if($selectedEvent->end_time)
-                                — {{ $selectedEvent->end_time->format('H:i') }}
+                {{-- Calendar Grid --}}
+                <div class="grid grid-cols-7">
+                    @foreach($days as $day)
+                    <div 
+                        @if($day['month'] !== $currentMonth)
+                        class="min-h-[100px] p-2 bg-white/[0.01] border-r border-b border-white/5"
+                        @else
+                        class="min-h-[100px] p-2 border-r border-b border-white/5 hover:bg-white/[0.02] transition-colors cursor-pointer group {{ $day['is_today'] ? 'bg-purple-500/10' : '' }}"
+                        wire:click="selectDay({{ $day['day'] }})"
+                        @endif
+                    >
+                        {{-- Day Number --}}
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm font-semibold {{ $day['is_today'] ? 'text-purple-400' : 'text-slate-300' }}">
+                                {{ $day['day'] }}
+                            </span>
+                            @if($day['is_today'])
+                            <span class="px-2 py-0.5 rounded bg-purple-500/30 text-xs text-purple-200 font-semibold">Today</span>
                             @endif
                         </div>
-                    </div>
-                    
-                    <div class="bg-[#252542] rounded-lg p-3 flex items-center justify-between">
-                        <div>
-                            <span class="text-xs text-[#6b6b80] uppercase">Priority</span>
-                            <div class="text-sm text-[#e4e4f0] mt-1">{{ $selectedEvent->priority_stars }}</div>
+
+                        {{-- Events for this day --}}
+                        @if(isset($day['events']) && count($day['events']) > 0)
+                        <div class="space-y-1">
+                            @foreach(array_slice($day['events'], 0, 3) as $event)
+                            <div class="px-2 py-1 rounded text-xs truncate {{ $event['type'] === 'deadline' ? 'bg-red-500/20 text-red-300 border border-red-500/30' : ($event['type'] === 'standup' ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30' : 'bg-purple-500/20 text-purple-300 border border-purple-500/30') }}">
+                                {{ $event['title'] }}
+                            </div>
+                            @endforeach
+                            @if(count($day['events']) > 3)
+                            <div class="text-xs text-slate-500 pl-2">
+                                +{{ count($day['events']) - 3 }} more
+                            </div>
+                            @endif
                         </div>
-                        <span class="badge {{ $selectedEvent->status === 'completed' ? 'badge-success' : ($selectedEvent->status === 'in_progress' ? 'badge-info' : 'badge-warning') }}">
-                            {{ ucfirst(str_replace('_', ' ', $selectedEvent->status)) }}
-                        </span>
+                        @endif
                     </div>
-                    
-                    @if($selectedEvent->notes)
-                        <div class="border-t border-[#2a2a40] pt-3">
-                            <span class="text-xs text-[#6b6b80] uppercase">Notes</span>
-                            <p class="text-sm text-[#a0a0b8] mt-1">{{ $selectedEvent->notes }}</p>
-                        </div>
-                    @endif
+                    @endforeach
                 </div>
             </div>
         </div>
-    @endif
+
+        {{-- Right: Event Details & Quick Actions (1 column) --}}
+        <div class="space-y-4">
+            {{-- Selected Day Panel --}}
+            @if($selectedDay)
+            <div class="bg-slate-900/60 backdrop-blur-sm rounded-2xl border border-white/10 p-5">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-bold text-white">
+                        {{ \Carbon\Carbon::create($currentYear, $currentMonth, $selectedDay)->format('M j') }}
+                    </h3>
+                    <button wire:click="$set('selectedDay', null)" class="text-slate-400 hover:text-white">×</button>
+                </div>
+
+                @php
+                $dayEvents = collect($events[0] ?? [])->filter(function($event) use ($selectedDay, $currentMonth) {
+                    return \Carbon\Carbon::parse($event['date'])->day == $selectedDay && 
+                           \Carbon\Carbon::parse($event['date'])->month == $currentMonth;
+                })->values();
+                @endphp
+
+                @if($dayEvents->count() > 0)
+                <div class="space-y-3">
+                    @foreach($dayEvents as $event)
+                    <div class="p-3 bg-white/[0.02] rounded-xl border border-white/5">
+                        <div class="flex items-start gap-3">
+                            <div class="text-2xl">{{ $event['type'] === 'deadline' ? '⚠️' : ($event['type'] === 'standup' ? '🔄' : '📅') }}</div>
+                            <div class="flex-1 min-w-0">
+                                <div class="font-semibold text-sm text-white mb-1">{{ $event['title'] }}</div>
+                                <div class="text-xs text-slate-400">{{ $event['time'] ?? 'All day' }}</div>
+                                @if(isset($event['description']))
+                                <div class="text-xs text-slate-500 mt-1">{{ Str::limit($event['description'], 40) }}</div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+                @else
+                <div class="text-center py-8">
+                    <div class="text-4xl mb-2 opacity-50">📭</div>
+                    <p class="text-slate-400 text-sm">No events scheduled</p>
+                </div>
+                @endif
+            </div>
+            @endif
+
+            {{-- Upcoming Deadlines --}}
+            <div class="bg-slate-900/60 backdrop-blur-sm rounded-2xl border border-white/10 p-5">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-1 h-5 bg-gradient-to-b from-red-400 to-orange-500 rounded-full"></div>
+                    <h3 class="text-sm font-semibold text-slate-300 uppercase tracking-wider">Upcoming Deadlines</h3>
+                </div>
+
+                @php
+                $upcomingDeadlines = collect($events[0] ?? [])->filter(function($event) {
+                    return ($event['type'] ?? '') === 'deadline' && 
+                           \Carbon\Carbon::parse($event['date'])->isFuture();
+                })->sortBy('date')->take(5)->values();
+                @endphp
+
+                @if($upcomingDeadlines->count() > 0)
+                <div class="space-y-2">
+                    @foreach($upcomingDeadlines as $deadline)
+                    <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-white/[0.02] transition-all">
+                        <div class="w-2 h-2 rounded-full bg-red-500"></div>
+                        <div class="flex-1 min-w-0">
+                            <div class="text-sm font-medium text-slate-300 truncate">{{ $deadline['title'] }}</div>
+                            <div class="text-xs text-slate-500">{{ \Carbon\Carbon::parse($deadline['date'])->format('M j') }}</div>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+                @else
+                <p class="text-sm text-slate-500 text-center py-4">No upcoming deadlines</p>
+                @endif
+            </div>
+
+            {{-- Recurring Events --}}
+            <div class="bg-slate-900/60 backdrop-blur-sm rounded-2xl border border-white/10 p-5">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-1 h-5 bg-gradient-to-b from-cyan-400 to-blue-500 rounded-full"></div>
+                    <h3 class="text-sm font-semibold text-slate-300 uppercase tracking-wider">Recurring</h3>
+                </div>
+
+                <div class="space-y-2">
+                    <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-white/[0.02] transition-all">
+                        <div class="w-2 h-2 rounded-full bg-cyan-500"></div>
+                        <div class="flex-1">
+                            <div class="text-sm font-medium text-slate-300">Team Standup</div>
+                            <div class="text-xs text-slate-500">Daily at 10:00 AM</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-white/[0.02] transition-all">
+                        <div class="w-2 h-2 rounded-full bg-purple-500"></div>
+                        <div class="flex-1">
+                            <div class="text-sm font-medium text-slate-300">Heartbeat Check</div>
+                            <div class="text-xs text-slate-500">Every 30 min</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 </div>

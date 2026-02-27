@@ -1,6 +1,6 @@
-@extends('layouts.app')
+@extends('components.layouts.app')
 
-@section('title', 'Workspace')
+@section('title', 'Workspace Files')
 
 @section('content')
 <livewire:workspace-viewer />
