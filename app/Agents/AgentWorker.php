@@ -513,19 +513,18 @@ abstract class AgentWorker
     /**
      * Log agent activity
      */
-    protected function logActivity(Task $task, string $action, array $artifacts = []): void
+    protected function logActivity(Task $task, string $action, array $metadata = []): void
     {
         AgentActivity::create([
             'task_id' => $task->id,
             'agent_name' => $this->name,
             'action' => $action,
-            'artifacts' => $artifacts,
-            'duration_ms' => 0, // Can be calculated if needed
+            'metadata_json' => $metadata,
         ]);
         
         Log::info("Agent activity logged: {$this->name} - {$action}", [
             'task_id' => $task->id,
-            'artifacts' => $artifacts
+            'metadata' => $metadata
         ]);
     }
     

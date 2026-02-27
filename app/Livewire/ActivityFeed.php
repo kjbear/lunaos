@@ -4,7 +4,8 @@ namespace App\Livewire;
 
 use Livewire\Attributes\Layout;
 use Livewire\Component;
-use App\Models\ActivityLog;
+use App\Models\AgentActivity;
+use App\Models\Agent;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -14,8 +15,6 @@ class ActivityFeed extends Component
     // Filters
     public string $agent = '';
     public string $actionType = '';
-    public string $impact = '';
-    public string $status = '';
     public string $dateRange = 'today';
     public string $search = '';
     
@@ -53,54 +52,49 @@ class ActivityFeed extends Component
 
     public function loadAgents(): void
     {
-        $this->agents = ActivityLog::query()
-            ->select('agent', DB::raw('COUNT(*) as count'))
-            ->groupBy('agent')
-            ->orderByDesc('count')
-            ->pluck('agent')
+        $this->agents = AgentActivity::query()
+            ->select('agent_name')
+            ->groupBy('agent_name')
+            ->orderBy('agent_name')
+            ->pluck('agent_name')
             ->toArray();
     }
 
     public function loadActionTypes(): void
     {
-        $this->actionTypes = ActivityLog::query()
-            ->select('action_type', DB::raw('COUNT(*) as count'))
-            ->groupBy('action_type')
+        $this->actionTypes = AgentActivity::query()
+            ->select('action', DB::raw('COUNT(*) as count'))
+            ->groupBy('action')
             ->orderByDesc('count')
-            ->pluck('action_type')
+            ->pluck('action')
             ->toArray();
     }
 
     public function loadActivities(): void
     {
-        $query = ActivityLog::query()
+        $query = AgentActivity::query()
+            ->with('task')
             ->orderBy('created_at', 'desc')
             ->limit($this->limit);
 
         // Apply filters
         if (!empty($this->agent)) {
-            $query->where('agent', $this->agent);
+            $query->where('agent_name', $this->agent);
         }
 
         if (!empty($this->actionType)) {
-            $query->where('action_type', $this->actionType);
-        }
-
-        if (!empty($this->impact)) {
-            $query->where('impact', $this->impact);
-        }
-
-        if (!empty($this->status)) {
-            $query->where('status', $this->status);
+            $query->where('action', $this->actionType);
         }
 
         // Date range filter
         $query = $this->applyDateRange($query);
 
-        // Search (using FTS5)
+        // Search
         if (!empty($this->search)) {
-            $searchTerm = $this->search . '*';
-            $query->whereRaw("id IN (SELECT rowid FROM activity_logs_fts WHERE activity_logs_fts MATCH ?)", [$searchTerm]);
+            $query->whereHas('task', function($q) {
+                $q->where('title', 'like', '%' . $this->search . '%')
+                  ->orWhere('description', 'like', '%' . $this->search . '%');
+            });
         }
 
         $this->activities = $query->get();
@@ -108,19 +102,16 @@ class ActivityFeed extends Component
 
     public function loadStats(): void
     {
-        $query = ActivityLog::query();
+        $query = AgentActivity::query();
         $query = $this->applyDateRange($query);
 
         $activities = $query->get();
 
         $this->stats = [
             'total' => $activities->count(),
-            'by_agent' => $activities->groupBy('agent')->map->count()->toArray(),
-            'by_type' => $activities->groupBy('action_type')->map->count()->toArray(),
-            'by_impact' => $activities->groupBy('impact')->map->count()->toArray(),
-            'by_status' => $activities->groupBy('status')->map->count()->toArray(),
-            'high_impact' => $activities->where('impact', 'high')->count(),
-            'failed' => $activities->where('status', 'failed')->count(),
+            'by_agent' => $activities->groupBy('agent_name')->map->count()->toArray(),
+            'by_type' => $activities->groupBy('action')->map->count()->toArray(),
+            'jordan_actions' => $activities->where('agent_name', 'jordan')->count(),
         ];
     }
 
@@ -177,7 +168,7 @@ class ActivityFeed extends Component
     public function showActivity(int $id): void
     {
         $this->selectedActivityId = $id;
-        $this->selectedActivity = ActivityLog::findOrFail($id);
+        $this->selectedActivity = AgentActivity::with('task')->findOrFail($id);
         $this->showModal = true;
     }
 
@@ -189,24 +180,6 @@ class ActivityFeed extends Component
         $this->showModal = false;
         $this->selectedActivityId = null;
         $this->selectedActivity = null;
-    }
-
-    /**
-     * Poll OpenClaw for activity (fallback when webhook not active)
-     */
-    private function pollOpenClaw(): void
-    {
-        if (!config('lunaos.polling_enabled', true)) {
-            return;
-        }
-
-        try {
-            $client = new \GuzzleHttp\Client(['timeout' => 5]);
-            $client->post(url('/api/activity/poll'));
-        } catch (\Exception $e) {
-            // Silently fail - polling is just a fallback
-            \Log::debug('OpenClaw polling failed: ' . $e->getMessage());
-        }
     }
 
     public function render()

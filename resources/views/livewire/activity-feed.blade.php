@@ -1,20 +1,17 @@
 <div class="space-y-6">
-    {{-- Header with Real-time Stats --}}
+    {{-- Header --}}
     <header class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-950/80 via-purple-950/80 to-slate-900/80 backdrop-blur-xl border border-white/10 mb-8 shadow-2xl">
-        <div class="absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-purple-500/5 to-pink-500/5"></div>
         <div class="relative flex items-center justify-between p-6">
             <div class="flex items-center gap-5">
-                <div class="group relative">
-                    <div class="absolute inset-0 bg-gradient-to-br from-purple-400 to-pink-500 rounded-2xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity duration-500"></div>
-                    <div class="relative w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-400 via-pink-500 to-indigo-500 flex items-center justify-center text-3xl shadow-xl">⚡</div>
+                <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-400 via-pink-500 to-indigo-500 flex items-center justify-center text-3xl shadow-xl">
+                    ⚡
                 </div>
                 <div>
-                    <h1 class="text-2xl font-bold text-white tracking-tight">Activity Feed</h1>
-                    <p class="text-sm text-slate-400 font-medium mt-0.5">Real-time agent actions and system events</p>
+                    <h1 class="text-2xl font-bold text-white">Activity Feed</h1>
+                    <p class="text-sm text-slate-400 mt-0.5">Real-time agent actions and decisions</p>
                 </div>
             </div>
             
-            {{-- Live Stats --}}
             <div class="flex items-center gap-6">
                 <div class="text-right">
                     <div class="flex items-center gap-2">
@@ -22,61 +19,49 @@
                             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                             <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
                         </span>
-                        <span class="text-2xl font-bold text-white">{{ $activities->count() ?? 0 }}</span>
+                        <span class="text-2xl font-bold text-white">{{ $this->activities->count() }}</span>
                     </div>
                     <div class="text-xs text-slate-400 font-semibold uppercase">Recent Events</div>
                 </div>
-                <div class="h-10 w-px bg-white/10"></div>
-                <button 
-                    wire:click="$refresh"
-                    class="p-2.5 rounded-xl bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10 transition-all"
-                    title="Refresh"
-                >
+                <button wire:click="$refresh" class="p-2.5 rounded-xl bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10 transition-all">
                     🔄
                 </button>
             </div>
         </div>
     </header>
 
-    {{-- Filters and Search --}}
+    {{-- Filters --}}
     <section class="bg-slate-900/60 backdrop-blur-sm rounded-2xl border border-white/10 p-4">
         <div class="flex items-center justify-between flex-wrap gap-4">
-            {{-- Filter Buttons --}}
             <div class="flex flex-wrap items-center gap-2">
-                @foreach(['all', 'create', 'update', 'delete', 'complete'] as $filter)
-                <button 
-                    wire:click="$set('actionType', '{{ $filter === 'all' ? '' : $filter }}')"
-                    class="px-3 py-1.5 rounded-lg text-sm font-semibold transition-all {{ (empty($actionType) && $filter === 'all') || $actionType === $filter ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg' : 'bg-white/5 text-slate-400 hover:bg-white/10' }}"
-                >
-                    {{ ucfirst($filter) }}
+                <button wire:click="$set('actionType', '')" 
+                    class="px-3 py-1.5 rounded-lg text-sm font-semibold transition-all {{ empty($actionType) ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white' : 'bg-white/5 text-slate-400 hover:bg-white/10' }}">
+                    All
+                </button>
+                @foreach(['reassigned', 'assigned_by_jordan', 'escalated', 'started', 'completed', 'failed'] as $action)
+                <button wire:click="$set('actionType', '{{ $action }}')" 
+                    class="px-3 py-1.5 rounded-lg text-sm font-semibold transition-all {{ $actionType === $action ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white' : 'bg-white/5 text-slate-400 hover:bg-white/10' }}">
+                    {{ str_replace('_', ' ', ucfirst($action)) }}
                 </button>
                 @endforeach
             </div>
 
-            {{-- Search --}}
             <div class="flex items-center gap-3">
-                <div class="relative">
-                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">🔍</span>
-                    <input 
-                        type="text" 
-                        wire:model.live.debounce.300ms="search"
-                        placeholder="Search activities..."
-                        class="bg-white/5 border border-white/10 rounded-lg pl-10 pr-4 py-1.5 text-sm text-slate-300 placeholder-slate-500 focus:border-purple-500/50 focus:outline-none w-64"
-                    >
-                </div>
-                <select 
-                    wire:model.live="agentFilter"
-                    class="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-slate-300 focus:border-purple-500/50 focus:outline-none"
-                >
+                <select wire:model.live="agent" class="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-slate-300 focus:border-purple-500/50 focus:outline-none">
                     <option value="">All Agents</option>
-                    @foreach($agents as $agent)
-                    <option value="{{ $agent->id }}">{{ $agent->name }}</option>
+                    @foreach($this->agents as $agent)
+                    <option value="{{ $agent }}">{{ $agent }}</option>
                     @endforeach
                 </select>
-                <button 
-                    wire:click="clearFilters"
-                    class="px-3 py-1.5 text-sm text-slate-500 hover:text-white transition-colors"
-                >
+                
+                <select wire:model.live="dateRange" class="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-slate-300 focus:border-purple-500/50 focus:outline-none">
+                    <option value="today">Today</option>
+                    <option value="week">This Week</option>
+                    <option value="month">This Month</option>
+                    <option value="all">All Time</option>
+                </select>
+                
+                <button wire:click="clearFilters" class="px-3 py-1.5 text-sm text-slate-500 hover:text-white transition-colors">
                     Clear
                 </button>
             </div>
@@ -89,141 +74,171 @@
             <div class="w-1 h-6 bg-gradient-to-b from-purple-400 to-pink-500 rounded-full"></div>
             <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider">Timeline</h2>
             <span class="px-2.5 py-0.5 rounded-full bg-white/5 border border-white/10 text-xs text-slate-400">
-                {{ $activities->count() }} events
+                {{ $this->activities->count() }} events
             </span>
         </div>
 
         <div class="space-y-4">
-            @forelse($activities as $activity)
+            @forelse($this->activities as $activity)
             @php
-                $actionColors = [
-                    'create' => 'border-emerald-500/50 bg-emerald-500/10 text-emerald-400',
-                    'update' => 'border-blue-500/50 bg-blue-500/10 text-blue-400',
-                    'delete' => 'border-red-500/50 bg-red-500/10 text-red-400',
-                    'complete' => 'border-purple-500/50 bg-purple-500/10 text-purple-400',
-                ];
                 $actionIcons = [
-                    'create' => '✨',
-                    'update' => '✏️',
-                    'delete' => '🗑️',
-                    'complete' => '✅',
+                    'reassigned' => '🔄',
+                    'assigned_by_jordan' => '📋',
+                    'escalated' => '⚠️',
+                    'started' => '🚀',
+                    'completed' => '✅',
+                    'failed' => '❌',
                 ];
-                $impactColors = [
-                    'high' => 'text-red-400 bg-red-500/20',
-                    'medium' => 'text-amber-400 bg-amber-500/20',
-                    'low' => 'text-slate-400 bg-slate-500/20',
+                $actionColors = [
+                    'reassigned' => 'border-blue-500/50 bg-blue-500/10 text-blue-400',
+                    'assigned_by_jordan' => 'border-purple-500/50 bg-purple-500/10 text-purple-400',
+                    'escalated' => 'border-amber-500/50 bg-amber-500/10 text-amber-400',
+                    'started' => 'border-emerald-500/50 bg-emerald-500/10 text-emerald-400',
+                    'completed' => 'border-green-500/50 bg-green-500/10 text-green-400',
+                    'failed' => 'border-red-500/50 bg-red-500/10 text-red-400',
                 ];
+                $icon = $actionIcons[$activity->action] ?? '•';
+                $colorClass = $actionColors[$activity->action] ?? 'border-slate-500/50 bg-slate-500/10 text-slate-400';
             @endphp
             
             <div class="relative pl-8 group">
                 {{-- Timeline Line --}}
-                <div class="absolute left-3 top-0 bottom-0 w-px bg-gradient-to-b from-purple-500/30 via-cyan-500/30 to-transparent"></div>
+                <div class="absolute left-3 top-0 bottom-0 w-px bg-gradient-to-b from-purple-500/30 to-transparent"></div>
                 
                 {{-- Timeline Dot --}}
-                <div class="absolute left-1 top-4 w-4 h-4 rounded-full {{ $actionColors[$activity->action_type] ?? 'bg-slate-500/30' }} border-2 border-slate-800 shadow-lg flex items-center justify-center text-xs">
-                    {{ $actionIcons[$activity->action_type] ?? '•' }}
+                <div class="absolute left-1 top-4 w-4 h-4 rounded-full {{ $colorClass }} border-2 border-slate-800 shadow-lg flex items-center justify-center text-xs">
+                    {{ $icon }}
                 </div>
 
                 {{-- Activity Card --}}
-                <div class="bg-slate-900/60 backdrop-blur-sm rounded-xl border border-white/10 p-4 hover:border-purple-500/30 hover:shadow-lg hover:shadow-purple-500/10 transition-all duration-300">
+                <div class="bg-slate-900/60 backdrop-blur-sm rounded-xl border border-white/10 p-4 hover:border-purple-500/30 hover:shadow-lg transition-all">
                     <div class="flex items-start justify-between gap-4">
                         <div class="flex items-start gap-3 flex-1">
                             {{-- Agent Avatar --}}
                             <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500/20 to-purple-500/20 border border-white/10 flex items-center justify-center text-lg flex-shrink-0">
-                                {{ ($agents->firstWhere('id', $activity->agent_id) ?? (object)['emoji' => '🤖'])->emoji }}
+                                @if($activity->agent_name === 'jordan')
+                                    👔
+                                @elseif($activity->agent_name === 'dave')
+                                    👨‍💻
+                                @elseif($activity->agent_name === 'sam')
+                                    🔍
+                                @elseif($activity->agent_name === 'chen')
+                                    ⚙️
+                                @else
+                                    🤖
+                                @endif
                             </div>
                             
                             {{-- Content --}}
                             <div class="flex-1 min-w-0">
-                                <div class="flex items-center gap-2 mb-1">
-                                    <span class="font-semibold text-white">{{ ($agents->firstWhere('id', $activity->agent_id) ?? (object)['name' => 'Unknown'])->name }}</span>
+                                <div class="flex items-center gap-2 mb-1 flex-wrap">
+                                    <span class="font-semibold text-white">{{ ucfirst($activity->agent_name) }}</span>
                                     <span class="text-xs text-slate-500">•</span>
-                                    <span class="text-xs text-slate-400">{{ $activity->action_type }}</span>
+                                    <span class="text-xs text-slate-400">{{ str_replace('_', ' ', ucfirst($activity->action)) }}</span>
                                     <span class="text-xs text-slate-500">•</span>
-                                    <span class="text-xs text-slate-500">{{ \Carbon\Carbon::parse($activity->created_at)->diffForHumans() }}</span>
+                                    <span class="text-xs text-slate-500">{{ $activity->created_at->diffForHumans() }}</span>
                                 </div>
                                 
+                                @if($activity->task)
                                 <div class="text-sm text-slate-300 mb-2">
-                                    <span class="font-medium text-white">{{ $activity->action_name }}</span>
-                                    @if($activity->description)
-                                    <span class="text-slate-400"> - {{ Str::limit($activity->description, 100) }}</span>
-                                    @endif
+                                    <span class="text-slate-400">Task</span>
+                                    <a href="/tasks/{{ $activity->task->id }}" class="font-medium text-purple-400 hover:text-purple-300 hover:underline">
+                                        #{{ $activity->task->id }} - {{ Str::limit($activity->task->title, 60) }}
+                                    </a>
                                 </div>
+                                @endif
 
-                                {{-- Metadata Tags --}}
+                                {{-- Metadata --}}
+                                @if($activity->metadata_json)
                                 <div class="flex flex-wrap items-center gap-2">
-                                    @if($activity->task_id)
-                                    <span class="px-2 py-1 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 text-xs font-medium">
-                                        #Task-{{ $activity->task_id }}
+                                    @if(isset($activity->metadata_json['from']) && isset($activity->metadata_json['to']))
+                                    <span class="px-2 py-1 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30 text-xs font-medium">
+                                        {{ $activity->metadata_json['from'] }} → {{ $activity->metadata_json['to'] }}
                                     </span>
                                     @endif
-                                    <span class="px-2 py-1 rounded {{ $impactColors[$activity->impact] ?? 'text-slate-400 bg-slate-500/20' }} text-xs font-medium border border-white/5">
-                                        Impact: {{ ucfirst($activity->impact) }}
+                                    @if(isset($activity->metadata_json['assignee']))
+                                    <span class="px-2 py-1 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 text-xs font-medium">
+                                        Assigned to: {{ $activity->metadata_json['assignee'] }}
                                     </span>
-                                    @if($activity->cost_impact > 0)
+                                    @endif
+                                    @if(isset($activity->metadata_json['priority']))
                                     <span class="px-2 py-1 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-medium">
-                                        +${{ number_format($activity->cost_impact, 4) }}
+                                        Priority: {{ ucfirst($activity->metadata_json['priority']) }}
+                                    </span>
+                                    @endif
+                                    @if(isset($activity->metadata_json['reason']))
+                                    <span class="px-2 py-1 rounded bg-slate-500/20 text-slate-300 border border-slate-500/30 text-xs">
+                                        {{ Str::limit($activity->metadata_json['reason'], 50) }}
                                     </span>
                                     @endif
                                 </div>
+                                @endif
                             </div>
                         </div>
 
-                        {{-- Expand Button --}}
-                        <button 
-                            wire:click="toggleExpand('{{ $activity->id }}')"
-                            class="p-2 text-slate-500 hover:text-white transition-colors"
-                        >
-                            {{ $expandedActivities[$activity->id] ? '▼' : '▶' }}
+                        {{-- Details Button --}}
+                        <button wire:click="showActivity({{ $activity->id }})" class="p-2 text-slate-500 hover:text-white transition-colors" title="View details">
+                            🔍
                         </button>
                     </div>
-
-                    {{-- Expanded Details --}}
-                    @if($expandedActivities[$activity->id])
-                    <div class="mt-4 pt-4 border-t border-white/10">
-                        <div class="grid grid-cols-2 gap-4 text-sm">
-                            <div>
-                                <span class="text-slate-500">Agent Model:</span>
-                                <span class="ml-2 text-slate-300">{{ ($agents->firstWhere('id', $activity->agent_id) ?? (object)['model' => 'Unknown'])->model }}</span>
-                            </div>
-                            <div>
-                                <span class="text-slate-500">Duration:</span>
-                                <span class="ml-2 text-slate-300">{{ $activity->duration ?? 'N/A' }}</span>
-                            </div>
-                            <div>
-                                <span class="text-slate-500">Tokens Used:</span>
-                                <span class="ml-2 text-cyan-300 font-mono">{{ number_format($activity->tokens_used ?? 0) }}</span>
-                            </div>
-                            <div>
-                                <span class="text-slate-500">Cost:</span>
-                                <span class="ml-2 text-purple-300 font-mono">${{ number_format($activity->cost ?? 0, 4) }}</span>
-                            </div>
-                        </div>
-                    </div>
-                    @endif
                 </div>
             </div>
             @empty
-            <div class="flex flex-col items-center justify-center py-16 bg-slate-900/60 backdrop-blur-sm rounded-2xl border border-white/10">
-                <div class="text-5xl mb-4 opacity-50">📭</div>
-                <p class="text-slate-400 font-semibold">No activities found</p>
-                @if(!empty($actionType) || $search || !empty($agent))
-                <p class="text-sm text-slate-500 mt-2">Try adjusting your filters.</p>
-                @endif
+            <div class="text-center py-12">
+                <div class="text-6xl mb-4">📭</div>
+                <p class="text-slate-400">No activities found. Change filters or wait for agent actions.</p>
             </div>
             @endforelse
         </div>
-
-        {{-- Load More --}}
-        @if($activities->count() > 0 && $hasMore)
-        <div class="flex justify-center mt-8">
-            <button 
-                wire:click="loadMore"
-                class="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-xl hover:from-purple-500 hover:to-pink-500 transition-all shadow-lg shadow-purple-500/25"
-            >
-                Load More Activities
-            </button>
-        </div>
-        @endif
     </section>
+
+    {{-- Modal --}}
+    @if($showModal && $selectedActivity)
+    <div class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-white/10 rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+            <div class="p-6 border-b border-white/10 flex items-center justify-between">
+                <h3 class="text-xl font-bold text-white">Activity Details</h3>
+                <button wire:click="closeModal" class="text-slate-400 hover:text-white text-2xl">×</button>
+            </div>
+            
+            <div class="p-6 space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <div class="text-xs text-slate-500 uppercase">Agent</div>
+                        <div class="text-white font-semibold">{{ ucfirst($selectedActivity->agent_name) }}</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-500 uppercase">Action</div>
+                        <div class="text-white">{{ str_replace('_', ' ', ucfirst($selectedActivity->action)) }}</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-500 uppercase">Time</div>
+                        <div class="text-white">{{ $selectedActivity->created_at->format('Y-m-d H:i:s') }}</div>
+                    </div>
+                    @if($selectedActivity->task)
+                    <div>
+                        <div class="text-xs text-slate-500 uppercase">Task</div>
+                        <div class="text-purple-400">#{{ $selectedActivity->task->id }} - {{ $selectedActivity->task->title }}</div>
+                    </div>
+                    @endif
+                </div>
+                
+                @if($selectedActivity->metadata_json)
+                <div>
+                    <div class="text-xs text-slate-500 uppercase mb-2">Metadata</div>
+                    <div class="bg-slate-800/50 rounded-lg p-3 font-mono text-sm text-slate-300">
+                        <pre>{{ json_encode($selectedActivity->metadata_json, JSON_PRETTY_PRINT) }}</pre>
+                    </div>
+                </div>
+                @endif
+            </div>
+            
+            <div class="p-4 border-t border-white/10 bg-slate-800/30">
+                <button wire:click="closeModal" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold hover:opacity-90 transition-opacity">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+    @endif
 </div>
