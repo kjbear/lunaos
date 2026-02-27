@@ -1,4 +1,11 @@
 <div>
+    <div class="mb-6">
+        <a href="/activity" class="text-purple-400 hover:text-purple-300 hover:underline flex items-center gap-2 inline-flex">
+            <span>←</span>
+            <span>Back to Activity Feed</span>
+        </a>
+    </div>
+    
     <h1 class="text-3xl font-bold text-white mb-4">Task #{{ $task->id }}</h1>
     <div class="bg-slate-900/60 rounded-xl p-6 border border-white/10 mb-6">
         <h2 class="text-2xl font-semibold text-white mb-2">{{ $task->title }}</h2>
