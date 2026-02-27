@@ -2,13 +2,11 @@
 
 namespace App\Livewire;
 
-use Livewire\Attributes\Layout;
 use Livewire\Component;
 use App\Models\Task;
 use App\Models\Agent;
 use App\Models\AgentActivity;
 
-#[Layout('layouts.app')]
 class TaskDetail extends Component
 {
     public Task $task;
@@ -66,7 +64,6 @@ class TaskDetail extends Component
 
     public function render()
     {
-        return view('livewire.task-detail')
-            ->layout('layouts.app');
+        return view('livewire.task-detail');
     }
 }
