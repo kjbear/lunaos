@@ -43,14 +43,14 @@ class AgentCreate extends Component
     
     public function save()
     {
-        \Log::channel('daily')->info('🔵 AgentCreate::save() ENTERED', ['name' => $this->name, 'role' => $this->role]);
+        \Log::info('🔵 SAVE METHOD CALLED: ' . $this->name);
         
         $this->validate([
             'name' => 'required|string|unique:agents,name',
             'role' => 'required|string',
         ]);
         
-        \Log::channel('daily')->info('🟢 Validation passed, creating agent...');
+        \Log::info('🟢 Creating agent: ' . $this->name);
         
         Agent::create([
             'name' => $this->name,
@@ -70,7 +70,7 @@ class AgentCreate extends Component
             'workflow_config' => $this->workflowConfig,
         ]);
         
-        \Log::channel('daily')->info('🟡 Agent saved, redirecting...');
+        \Log::info('🟡 Redirecting to /agents');
         
         return redirect()->to('/agents');
     }
