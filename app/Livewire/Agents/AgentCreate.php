@@ -30,9 +30,9 @@ class AgentCreate extends Component
     public array $skillMetadata = [];
     public array $workflowConfig = [];
     
-    public function updatedStrategyClass(string $value): void
+    public function updatedStrategyClass($value)
     {
-        if ($value) {
+        if (!empty($value)) {
             $strategy = StrategyRegistry::get($value);
             if ($strategy) {
                 $steps = $strategy->getWorkflowSteps();

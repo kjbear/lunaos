@@ -69,7 +69,7 @@
             <div class="space-y-6">
                 <div>
                     <label class="block text-sm font-medium text-slate-300 mb-2">Strategy *</label>
-                    <select wire:model="strategy_class" wire:change="updatedStrategyClass($event.target.value)" class="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 rounded-xl text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all">
+                    <select wire:model="strategy_class" class="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 rounded-xl text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all">
                         <option value="">Select a strategy...</option>
                         @foreach($strategies as $strategyName => $strategyClass)
                         <option value="{{ $strategyName }}">{{ ucfirst($strategyName) }}</option>

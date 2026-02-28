@@ -17,6 +17,15 @@
     <!-- HTMX -->
     <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
     
+    <!-- Livewire Config (must be before script loads) -->
+    <script>
+        window.livewireScriptConfig = {
+            uri: '/livewire/update',
+            csrf: '{{ csrf_token() }}',
+            nonce: '{{ nonce() }}'
+        };
+    </script>
+    
     <!-- Livewire (GitHub JSDelivr CDN) -->
     <script src="https://cdn.jsdelivr.net/gh/livewire/livewire@v3.5.0/dist/livewire.min.js" defer></script>
     @livewireStyles
