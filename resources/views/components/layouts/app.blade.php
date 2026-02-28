@@ -26,7 +26,7 @@
     </script>
     
     <!-- Livewire (GitHub JSDelivr CDN) -->
-    <script src="https://cdn.jsdelivr.net/gh/livewire/livewire@v3.5.0/dist/livewire.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/gh/livewire/livewire@v3.5.0/dist/livewire.min.js"></script>
     @livewireStyles
     
     @stack('head')
