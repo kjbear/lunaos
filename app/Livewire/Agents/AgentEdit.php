@@ -34,30 +34,31 @@ class AgentEdit extends Component
         $this->agentId = $id;
         $this->agent = Agent::findOrFail($id);
         
-        // Populate form fields
-        $this->name = $this->agent->name;
-        $this->role = $this->agent->role ?? '';
-        $this->type = $this->agent->type ?? 'worker';
-        $this->emoji = $this->agent->emoji ?? '🤖';
-        $this->model = $this->agent->model ?? '';
-        $this->provider = $this->agent->provider ?? 'ollama';
-        $this->system_prompt = $this->agent->system_prompt ?? '';
-        $this->strategy_class = $this->agent->strategy_class ?? '';
-        $this->step_filter = $this->agent->step_filter ?? '';
-        $this->skill_doc_path = $this->agent->skill_doc_path ?? '';
+        // Populate form fields from agent
+        $this->name = (string) $this->agent->name;
+        $this->role = (string) ($this->agent->role ?? '');
+        $this->type = (string) ($this->agent->type ?? 'worker');
+        $this->emoji = (string) ($this->agent->emoji ?? '🤖');
+        $this->model = (string) ($this->agent->model ?? '');
+        $this->provider = (string) ($this->agent->provider ?? 'ollama');
+        $this->system_prompt = (string) ($this->agent->system_prompt ?? '');
+        $this->strategy_class = (string) ($this->agent->strategy_class ?? '');
+        $this->step_filter = (string) ($this->agent->step_filter ?? '');
+        $this->skill_doc_path = (string) ($this->agent->skill_doc_path ?? '');
         $this->is_online = (bool) $this->agent->is_online;
-        $this->runtime_location = $this->agent->runtime_location ?? 'php';
+        $this->runtime_location = (string) ($this->agent->runtime_location ?? 'php');
         
-        $this->modelSettings = $this->agent->model_settings ?? [];
-        $this->skillMetadata = $this->agent->skill_metadata ?? [];
-        $this->workflowConfig = $this->agent->workflow_config ?? [];
+        // Cast JSON fields properly
+        $this->modelSettings = is_array($this->agent->model_settings) ? $this->agent->model_settings : [];
+        $this->skillMetadata = is_array($this->agent->skill_metadata) ? $this->agent->skill_metadata : [];
+        $this->workflowConfig = is_array($this->agent->workflow_config) ? $this->agent->workflow_config : [];
         
-        // Dispatch event to update header
+        // Force re-render after mount
         $this->dispatch('agent-loaded', [
             'name' => $this->name,
             'emoji' => $this->emoji,
             'role' => $this->role,
-        ]);
+        ])->self();
     }
     
     public function updatedStrategyClass(string $value): void
@@ -68,6 +69,14 @@ class AgentEdit extends Component
                 $steps = $strategy->getWorkflowSteps();
                 $this->step_filter = implode(',', $steps);
             }
+        }
+    }
+    
+    public function hydrate(): void
+    {
+        // Ensure agent is loaded on every hydration
+        if ($this->agentId && !$this->agent?->id) {
+            $this->agent = Agent::find($this->agentId);
         }
     }
     
