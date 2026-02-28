@@ -153,9 +153,6 @@
             </div>
         </main>
     </div>
-
-    <!-- Livewire Scripts -->
-    @livewireScripts
     
     {{-- Toast Notifications --}}
     <livewire:toast-container />
