@@ -3,5 +3,8 @@
 @section('title', 'Edit Agent - LunaOS')
 
 @section('content')
-<livewire:agents.agent-edit :id="$id" />
+@php
+    \Log::info('agents-edit wrapper', ['id' => $id ?? 'NULL']);
+@endphp
+<livewire:agents.agent-edit :id="(int) $id" />
 @endsection

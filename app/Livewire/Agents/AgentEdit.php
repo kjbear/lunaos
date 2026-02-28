@@ -34,6 +34,13 @@ class AgentEdit extends Component
         $this->agentId = $id;
         $this->agent = Agent::findOrFail($id);
         
+        // Debug logging
+        \Log::info('AgentEdit mount', [
+            'id' => $id,
+            'agent_name' => $this->agent->name,
+            'agent_role' => $this->agent->role,
+        ]);
+        
         // Populate form fields from agent
         $this->name = (string) $this->agent->name;
         $this->role = (string) ($this->agent->role ?? '');
@@ -47,6 +54,14 @@ class AgentEdit extends Component
         $this->skill_doc_path = (string) ($this->agent->skill_doc_path ?? '');
         $this->is_online = (bool) $this->agent->is_online;
         $this->runtime_location = (string) ($this->agent->runtime_location ?? 'php');
+        
+        // Debug: Log what we're setting
+        \Log::info('AgentEdit properties set', [
+            'name' => $this->name,
+            'role' => $this->role,
+            'strategy_class' => $this->strategy_class,
+            'step_filter' => $this->step_filter,
+        ]);
         
         // Cast JSON fields properly
         $this->modelSettings = is_array($this->agent->model_settings) ? $this->agent->model_settings : [];
@@ -77,7 +92,13 @@ class AgentEdit extends Component
         // Ensure agent is loaded on every hydration
         if ($this->agentId && !$this->agent?->id) {
             $this->agent = Agent::find($this->agentId);
+            \Log::info('AgentEdit hydrated', ['agent' => $this->agent?->name]);
         }
+    }
+    
+    public function updated(string $field, mixed $value): void
+    {
+        \Log::info('AgentEdit field updated', ['field' => $field, 'value' => $value]);
     }
     
     public function save(): void

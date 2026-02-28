@@ -17,8 +17,9 @@
     <!-- HTMX -->
     <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
     
-    <!-- Livewire -->
-    @livewireScripts
+    <!-- Livewire Styles and Scripts (CDN) -->
+    <script src="https://cdn.jsdelivr.net/npm/livewire@3.5.0/dist/livewire.min.js" defer></script>
+    @livewireStyles
     
     @stack('head')
 </head>
