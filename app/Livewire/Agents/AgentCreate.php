@@ -43,10 +43,14 @@ class AgentCreate extends Component
     
     public function save()
     {
+        \Log::channel('daily')->info('🔵 AgentCreate::save() ENTERED', ['name' => $this->name, 'role' => $this->role]);
+        
         $this->validate([
             'name' => 'required|string|unique:agents,name',
             'role' => 'required|string',
         ]);
+        
+        \Log::channel('daily')->info('🟢 Validation passed, creating agent...');
         
         Agent::create([
             'name' => $this->name,
@@ -65,6 +69,8 @@ class AgentCreate extends Component
             'skill_metadata' => $this->skillMetadata,
             'workflow_config' => $this->workflowConfig,
         ]);
+        
+        \Log::channel('daily')->info('🟡 Agent saved, redirecting...');
         
         $this->js('window.location.href = "' . route('agents.index') . '"');
     }
