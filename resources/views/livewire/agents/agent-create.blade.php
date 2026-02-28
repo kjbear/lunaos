@@ -1,4 +1,4 @@
-<div>
+<div wire:init>
     <!-- Header with Gradient -->
     <div class="mb-8">
         <div class="flex items-center gap-4">
