@@ -78,7 +78,7 @@ class AgentCreate extends Component
         
         session()->flash('success', "Agent '{$this->name}' created successfully!");
         
-        return redirect()->route('agents.edit', $agent->id);
+        return $this->redirect(route('agents.create'), navigate: true);
     }
     
     public function render()
