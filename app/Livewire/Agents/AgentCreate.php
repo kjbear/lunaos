@@ -43,7 +43,7 @@ class AgentCreate extends Component
     
     public function save(): void
     {
-        $this->validate([
+        $validated = $this->validate([
             'name' => 'required|string|unique:agents,name',
             'role' => 'required|string',
             'type' => 'required|in:worker,board,executive',
@@ -72,7 +72,7 @@ class AgentCreate extends Component
         
         session()->flash('success', "Agent '{$this->name}' created successfully!");
         
-        redirect()->route('agents.edit', $agent->id);
+        $this->redirect(route('agents.edit', $agent->id), navigate: true);
     }
     
     public function render()

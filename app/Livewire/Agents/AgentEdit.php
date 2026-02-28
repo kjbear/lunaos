@@ -103,7 +103,7 @@ class AgentEdit extends Component
     
     public function save(): void
     {
-        $this->validate([
+        $validated = $this->validate([
             'name' => 'required|string|unique:agents,name,' . $this->agent->id,
             'role' => 'required|string',
             'type' => 'required|in:worker,board,executive',
@@ -132,7 +132,7 @@ class AgentEdit extends Component
         
         session()->flash('success', "Agent '{$this->name}' updated successfully!");
         
-        redirect()->route('agents.index');
+        $this->redirect(route('agents.index'), navigate: true);
     }
     
     public function delete(): void
@@ -147,7 +147,7 @@ class AgentEdit extends Component
         
         session()->flash('success', "Agent '{$name}' deleted successfully!");
         
-        redirect()->route('agents.index');
+        $this->redirect(route('agents.index'), navigate: true);
     }
     
     public function render()
