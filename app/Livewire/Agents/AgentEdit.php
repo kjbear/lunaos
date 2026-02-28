@@ -5,11 +5,7 @@ namespace App\Livewire\Agents;
 use App\Models\Agent;
 use App\Agents\Strategies\StrategyRegistry;
 use Livewire\Component;
-use Livewire\Attributes\Layout;
-use Livewire\Attributes\Title;
 
-#[Layout('components.layouts.app')]
-#[Title('Edit Agent')]
 class AgentEdit extends Component
 {
     public Agent $agent;
@@ -27,6 +23,7 @@ class AgentEdit extends Component
     public string $skill_doc_path = '';
     public bool $is_online = false;
     public string $runtime_location = 'php';
+    public ?int $agentId = null;
     
     public array $modelSettings = [];
     public array $skillMetadata = [];
@@ -34,6 +31,7 @@ class AgentEdit extends Component
     
     public function mount(int $id): void
     {
+        $this->agentId = $id;
         $this->agent = Agent::findOrFail($id);
         
         // Populate form fields
@@ -47,17 +45,23 @@ class AgentEdit extends Component
         $this->strategy_class = $this->agent->strategy_class ?? '';
         $this->step_filter = $this->agent->step_filter ?? '';
         $this->skill_doc_path = $this->agent->skill_doc_path ?? '';
-        $this->is_online = $this->agent->is_online ?? false;
+        $this->is_online = (bool) $this->agent->is_online;
         $this->runtime_location = $this->agent->runtime_location ?? 'php';
         
         $this->modelSettings = $this->agent->model_settings ?? [];
         $this->skillMetadata = $this->agent->skill_metadata ?? [];
         $this->workflowConfig = $this->agent->workflow_config ?? [];
+        
+        // Dispatch event to update header
+        $this->dispatch('agent-loaded', [
+            'name' => $this->name,
+            'emoji' => $this->emoji,
+            'role' => $this->role,
+        ]);
     }
     
     public function updatedStrategyClass(string $value): void
     {
-        // Auto-populate step filter based on strategy
         if ($value) {
             $strategy = StrategyRegistry::get($value);
             if ($strategy) {
@@ -98,14 +102,13 @@ class AgentEdit extends Component
         
         session()->flash('success', "Agent '{$this->name}' updated successfully!");
         
-        $this->redirect(route('agents.index'), navigate: true);
+        return redirect()->route('agents.index');
     }
     
     public function delete(): void
     {
         if (in_array($this->agent->name, ['dave', 'sam', 'chen'])) {
             session()->flash('error', 'Cannot delete core agents (dave, sam, chen).');
-            $this->redirect(route('agents.index'), navigate: true);
             return;
         }
         
@@ -114,7 +117,7 @@ class AgentEdit extends Component
         
         session()->flash('success', "Agent '{$name}' deleted successfully!");
         
-        $this->redirect(route('agents.index'), navigate: true);
+        return redirect()->route('agents.index');
     }
     
     public function render()

@@ -1,7 +1,7 @@
-<div class="max-w-4xl mx-auto">
+<div>
     <!-- Header with Gradient -->
     <div class="mb-8">
-        <div class="flex items-center gap-4 mb-4">
+        <div class="flex items-center gap-4">
             <a href="{{ route('agents.index') }}" class="text-slate-400 hover:text-purple-400 transition-colors">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
@@ -16,8 +16,7 @@
             </div>
         </div>
     </div>
-
-    <!-- Success/Error Messages -->
+    
     @if(session('success'))
     <div class="mb-6 p-4 bg-green-900/30 border border-green-500/30 rounded-xl text-green-300">
         {{ session('success') }}

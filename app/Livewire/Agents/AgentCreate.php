@@ -5,11 +5,7 @@ namespace App\Livewire\Agents;
 use App\Models\Agent;
 use App\Agents\Strategies\StrategyRegistry;
 use Livewire\Component;
-use Livewire\Attributes\Layout;
-use Livewire\Attributes\Title;
 
-#[Layout('components.layouts.app')]
-#[Title('Create Agent')]
 class AgentCreate extends Component
 {
     // Form fields
@@ -76,7 +72,7 @@ class AgentCreate extends Component
         
         session()->flash('success', "Agent '{$this->name}' created successfully!");
         
-        $this->redirect(route('agents.edit', $agent->id), navigate: true);
+        return redirect()->route('agents.edit', $agent->id);
     }
     
     public function render()
