@@ -43,8 +43,6 @@ class AgentCreate extends Component
     
     public function save()
     {
-        \Log::info('AgentCreate::save() called', ['name' => $this->name, 'role' => $this->role]);
-        
         $validated = $this->validate([
             'name' => 'required|string|unique:agents,name',
             'role' => 'required|string',
@@ -53,8 +51,6 @@ class AgentCreate extends Component
             'model' => 'required|string',
             'provider' => 'required|string',
         ]);
-        
-        \Log::info('Validation passed', ['validated' => $validated]);
         
         $agent = Agent::create([
             'name' => $this->name,
@@ -74,11 +70,7 @@ class AgentCreate extends Component
             'workflow_config' => $this->workflowConfig,
         ]);
         
-        \Log::info('Agent created', ['id' => $agent->id, 'name' => $agent->name]);
-        
-        session()->flash('success', "Agent '{$this->name}' created successfully!");
-        
-        return $this->redirect(route('agents.create'), navigate: true);
+        return redirect()->route('agents.index');
     }
     
     public function render()
