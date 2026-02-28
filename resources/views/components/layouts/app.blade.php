@@ -21,8 +21,7 @@
     <script>
         window.livewireScriptConfig = {
             uri: '/livewire/update',
-            csrf: '{{ csrf_token() }}',
-            nonce: '{{ nonce() }}'
+            csrf: '{{ csrf_token() }}'
         };
     </script>
     
