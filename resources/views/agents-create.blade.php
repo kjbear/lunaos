@@ -15,5 +15,7 @@
 </div>
 @endif
 
-<livewire:agents.agent-create />
+<livewire:agents.agent-create>
+</livewire:agents.agent-create>
+
 @endsection
