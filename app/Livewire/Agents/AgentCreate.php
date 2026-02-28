@@ -72,7 +72,7 @@ class AgentCreate extends Component
         
         \Log::channel('daily')->info('🟡 Agent saved, redirecting...');
         
-        $this->js('window.location.href = "' . route('agents.index') . '"');
+        return redirect()->to('/agents');
     }
     
     public function render()
