@@ -14,9 +14,11 @@
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     
-    <!-- Livewire Styles (inline to avoid vendored dist issue) -->
-    <script src="https://cdn.jsdelivr.net/npm/livewire@3.5.20/dist/livewire.min.js" defer></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/livewire@3.5.20/dist/livewire.min.css">
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
+    
+    <!-- Livewire -->
+    @livewireScripts
     
     @stack('head')
 </head>
