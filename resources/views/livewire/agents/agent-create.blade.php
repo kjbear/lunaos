@@ -182,7 +182,7 @@
 
         <!-- Action Buttons -->
         <div class="flex items-center gap-4 pt-6 border-t border-white/10">
-            <button type="button" wire:click="save" class="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white rounded-xl font-semibold transition-all shadow-lg shadow-purple-500/25">
+            <button type="submit" class="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white rounded-xl font-semibold transition-all shadow-lg shadow-purple-500/25">
                 Create Agent
             </button>
             <a href="{{ route('agents.index') }}" class="px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-xl font-semibold transition-all">
