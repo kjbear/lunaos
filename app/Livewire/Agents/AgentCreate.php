@@ -43,16 +43,12 @@ class AgentCreate extends Component
     
     public function save()
     {
-        $validated = $this->validate([
+        $this->validate([
             'name' => 'required|string|unique:agents,name',
             'role' => 'required|string',
-            'type' => 'required|in:worker,board,executive',
-            'strategy_class' => 'required|in:' . implode(',', StrategyRegistry::keys()),
-            'model' => 'required|string',
-            'provider' => 'required|string',
         ]);
         
-        $agent = Agent::create([
+        Agent::create([
             'name' => $this->name,
             'role' => $this->role,
             'type' => $this->type,
@@ -70,7 +66,7 @@ class AgentCreate extends Component
             'workflow_config' => $this->workflowConfig,
         ]);
         
-        return redirect()->route('agents.index');
+        $this->js('window.location.href = "' . route('agents.index') . '"');
     }
     
     public function render()
