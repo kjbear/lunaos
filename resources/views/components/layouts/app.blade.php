@@ -28,8 +28,8 @@
     <!-- Livewire Styles -->
     @livewireStyles
     
-    <!-- Livewire (GitHub JSDelivr CDN) -->
-    <script src="https://cdn.jsdelivr.net/gh/livewire/livewire@v3.5.0/dist/livewire.min.js"></script>
+    <!-- Livewire (use Laravel-served assets) -->
+    <script src="/livewire/livewire.js" defer></script>
     
     @stack('head')
 </head>
