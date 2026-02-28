@@ -102,7 +102,7 @@ class AgentEdit extends Component
         
         session()->flash('success', "Agent '{$this->name}' updated successfully!");
         
-        return redirect()->route('agents.index');
+        redirect()->route('agents.index');
     }
     
     public function delete(): void
@@ -117,7 +117,7 @@ class AgentEdit extends Component
         
         session()->flash('success', "Agent '{$name}' deleted successfully!");
         
-        return redirect()->route('agents.index');
+        redirect()->route('agents.index');
     }
     
     public function render()
