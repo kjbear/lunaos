@@ -101,7 +101,7 @@ class AgentEdit extends Component
         \Log::info('AgentEdit field updated', ['field' => $field, 'value' => $value]);
     }
     
-    public function save(): void
+    public function save()
     {
         $validated = $this->validate([
             'name' => 'required|string|unique:agents,name,' . $this->agent->id,
@@ -132,10 +132,10 @@ class AgentEdit extends Component
         
         session()->flash('success', "Agent '{$this->name}' updated successfully!");
         
-        $this->redirect(route('agents.index'), navigate: true);
+        return redirect()->route('agents.index');
     }
     
-    public function delete(): void
+    public function delete()
     {
         if (in_array($this->agent->name, ['dave', 'sam', 'chen'])) {
             session()->flash('error', 'Cannot delete core agents (dave, sam, chen).');
@@ -147,7 +147,7 @@ class AgentEdit extends Component
         
         session()->flash('success', "Agent '{$name}' deleted successfully!");
         
-        $this->redirect(route('agents.index'), navigate: true);
+        return redirect()->route('agents.index');
     }
     
     public function render()
