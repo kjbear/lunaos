@@ -3,61 +3,78 @@
 namespace App\Livewire;
 
 use Livewire\Component;
-use Illuminate\Support\Facades\DB;
+use App\Models\TestRun;
 
 class TestStatus extends Component
 {
-    public $testSummary = [];
-    public $lastRun = null;
-    public $coverage = [];
+    public $recentRuns = [];
+    public $stats = [];
+
+    protected $listeners = ['refreshRuns' => 'loadRecentRuns'];
 
     public function mount()
     {
-        $this->loadTestSummary();
+        $this->loadRecentRuns();
+        $this->calculateStats();
     }
 
-    public function loadTestSummary()
+    public function loadRecentRuns()
     {
-        // Test files and their status
-        $this->testSummary = [
-            [
-                'suite' => 'Unit',
-                'category' => 'Models',
-                'files' => [
-                    ['name' => 'AgentModelTest.php', 'tests' => 3, 'status' => 'written', 'coverage' => 'Agent creation, relationships, strategy'],
-                    ['name' => 'TaskModelTest.php', 'tests' => 3, 'status' => 'written', 'coverage' => 'Task CRUD, agent FK, status transitions'],
-                    ['name' => 'ActivityLogModelTest.php', 'tests' => 2, 'status' => 'written', 'coverage' => 'Activity logging, JSON metadata'],
-                    ['name' => 'StandupModelTest.php', 'tests' => 3, 'status' => 'written', 'coverage' => 'Standups, deliverables, action items'],
-                ],
-                'total' => 11,
-                'passing' => 0,
-                'pending' => 11,
-            ],
-            [
-                'suite' => 'Feature',
-                'category' => 'Livewire',
-                'files' => [
-                    ['name' => 'ModuleTests.php', 'tests' => 8, 'status' => 'written', 'coverage' => 'All 8 core modules load testing'],
-                ],
-                'total' => 8,
-                'passing' => 0,
-                'pending' => 8,
-            ],
-        ];
+        $this->recentRuns = TestRun::orderByDesc('run_at')
+            ->limit(10)
+            ->get()
+            ->map(function($run) {
+                return [
+                    'id' => $run->id,
+                    'date' => $run->run_at->format('M j, Y H:i'),
+                    'status' => $run->status,
+                    'total' => $run->total_tests,
+                    'passed' => $run->passed,
+                    'failed' => $run->failed,
+                    'skipped' => $run->skipped,
+                    'coverage' => $run->coverage,
+                    'duration' => $run->duration_ms,
+                    'pass_rate' => $run->pass_rate,
+                ];
+            });
+    }
 
-        $this->lastRun = [
-            'date' => '2026-03-01 17:37:00',
-            'result' => 'Config Issue',
-            'note' => 'Tests written but multi-database SQLite config requires Phase 2 fix',
+    public function calculateStats()
+    {
+        $allRuns = TestRun::all();
+        
+        $this->stats = [
+            'total_runs' => $allRuns->count(),
+            'last_run' => $allRuns->first()?->run_at?->format('M j, Y H:i') ?? 'Never',
+            'avg_pass_rate' => $allRuns->avg('pass_rate') ?? 0,
+            'best_coverage' => $allRuns->max('coverage') ?? 0,
+            'tests_written' => 19, // Static for now
         ];
+    }
 
-        $this->coverage = [
-            'models' => ['target' => 80, 'current' => 60, 'status' => 'partial'],
-            'controllers' => ['target' => 70, 'current' => 0, 'status' => 'pending'],
-            'livewire' => ['target' => 80, 'current' => 70, 'status' => 'good'],
-            'services' => ['target' => 75, 'current' => 0, 'status' => 'pending'],
-            'overall' => ['target' => 80, 'current' => 60, 'status' => 'partial'],
-        ];
+    public function runTests()
+    {
+        // Execute PHPUnit and store results
+        $output = shell_exec('cd ' . base_path() . ' && php artisan test --json 2>&1');
+        
+        $results = json_decode($output, true);
+        
+        $testRun = TestRun::create([
+            'run_at' => now(),
+            'status' => $results['status'] ?? 'error',
+            'total_tests' => $results['tests'] ?? 0,
+            'passed' => $results['passed'] ?? 0,
+            'failed' => $results['failed'] ?? 0,
+            'skipped' => $results['skipped'] ?? 0,
+            'coverage' => null, // Would need --coverage flag
+            'duration_ms' => $results['time'] ?? 0,
+            'output' => $output,
+            'results' => $results,
+        ]);
+
+        $this->dispatch('refreshRuns');
+        $this->loadRecentRuns();
+        $this->calculateStats();
     }
 
     public function render()

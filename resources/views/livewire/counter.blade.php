@@ -6,7 +6,7 @@
         −
     </button>
     
-    <span class="text-3xl font-bold text-indigo-600 dark:text-indigo-400 min-w-[4rem] text-center">
+    <span class="text-3xl font-bold text-indigo-600 min-w-[4rem] text-center">
         {{ $count }}
     </span>
     
