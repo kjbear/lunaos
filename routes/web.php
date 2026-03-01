@@ -15,6 +15,7 @@ use App\Livewire\Projects\ProjectsIndex;
 use App\Livewire\Projects\ProjectRequirements;
 use App\Livewire\Agents\AgentList;
 use App\Livewire\Board\ExecutiveBoard;
+use App\Livewire\TestStatus;
 
 // Web routes
 Route::get('/', function () {
@@ -69,6 +70,9 @@ Route::get('/projects/{id}/requirements', function ($id) {
 
 // Executive Board Module
 Route::view('/board', 'board')->name('board');
+
+// Test Status Dashboard
+Route::get('/tests', TestStatus::class)->name('tests');
 
 // API routes (unprotected for HTMX)
 Route::prefix('api')->name('api.')->group(function () {

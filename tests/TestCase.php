@@ -17,12 +17,9 @@ abstract class TestCase extends BaseTestCase
     {
         parent::setUp();
         
-        // Override multi-database connections for testing
+        // Override all database connections to use in-memory for testing
+        config(['database.connections.sqlite.database' => ':memory:']);
         config(['database.connections.sqlite-projects.database' => ':memory:']);
         config(['database.connections.sqlite-activity.database' => ':memory:']);
-        
-        // Run migrations for all connections
-        $this->artisan('migrate:fresh', ['--database' => 'sqlite-projects'])->run();
-        $this->artisan('migrate:fresh', ['--database' => 'sqlite-activity'])->run();
     }
 }
