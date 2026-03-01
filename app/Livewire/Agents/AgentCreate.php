@@ -43,14 +43,11 @@ class AgentCreate extends Component
     
     public function save()
     {
-        \Log::info('🔵 SAVE METHOD CALLED: ' . $this->name);
-        
+
         $this->validate([
             'name' => 'required|string|unique:agents,name',
             'role' => 'required|string',
         ]);
-        
-        \Log::info('🟢 Creating agent: ' . $this->name);
         
         Agent::create([
             'name' => $this->name,
@@ -70,9 +67,7 @@ class AgentCreate extends Component
             'workflow_config' => $this->workflowConfig,
         ]);
         
-        \Log::info('🟡 Redirecting to /agents');
-        
-        return redirect()->to('/agents');
+        $this->js('window.location.href = "' . route('agents.index') . '"');
     }
     
     public function render()

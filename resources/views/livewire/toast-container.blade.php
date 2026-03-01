@@ -1,4 +1,4 @@
-<div class="fixed bottom-6 right-6 z-50 flex flex-col gap-3 pointer-events-none"
+<div class="fixed top-6 right-6 z-50 flex flex-col gap-3 pointer-events-none"
      x-data
      @toast.window="$wire.addToast($event.detail.message, $event.detail.type ?? 'info', $event.detail.duration ?? 4000)"
      @toast-success.window="$wire.success($event.detail.message, $event.detail.duration ?? 4000)"

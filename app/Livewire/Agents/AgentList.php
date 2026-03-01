@@ -10,6 +10,8 @@ class AgentList extends Component
 {
     public bool $showCreateModal = false;
     public ?Agent $editingAgent = null;
+    public ?int $pendingDeleteId = null;
+    public bool $showDeleteConfirm = false;
     
     public function editAgent(int $agentId): void
     {
@@ -17,11 +19,25 @@ class AgentList extends Component
         $this->showCreateModal = true;
     }
     
-    public function confirmDelete(int $agentId): void
+    public function promptDelete(int $agentId): void
     {
-        if (confirm("Are you sure you want to delete this agent?")) {
-            $this->deleteAgent($agentId);
+        $this->pendingDeleteId = $agentId;
+        $this->showDeleteConfirm = true;
+    }
+    
+    public function confirmDelete(): void
+    {
+        if ($this->pendingDeleteId) {
+            $this->deleteAgent($this->pendingDeleteId);
         }
+        $this->showDeleteConfirm = false;
+        $this->pendingDeleteId = null;
+    }
+    
+    public function cancelDelete(): void
+    {
+        $this->showDeleteConfirm = false;
+        $this->pendingDeleteId = null;
     }
     
     public function deleteAgent(int $agentId): void
@@ -30,7 +46,11 @@ class AgentList extends Component
         if ($agent && !in_array($agent->name, ['dave', 'sam', 'chen'])) {
             $agent->delete();
             $this->dispatch('toast-success', message: 'Agent deleted successfully');
+        } else {
+            $this->dispatch('toast-error', message: 'Cannot delete protected agent');
         }
+        $this->showDeleteConfirm = false;
+        $this->pendingDeleteId = null;
     }
     
     public function closeModal(): void

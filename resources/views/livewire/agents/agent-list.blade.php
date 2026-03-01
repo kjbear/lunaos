@@ -91,7 +91,7 @@
                     </a>
                     @if(!in_array($agent->name, ['dave', 'sam', 'chen']))
                     <button 
-                        wire:click="confirmDelete({{ $agent->id }})"
+                        wire:click="promptDelete({{ $agent->id }})"
                         class="px-3 py-2 bg-red-900/30 text-red-300 rounded-lg hover:bg-red-900/50 transition-colors text-sm font-medium border border-red-500/20"
                     >
                         Delete
@@ -114,6 +114,47 @@
         <a href="{{ route('agents.create') }}" class="inline-block mt-6 px-6 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg transition-colors font-medium">
             Add Agent
         </a>
+    </div>
+    @endif
+
+    <!-- Delete Confirmation Modal -->
+    @if($showDeleteConfirm)
+    <div class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50" role="dialog" aria-modal="true">
+        <div class="bg-[#1a1a2e] rounded-2xl border border-red-500/30 shadow-2xl w-auto max-w-md mx-4 overflow-hidden" onclick="event.stopPropagation()">
+            <!-- Header -->
+            <div class="px-6 py-4 bg-gradient-to-r from-red-900/30 to-orange-900/30 border-b border-red-500/20">
+                <div class="flex items-center gap-3">
+                    <span class="text-4xl">⚠️</span>
+                    <h3 class="text-xl font-bold text-white">Confirm Delete</h3>
+                </div>
+            </div>
+
+            <!-- Body -->
+            <div class="p-6">
+                <p class="text-slate-300 text-sm leading-relaxed">
+                    Are you sure you want to delete this agent? This action cannot be undone.
+                </p>
+                <p class="text-slate-400 text-xs mt-3">
+                    Note: Protected agents (dave, sam, chen) cannot be deleted.
+                </p>
+            </div>
+
+            <!-- Footer -->
+            <div class="flex gap-3 p-6 bg-[#12121f]/50 border-t border-white/10">
+                <button 
+                    wire:click="cancelDelete"
+                    class="flex-1 px-4 py-2.5 bg-slate-700/50 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors font-medium border border-white/10"
+                >
+                    Cancel
+                </button>
+                <button 
+                    wire:click="confirmDelete"
+                    class="flex-1 px-4 py-2.5 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-500 hover:to-orange-500 text-white rounded-lg transition-all font-medium shadow-lg"
+                >
+                    Yes, Delete
+                </button>
+            </div>
+        </div>
     </div>
     @endif
 </div>

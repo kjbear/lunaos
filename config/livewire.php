@@ -115,6 +115,9 @@ return [
     */
 
     'inject_assets' => false,
+    
+    // Force CDN for assets
+    'script_url' => 'https://cdn.jsdelivr.net/gh/livewire/livewire@v3.7.10/dist/livewire.min.js',
 
     /*
     |---------------------------------------------------------------------------

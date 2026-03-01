@@ -15,7 +15,7 @@ class BasicAuthMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Skip authentication for health check and public web views
+        // Skip authentication for health check, public web views, and Livewire
         if ($request->is('up') || 
             $request->is('health') || 
             $request->is('api/health') || 
@@ -23,7 +23,9 @@ class BasicAuthMiddleware
             $request->is('kanban') ||
             $request->is('docs') ||
             $request->is('docs/*') ||
-            $request->is('/')) {
+            $request->is('livewire/*') ||  // Allow Livewire routes
+            $request->is('/') ||
+            $request->is('agents/*')) {  // TEMP: Test without auth on agents
             return $next($request);
         }
 

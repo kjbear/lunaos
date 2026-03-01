@@ -17,19 +17,8 @@
     <!-- HTMX -->
     <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
     
-    <!-- Livewire Config (must be before script loads) -->
-    <script>
-        window.livewireScriptConfig = {
-            uri: '/livewire/update',
-            csrf: '{{ csrf_token() }}'
-        };
-    </script>
-    
     <!-- Livewire Styles -->
     @livewireStyles
-    
-    <!-- Livewire (use Laravel-served assets) -->
-    <script src="/livewire/livewire.js" defer></script>
     
     @stack('head')
 </head>
@@ -166,6 +155,21 @@
     
     {{-- Toast Notifications --}}
     <livewire:toast-container />
+    
+    <!-- Livewire Config & Script -->
+    <script>
+        window.livewireScriptConfig = {
+            uri: '/livewire/update',
+            csrf: '{{ csrf_token() }}'
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/gh/livewire/livewire@v3.7.10/dist/livewire.min.js"></script>
+    <script>
+        // Manually start Livewire after script loads
+        if (typeof Livewire !== 'undefined') {
+            Livewire.start();
+        }
+    </script>
     
     <script>
         // Update time every minute

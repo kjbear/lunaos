@@ -23,6 +23,7 @@
 
     <!-- Create Form -->
     <form wire:submit.prevent="save" class="space-y-6">
+        @csrf
         <!-- Basic Info -->
         <div class="bg-gradient-to-br from-[#1a1a2e] to-[#12121f] rounded-2xl border border-[#2a2a40]/50 p-6 shadow-xl">
             <h2 class="text-xl font-bold text-white mb-6 flex items-center gap-3">
