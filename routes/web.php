@@ -72,7 +72,8 @@ Route::get('/projects/{id}/requirements', function ($id) {
 Route::view('/board', 'board')->name('board');
 
 // Test Status Dashboard
-Route::get('/tests', TestStatus::class)->name('tests');
+// Route::get('/tests', TestStatus::class)->name('tests');
+Route::view('/tests', 'tests')->name('tests');
 
 // API routes (unprotected for HTMX)
 Route::prefix('api')->name('api.')->group(function () {

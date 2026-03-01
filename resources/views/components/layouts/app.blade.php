@@ -101,6 +101,11 @@
                     <span class="text-lg">📊</span>
                     <span class="font-medium">Activity</span>
                 </a>
+                <a href="{{ route('tests') }}" 
+                   class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('tests') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
+                    <span class="text-lg">🧪</span>
+                    <span class="font-medium">Tests</span>
+                </a>
             </nav>
             
             <!-- Sidebar Footer -->
