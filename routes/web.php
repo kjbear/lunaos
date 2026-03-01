@@ -2,7 +2,13 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::view('/', 'welcome');
+// Redirect root to login or tasks
+Route::get('/', function () {
+    if (auth()->check()) {
+        return redirect()->route('tasks');
+    }
+    return redirect()->route('login');
+});
 
 Route::view('dashboard', 'dashboard')
     ->middleware(['auth', 'verified'])
