@@ -115,6 +115,52 @@
                 </div>
             </div>
 
+            {{-- Progress Indicator --}}
+            @if($isDebating)
+            <div class="bg-gradient-to-r from-purple-900/50 via-pink-900/50 to-purple-900/50 backdrop-blur-sm rounded-2xl border border-purple-500/30 p-6">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-3">
+                        <svg class="animate-spin h-5 w-5 text-purple-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <h3 class="text-sm font-semibold text-white uppercase tracking-wider">Board Session in Progress</h3>
+                    </div>
+                    <span class="text-xs text-purple-300 font-semibold px-3 py-1 bg-purple-500/20 rounded-full border border-purple-500/30">
+                        @if($loadingStep === 'convening')
+                            Starting...
+                        @elseif($loadingStep === 'joining')
+                            Members Joining
+                        @elseif($loadingStep === 'debating')
+                            Debate Active
+                        @elseif($loadingStep === 'consolidating')
+                            Finalizing
+                        @endif
+                    </span>
+                </div>
+                
+                {{-- Progress Bar --}}
+                <div class="relative h-2 bg-white/10 rounded-full overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 animate-pulse" 
+                         style="width: @if($loadingStep === 'convening') 25% @elseif($loadingStep === 'joining') 50% @elseif($loadingStep === 'debating') 75% @elseif($loadingStep === 'consolidating') 100% @else 0% @endif; transition: width 0.5s ease-in-out;">
+                    </div>
+                </div>
+                
+                {{-- Status Messages --}}
+                <div class="mt-4 flex items-center gap-2 text-sm text-purple-200">
+                    @if($loadingStep === 'convening')
+                        <span class="animate-pulse">🎯 Convening executive board...</span>
+                    @elseif($loadingStep === 'joining')
+                        <span class="animate-pulse">👥 Board members joining the session...</span>
+                    @elseif($loadingStep === 'debating')
+                        <span class="animate-pulse">🎙 Debate in progress - executives deliberating...</span>
+                    @elseif($loadingStep === 'consolidating')
+                        <span class="animate-pulse">✨ Consolidating final decision...</span>
+                    @endif
+                </div>
+            </div>
+            @endif
+
             {{-- Board Members --}}
             <div class="bg-slate-900/60 backdrop-blur-sm rounded-2xl border border-white/10 p-6">
                 <div class="flex items-center gap-3 mb-4">
@@ -122,24 +168,39 @@
                     <h3 class="text-sm font-semibold text-slate-300 uppercase tracking-wider">Board Members</h3>
                 </div>
 
-                <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    @foreach($boardMembers ?? [] as $member)
-                    <div class="group p-4 bg-white/[0.02] rounded-xl border border-white/5 hover:border-purple-500/30 hover:bg-purple-500/10 transition-all">
+                <div class="relative">
+                    {{-- Loading Overlay for Board Members --}}
+                    @if($loadingStep === 'joining')
+                    <div class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm z-10 rounded-xl flex items-center justify-center">
                         <div class="text-center">
-                            <div class="text-4xl mb-3">{{ $member['avatar'] }}</div>
-                            <div class="font-bold text-white text-sm">{{ $member['title'] }}</div>
-                            <div class="text-xs text-slate-500 mb-2">{{ $member['name'] }}</div>
-                            <div class="inline-block px-2 py-1 rounded text-xs font-semibold {{ $member['model'] === 'dolphin' ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30' : ($member['model'] === 'haiku' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-purple-500/20 text-purple-300 border border-purple-500/30') }}">
-                                {{ $member['model'] }}
-                            </div>
+                            <svg class="animate-spin h-8 w-8 text-purple-400 mx-auto mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <p class="text-purple-300 font-semibold">Board members joining...</p>
                         </div>
-                        @if($member['inspiration'] ?? null)
-                        <div class="mt-3 pt-3 border-t border-white/5">
-                            <p class="text-xs text-slate-400 leading-relaxed">{{ Str::limit($member['inspiration'], 60) }}</p>
-                        </div>
-                        @endif
                     </div>
-                    @endforeach
+                    @endif
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4 {{ $loadingStep === 'joining' ? 'opacity-30' : '' }}">
+                        @foreach($boardMembers ?? [] as $member)
+                        <div class="group p-4 bg-white/[0.02] rounded-xl border border-white/5 hover:border-purple-500/30 hover:bg-purple-500/10 transition-all">
+                            <div class="text-center">
+                                <div class="text-4xl mb-3">{{ $member['avatar'] }}</div>
+                                <div class="font-bold text-white text-sm">{{ $member['title'] }}</div>
+                                <div class="text-xs text-slate-500 mb-2">{{ $member['name'] }}</div>
+                                <div class="inline-block px-2 py-1 rounded text-xs font-semibold {{ $member['model'] === 'dolphin' ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30' : ($member['model'] === 'haiku' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-purple-500/20 text-purple-300 border border-purple-500/30') }}">
+                                    {{ $member['model'] }}
+                                </div>
+                            </div>
+                            @if($member['inspiration'] ?? null)
+                            <div class="mt-3 pt-3 border-t border-white/5">
+                                <p class="text-xs text-slate-400 leading-relaxed">{{ Str::limit($member['inspiration'], 60) }}</p>
+                            </div>
+                            @endif
+                        </div>
+                        @endforeach
+                    </div>
                 </div>
             </div>
         </div>

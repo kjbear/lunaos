@@ -298,7 +298,11 @@ class BoardService
             ]);
 
             if ($response->successful()) {
-                return $response->json('choices.0.message.content');
+                $content = $response->json('choices.0.message.content');
+                $reasoning = $response->json('choices.0.message.reasoning');
+                
+                // GLM-5 reasoning models may return content in different fields
+                return $content ?: $reasoning ?: '[No response content]';
             }
 
             Log::error('BoardService: API error', [
