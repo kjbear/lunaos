@@ -261,7 +261,19 @@
                                     @else bg-slate-500/20 text-slate-400 border border-slate-500/30
                                     @endif
                                 ">
-                                    {{ $this->getStatusLabel($task->status) }}
+                                    @if($task->status === 'pending')
+                                        <span class="px-2 py-1 text-xs rounded-full bg-gray-500/20 text-gray-400 border border-gray-400/30">Pending</span>
+                                    @elseif($task->status === 'in_progress')
+                                        <span class="px-2 py-1 text-xs rounded-full bg-blue-500/20 text-blue-400 border border-blue-400/30">In Progress</span>
+                                    @elseif($task->status === 'complete')
+                                        <span class="px-2 py-1 text-xs rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-400/30">Complete</span>
+                                    @elseif($task->status === 'blocked')
+                                        <span class="px-2 py-1 text-xs rounded-full bg-orange-500/20 text-orange-400 border border-orange-400/30">Blocked</span>
+                                    @elseif($task->status === 'failed')
+                                        <span class="px-2 py-1 text-xs rounded-full bg-red-500/20 text-red-400 border border-red-400/30">Failed</span>
+                                    @else
+                                        <span class="px-2 py-1 text-xs rounded-full bg-slate-500/20 text-slate-400 border border-slate-400/30">{{ ucfirst($task->status) }}</span>
+                                    @endif
                                 </span>
                             </td>
                             
