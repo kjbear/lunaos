@@ -154,43 +154,43 @@
                                 wire:click="setSort('id')"
                                 class="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white transition-colors"
                             >
-                                ID {{ getSortIcon('id') }}
+                                ID {{ $this->getSortIcon('id') }}
                             </th>
                             <th 
                                 wire:click="setSort('title')"
                                 class="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white transition-colors"
                             >
-                                Task {{ getSortIcon('title') }}
+                                Task {{ $this->getSortIcon('title') }}
                             </th>
                             <th 
                                 wire:click="setSort('assigned_to')"
                                 class="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white transition-colors"
                             >
-                                Agent {{ getSortIcon('assigned_to') }}
+                                Agent {{ $this->getSortIcon('assigned_to') }}
                             </th>
                             <th 
                                 wire:click="setSort('step')"
                                 class="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white transition-colors"
                             >
-                                Step {{ getSortIcon('step') }}
+                                Step {{ $this->getSortIcon('step') }}
                             </th>
                             <th 
                                 wire:click="setSort('priority')"
                                 class="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white transition-colors"
                             >
-                                Priority {{ getSortIcon('priority') }}
+                                Priority {{ $this->getSortIcon('priority') }}
                             </th>
                             <th 
                                 wire:click="setSort('status')"
                                 class="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white transition-colors"
                             >
-                                Status {{ getSortIcon('status') }}
+                                Status {{ $this->getSortIcon('status') }}
                             </th>
                             <th 
                                 wire:click="setSort('created_at')"
                                 class="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white transition-colors"
                             >
-                                Created {{ getSortIcon('created_at') }}
+                                Created {{ $this->getSortIcon('created_at') }}
                             </th>
                         </tr>
                     </thead>
@@ -261,7 +261,7 @@
                                     @else bg-slate-500/20 text-slate-400 border border-slate-500/30
                                     @endif
                                 ">
-                                    {{ getStatusLabel($task->status) }}
+                                    {{ $this->getStatusLabel($task->status) }}
                                 </span>
                             </td>
                             
