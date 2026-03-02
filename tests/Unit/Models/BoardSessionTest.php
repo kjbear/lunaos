@@ -5,9 +5,9 @@ namespace Tests\Unit\Models;
 use App\Models\BoardResponse;
 use App\Models\BoardSession;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
+use Tests\TestCase as BaseTestCase;
 
-class BoardSessionTest extends TestCase
+class BoardSessionTest extends BaseTestCase
 {
     use RefreshDatabase;
 

@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Str;
 
 class BoardSession extends Model
@@ -14,15 +13,23 @@ class BoardSession extends Model
 
     protected $fillable = [
         'question',
+        'context',
         'status',
-        'decision_summary',
-        'started_at',
-        'completed_at',
+        'rounds_planned',
+        'final_decision',
+        'risks_benefits',
+        'confidence_score',
+        'dissenting_opinions',
+        'key_themes',
+        'decided_at',
     ];
 
     protected $casts = [
-        'started_at' => 'datetime',
-        'completed_at' => 'datetime',
+        'rounds_planned' => 'integer',
+        'confidence_score' => 'float',
+        'dissenting_opinions' => 'array',
+        'key_themes' => 'array',
+        'decided_at' => 'datetime',
     ];
 
     protected static function boot()
@@ -36,27 +43,11 @@ class BoardSession extends Model
     }
 
     /**
-     * Get the participants for this session.
+     * Get the responses for this session.
      */
-    public function participants(): HasMany
+    public function responses(): HasMany
     {
-        return $this->hasMany(BoardParticipant::class, 'session_id');
-    }
-
-    /**
-     * Get the discussion entries for this session.
-     */
-    public function discussionEntries(): HasMany
-    {
-        return $this->hasMany(BoardDiscussionEntry::class, 'session_id');
-    }
-
-    /**
-     * Get the final decision for this session.
-     */
-    public function decision(): HasOne
-    {
-        return $this->hasOne(BoardDecision::class, 'session_id');
+        return $this->hasMany(BoardResponse::class, 'session_id');
     }
 
     /**
@@ -84,14 +75,6 @@ class BoardSession extends Model
     }
 
     /**
-     * Scope for closed sessions.
-     */
-    public function scopeClosed($query)
-    {
-        return $query->where('status', 'closed');
-    }
-
-    /**
      * Check if session is active.
      */
     public function isActive(): bool
@@ -100,25 +83,46 @@ class BoardSession extends Model
     }
 
     /**
-     * Get the transcript of the session.
+     * Get the formatted transcript.
      */
     public function getTranscript(): array
     {
-        return $this->discussionEntries()
-            ->with('participant')
+        return $this->responses()
             ->orderBy('round')
-            ->orderBy('created_at')
+            ->orderBy('response_order')
             ->get()
-            ->map(function ($entry) {
+            ->map(function ($response) {
                 return [
-                    'participant_id' => $entry->participant_id,
-                    'persona_role' => $entry->participant?->persona_role,
-                    'round' => $entry->round,
-                    'message' => $entry->message,
-                    'model_response' => $entry->model_response,
-                    'created_at' => $entry->created_at->toIso8601String(),
+                    'member_name' => $response->member_name,
+                    'member_role' => $response->member_role,
+                    'round' => $response->round,
+                    'response' => $response->response,
+                    'model' => $response->model_used,
+                    'created_at' => $response->created_at->toIso8601String(),
                 ];
             })
             ->toArray();
+    }
+
+    /**
+     * Get confidence score as percentage.
+     */
+    public function getConfidencePercentageAttribute(): int
+    {
+        return (int) ($this->confidence_score * 100);
+    }
+
+    /**
+     * Get formatted decision with reasoning.
+     */
+    public function getFormattedDecisionAttribute(): string
+    {
+        $decision = $this->final_decision ?? 'No decision rendered.';
+        
+        $confidence = $this->confidence_score > 0 
+            ? " (Confidence: {$this->confidence_percentage}%)"
+            : '';
+        
+        return $decision . $confidence;
     }
 }

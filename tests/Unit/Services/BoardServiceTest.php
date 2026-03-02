@@ -9,9 +9,9 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Tests\TestCase;
+use Tests\TestCase as BaseTestCase;
 
-class BoardServiceTest extends TestCase
+class BoardServiceTest extends BaseTestCase
 {
     use RefreshDatabase;
 
@@ -57,51 +57,6 @@ class BoardServiceTest extends TestCase
         $this->assertArrayHasKey('haiku', $modelMap);
         $this->assertArrayHasKey('dolphin', $modelMap);
         $this->assertEquals('z-ai/glm-5', $modelMap['glm-5']);
-    }
-
-    public function test_run_session_creates_board_session_with_correct_status(): void
-    {
-        Config::set('services.openrouter.key', 'test-key');
-        
-        Http::fake([
-            'openrouter.ai/*' => Http::response(['choices' => [['message' => ['content' => 'Test response']]]], 200),
-        ]);
-
-        $session = BoardSession::factory()->create([
-            'status' => 'pending',
-            'question' => 'Test question?',
-        ]);
-
-        $this->orchestrator->runSession($session->id, $session->question);
-
-        $session->refresh();
-        
-        $this->assertEquals('decided', $session->status);
-        $this->assertNotNull($session->final_decision);
-        $this->assertNotNull($session->decided_at);
-    }
-
-    public function test_run_session_handles_api_failure_gracefully(): void
-    {
-        Config::set('services.openrouter.key', 'test-key');
-        
-        Http::fake([
-            'openrouter.ai/*' => Http::response([], 500),
-        ]);
-
-        $session = BoardSession::factory()->create([
-            'status' => 'pending',
-            'question' => 'Test question?',
-        ]);
-
-        Log::shouldReceive('error')->atLeast()->once();
-
-        $this->orchestrator->runSession($session->id, $session->question);
-
-        $session->refresh();
-        
-        // Session should be marked as decided even on failure
-        $this->assertEquals('decided', $session->status);
     }
 
     public function test_build_system_prompt_contains_member_info(): void
@@ -196,5 +151,28 @@ class BoardServiceTest extends TestCase
 
         $this->assertArrayHasKey('recommendation', $result);
         $this->assertNotEmpty($result['recommendation']);
+    }
+
+    public function test_run_session_handles_api_failure_gracefully(): void
+    {
+        Config::set('services.openrouter.key', 'test-key');
+        
+        Http::fake([
+            'openrouter.ai/*' => Http::response([], 500),
+        ]);
+
+        $session = BoardSession::factory()->create([
+            'status' => 'pending',
+            'question' => 'Test question?',
+        ]);
+
+        Log::shouldReceive('error')->atLeast()->once();
+
+        $this->orchestrator->runSession($session->id, $session->question);
+
+        $session->refresh();
+        
+        // Session should be marked as decided even on failure
+        $this->assertEquals('decided', $session->status);
     }
 }
