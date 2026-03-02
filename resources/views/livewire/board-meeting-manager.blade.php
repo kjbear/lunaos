@@ -321,7 +321,13 @@
         <div class="bg-slate-900 border border-white/10 rounded-2xl p-8 max-w-md text-center">
             <div class="text-5xl mb-4 animate-bounce">🎙</div>
             <h3 class="text-xl font-bold text-white mb-2">Board in Session</h3>
-            <p class="text-slate-400 text-sm">The executives are debating your question...</p>
+            <p class="text-slate-400 text-sm mb-4">The executives are debating your question...</p>
+            <button 
+                wire:click="cancelSession"
+                class="mt-4 px-4 py-2 bg-red-600 hover:bg-red-500 text-white text-sm font-medium rounded-lg transition-colors"
+            >
+                Cancel Session
+            </button>
             <div class="mt-6 flex items-center justify-center gap-2">
                 <div class="w-3 h-3 bg-amber-500 rounded-full animate-bounce" style="animation-delay: 0ms"></div>
                 <div class="w-3 h-3 bg-orange-500 rounded-full animate-bounce" style="animation-delay: 150ms"></div>
