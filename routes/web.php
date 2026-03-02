@@ -84,6 +84,7 @@ Route::get('/projects/{id}/requirements', function ($id) {
 
 // Executive Board Module
 Route::view('/board', 'board')->name('board');
+Route::view('/tasks/executive/board', 'pages.executive-board')->name('tasks.executive.board');
 
 // Test Status Dashboard
 // Route::get('/tests', TestStatus::class)->name('tests');

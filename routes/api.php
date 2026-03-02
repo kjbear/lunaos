@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\StatusController;
 use App\Http\Controllers\Api\TaskController;
+use App\Http\Controllers\Api\BoardController;
 use App\Http\Controllers\OrgChartController;
 use App\Http\Controllers\WorkspaceController;
 
@@ -89,4 +90,18 @@ Route::name('api.')->group(function () {
         ->name('activity.poll');
     Route::get('/activity/health', [\App\Http\Controllers\Api\ActivityIngestController::class, 'health'])
         ->name('activity.health');
+
+    // ==========================================
+    // BOARD API (Executive Board Feature)
+    // ==========================================
+    Route::prefix('board')->name('board.')->group(function () {
+        // Board sessions
+        Route::post('/sessions', [BoardController::class, 'createSession'])->name('sessions.create');
+        Route::get('/sessions', [BoardController::class, 'listSessions'])->name('sessions.index');
+        Route::get('/sessions/{sessionId}', [BoardController::class, 'getSession'])->name('sessions.show');
+        Route::post('/sessions/{sessionId}/round', [BoardController::class, 'runRound'])->name('sessions.round');
+        Route::post('/sessions/{sessionId}/consolidate', [BoardController::class, 'consolidateDecision'])->name('sessions.consolidate');
+        Route::get('/sessions/{sessionId}/transcript', [BoardController::class, 'getTranscript'])->name('sessions.transcript');
+        Route::delete('/sessions/{sessionId}', [BoardController::class, 'closeSession'])->name('sessions.close');
+    });
 });

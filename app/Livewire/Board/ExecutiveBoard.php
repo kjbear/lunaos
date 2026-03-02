@@ -5,7 +5,7 @@ namespace App\Livewire\Board;
 use App\Models\BoardSession;
 use App\Models\BoardResponse;
 use App\Models\Persona;
-use App\Services\BoardOrchestrator;
+use App\Services\BoardDebateOrchestrator;
 use Livewire\Component;
 use Illuminate\Support\Facades\Log;
 
@@ -33,7 +33,10 @@ class ExecutiveBoard extends Component
 
     public function loadBoardMembers(): void
     {
-        // Load board member personas from database
+        // Load configuration-based personas
+        $this->boardMembers = [];
+        
+        // Try to load from database first
         $members = Persona::where('role', 'board_member')
             ->where('status', 'active')
             ->orderBy('title')
@@ -51,15 +54,31 @@ class ExecutiveBoard extends Component
                 ];
             })->toArray();
         } else {
-            // Default board members if none in DB
-            $this->boardMembers = [
-                ['id' => 'ceo', 'name' => 'Steven', 'title' => 'CEO', 'model' => 'glm-5', 'avatar' => '🎯', 'inspiration' => 'Steve Jobs - visionary, product-obsessed'],
-                ['id' => 'coo', 'name' => 'Gwynne', 'title' => 'COO', 'model' => 'haiku', 'avatar' => '👔', 'inspiration' => 'Gwynne Shotwell - operational excellence'],
-                ['id' => 'cto', 'name' => 'Werner', 'title' => 'CTO', 'model' => 'dolphin', 'avatar' => '💻', 'inspiration' => 'Werner Vogels - scalability, architecture'],
-                ['id' => 'cfo', 'name' => 'Warren', 'title' => 'CFO', 'model' => 'glm-5', 'avatar' => '💰', 'inspiration' => 'Warren Buffet - value investing, ROI discipline'],
-                ['id' => 'cmo', 'name' => 'Bozoma', 'title' => 'CMO', 'model' => 'haiku', 'avatar' => '📢', 'inspiration' => 'Bozoma Saint John - cultural marketing'],
-                ['id' => 'cpo', 'name' => 'Fidji', 'title' => 'CPO', 'model' => 'glm-5', 'avatar' => '📦', 'inspiration' => 'Fidji Simo - user-centric product'],
-            ];
+            // Fall back to config-defined personas
+            $configPersonas = config('executive-board.personas', []);
+            
+            if (!empty($configPersonas)) {
+                foreach ($configPersonas as $config) {
+                    if ($config['enabled'] ?? true) {
+                        $personaClass = $config['class'];
+                        if (class_exists($personaClass)) {
+                            $persona = new $personaClass();
+                            $this->boardMembers[] = $persona->toArray();
+                        }
+                    }
+                }
+            }
+            
+            // If still empty, use hardcoded defaults
+            if (empty($this->boardMembers)) {
+                $this->boardMembers = [
+                    ['name' => 'Gwynne', 'title' => 'COO', 'model' => 'glm-5', 'avatar' => '👔', 'inspiration' => 'Gwynne Shotwell - operational excellence'],
+                    ['name' => 'Warren', 'title' => 'CFO', 'model' => 'glm-5', 'avatar' => '💰', 'inspiration' => 'Warren Buffet - value investing'],
+                    ['name' => 'Werner', 'title' => 'CTO', 'model' => 'glm-5', 'avatar' => '💻', 'inspiration' => 'Werner Vogels - scalability'],
+                    ['name' => 'Bozoma', 'title' => 'CMO', 'model' => 'glm-5', 'avatar' => '📢', 'inspiration' => 'Bozoma Saint John - cultural marketing'],
+                    ['name' => 'Fidji', 'title' => 'CPO', 'model' => 'glm-5', 'avatar' => '📦', 'inspiration' => 'Fidji Simo - user-centric product'],
+                ];
+            }
         }
     }
 
@@ -74,8 +93,7 @@ class ExecutiveBoard extends Component
 
     public function checkApiConfiguration(): void
     {
-        $orchestrator = app(BoardOrchestrator::class);
-        $this->apiConfigured = $orchestrator->isConfigured();
+        $this->apiConfigured = !empty(config('services.openrouter.key') ?: env('OPENROUTER_API_KEY'));
     }
 
     public function conveneBoard(): void
@@ -100,11 +118,10 @@ class ExecutiveBoard extends Component
         $this->finalDecision = null;
         $this->risksBenefits = null;
 
-        // Run the board session
+        // Run the board session with new orchestrator
         try {
-            $orchestrator = app(BoardOrchestrator::class);
-            $orchestrator->runSession(
-                $session->id,
+            $orchestrator = app(BoardDebateOrchestrator::class);
+            $result = $orchestrator->runDebate(
                 $this->question,
                 $this->context ?: null
             );
@@ -125,37 +142,37 @@ class ExecutiveBoard extends Component
         } catch (\Exception $e) {
             Log::error('ExecutiveBoard: Failed to run session', [
                 'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
             ]);
             
             // Create fallback response
-            $this->createFallbackResponse($session);
+            $this->createFallbackResponse($session, $e->getMessage());
             
-            $this->dispatch('toast-error', message: 'Board session failed. Check API configuration.');
+            $this->dispatch('toast-error', message: 'Board session failed: ' . $e->getMessage());
         }
 
         $this->isDebating = false;
         $this->loadStats();
     }
 
-    protected function createFallbackResponse(BoardSession $session): void
+    protected function createFallbackResponse(BoardSession $session, string $error): void
     {
         // If API fails, create placeholder responses
         $order = 0;
         foreach ($this->boardMembers as $member) {
             BoardResponse::create([
                 'session_id' => $session->id,
-                'member_id' => $member['id'],
-                'member_name' => $member['name'],
-                'member_role' => $member['title'],
-                'response' => "[API unavailable - {$member['name']} would provide their {$member['title']} perspective here.]",
-                'model_used' => $member['model'],
+                'member_name' => $member['name'] ?? 'Executive',
+                'member_role' => $member['title'] ?? 'Board Member',
+                'response' => "[Error: {$error} - Response unavailable]",
+                'model_used' => $member['model'] ?? 'glm-5',
                 'response_order' => $order++,
             ]);
         }
 
         $session->update([
             'status' => 'decided',
-            'final_decision' => 'Unable to reach a decision - API configuration required. Add OPENROUTER_API_KEY to your .env file.',
+            'final_decision' => "Unable to reach a decision - Error: {$error}. Please check API configuration and retry.",
             'decided_at' => now(),
         ]);
 
@@ -179,6 +196,7 @@ class ExecutiveBoard extends Component
                 'response' => $r->response,
                 'model' => $r->model_used,
                 'avatar' => $this->getAvatarForRole($r->member_role),
+                'round' => $r->round ?? 1,
             ];
         })->toArray();
     }

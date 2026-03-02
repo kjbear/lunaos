@@ -301,4 +301,22 @@
             </div>
         </div>
     </section>
+    
+    {{-- Executive Board Meeting Manager --}}
+    <section class="mt-8">
+        <div class="flex items-center gap-3 mb-4">
+            <div class="w-1 h-6 bg-gradient-to-b from-amber-400 to-orange-500 rounded-full"></div>
+            <h3 class="text-sm font-semibold text-slate-300 uppercase tracking-wider">Executive Board</h3>
+            <a 
+                href="{{ route('tasks.executive.board') }}"
+                class="text-xs text-amber-400 hover:text-amber-300 font-medium ml-2"
+            >
+                View Full Board →
+            </a>
+        </div>
+        
+        <div class="bg-slate-900/60 backdrop-blur-sm rounded-2xl border border-white/10 overflow-hidden">
+            <livewire:board-meeting-manager />
+        </div>
+    </section>
 </div>
