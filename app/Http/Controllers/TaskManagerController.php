@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Task;
 use App\Models\Agent;
+use App\Services\TaskService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
@@ -95,6 +96,49 @@ class TaskManagerController extends Controller
             'agents' => Agent::select('id', 'name', 'role')->get(),
             'statuses' => ['pending', 'running', 'completed', 'failed'],
             'priorities' => ['low', 'normal', 'high', 'critical'],
+            'view_modes' => ['list', 'board', 'executive'],
         ]);
+    }
+
+    /**
+     * Create a new task.
+     */
+    public function store(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'assigned_to' => 'nullable|string',
+            'status' => 'in:pending,in_progress,completed,failed',
+            'view_mode' => 'in:list,board,executive',
+            'step' => 'in:develop,qa,security,staging,production',
+            'priority' => 'in:low,medium,high,critical',
+            'task_type' => 'in:feature,bugfix,refactor,test',
+        ]);
+
+        $task = Task::create($validated);
+
+        return response()->json($task, 201);
+    }
+
+    /**
+     * Update an existing task.
+     */
+    public function update(Request $request, Task $task): JsonResponse
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'assigned_to' => 'nullable|string',
+            'status' => 'in:pending,in_progress,completed,failed',
+            'view_mode' => 'in:list,board,executive',
+            'step' => 'in:develop,qa,security,staging,production',
+            'priority' => 'in:low,medium,high,critical',
+            'task_type' => 'in:feature,bugfix,refactor,test',
+        ]);
+
+        $task->update($validated);
+
+        return response()->json($task);
     }
 }

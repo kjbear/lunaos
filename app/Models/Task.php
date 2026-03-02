@@ -37,6 +37,9 @@ class Task extends Model
         'completed_at',
     ];
     
+    // Allow all fields for mass assignment (guarded empty)
+    protected $guarded = [];
+    
     /**
      * The attributes that should be cast.
      */

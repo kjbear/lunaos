@@ -5,10 +5,10 @@ namespace App\Livewire;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Livewire\Attributes\Url;
 use App\Models\Task;
 
 #[Layout('components.layouts.app')]
-#[\Livewire\Attributes\Url]
 class TaskList extends Component
 {
     use WithPagination;
@@ -18,7 +18,12 @@ class TaskList extends Component
     // Filters
     public string $statusFilter = 'all';
     public string $priorityFilter = 'all';
+    #[Url]
     public string $search = '';
+    
+    // Additional filters for blade compatibility
+    public string $selectedAgent = 'all';
+    public ?string $selectedStatus = null;
 
     // Sorting
     public string $sortField = 'created_at';
@@ -28,12 +33,25 @@ class TaskList extends Component
     public int $perPage = 20;
     
     // View mode
+    #[Url]
     public string $viewMode = 'list';
+    
+    // Agent counts for filtering
+    public array $agentCounts = [];
 
     protected $listeners = ['refreshTasks' => 'refresh'];
 
     public function mount(): void
     {
+        // Set up agent counts
+        $this->agentCounts = [
+            'all' => Task::count(),
+            'dave' => Task::where('assigned_agent', 'dave')->count(),
+            'sam' => Task::where('assigned_agent', 'sam')->count(),
+            'chen' => Task::where('assigned_agent', 'chen')->count(),
+            'security' => Task::where('assigned_agent', 'security')->count(),
+        ];
+        
         // Load any query parameters
         if ($search = request()->query('search')) {
             $this->search = $search;
@@ -55,6 +73,16 @@ class TaskList extends Component
         // Reset pagination when filters change
         $this->resetPage();
     }
+    
+    public function updatedSelectedAgent(): void
+    {
+        $this->resetPage();
+    }
+    
+    public function updatedSelectedStatus(): void
+    {
+        $this->resetPage();
+    }
 
     public function refresh(): void
     {
@@ -71,13 +99,45 @@ class TaskList extends Component
         }
         $this->resetPage();
     }
+    
+    public function setSort(string $field): void
+    {
+        $this->sortBy($field);
+    }
+    
+    public function getSortIcon(string $field): string
+    {
+        if ($this->sortField !== $field) {
+            return '↕️';
+        }
+        return $this->sortDirection === 'asc' ? '↑' : '↓';
+    }
+    
+    public function getStatusLabel(string $status): string
+    {
+        return match($status) {
+            'pending' => 'Pending',
+            'in_progress' => 'In Progress',
+            'complete' => 'Complete',
+            'blocked' => 'Blocked',
+            'failed' => 'Failed',
+            default => ucfirst($status),
+        };
+    }
 
     public function clearFilters(): void
     {
         $this->statusFilter = 'all';
         $this->priorityFilter = 'all';
         $this->search = '';
+        $this->selectedAgent = 'all';
+        $this->selectedStatus = null;
         $this->resetPage();
+    }
+    
+    public function viewTask(int $taskId): void
+    {
+        redirect()->route('tasks.show', $taskId);
     }
 
     public function getStatsProperty(): array

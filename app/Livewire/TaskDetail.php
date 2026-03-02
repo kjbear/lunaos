@@ -3,17 +3,31 @@
 namespace App\Livewire;
 
 use Livewire\Component;
+use Livewire\Attributes\Layout;
+use Livewire\Attributes\Url;
 use App\Models\Task;
 use App\Models\Agent;
 use App\Models\AgentActivity;
 
+#[Layout('components.layouts.app')]
 class TaskDetail extends Component
 {
     public ?Task $task = null;
     public $activities = [];
     public $agent = null;
+    #[Url]
     public string $viewMode = 'list';
     public ?int $taskId = null;
+
+    public function show($taskId)
+    {
+        $this->task = Task::findOrFail($taskId);
+        $this->taskId = $taskId;
+        $this->loadActivities();
+        $this->loadAgent();
+        
+        return $this->render();
+    }
 
     public function mount($task = null)
     {
@@ -95,6 +109,12 @@ class TaskDetail extends Component
 
     public function render()
     {
-        return view('livewire.task-detail');
+        return view('livewire.task-detail', [
+            'task' => $this->task,
+            'activities' => $this->activities,
+            'agent' => $this->agent,
+        ])->layout('components.layouts.app', [
+            'title' => "Task #{$this->task->id}"
+        ]);
     }
 }

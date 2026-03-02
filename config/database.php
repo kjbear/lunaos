@@ -45,14 +45,14 @@ return [
 
         'sqlite-projects' => [
             'driver' => 'sqlite',
-            'database' => '/Users/kobear/.openclaw/workspace/projects.db',
+            'database' => env('DB_PROJECTS_PATH', database_path('projects.db')),
             'prefix' => '',
             'foreign_key_constraints' => false,
         ],
 
         'sqlite-activity' => [
             'driver' => 'sqlite',
-            'database' => '/Users/kobear/.openclaw/workspace/activity.db',
+            'database' => env('DB_ACTIVITY_PATH', database_path('activity.db')),
             'prefix' => '',
             'foreign_key_constraints' => false,
         ],

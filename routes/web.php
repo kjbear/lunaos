@@ -8,6 +8,10 @@ use App\Http\Controllers\WorkspaceController;
 use App\Livewire\Counter;
 use App\Livewire\TaskManager;
 use App\Livewire\DocsViewer;
+use App\Livewire\TaskList;
+use App\Livewire\TaskBoardUnified;
+use App\Livewire\TaskExecutive;
+use App\Livewire\TaskEdit;
 use App\Livewire\HR\PersonasIndex;
 use App\Livewire\KanbanBoard;
 use App\Livewire\HR\PersonaWorkspaceViewer;
@@ -33,7 +37,13 @@ Route::view('/mission-control-polished', 'pages.mission-control-polished')->name
 
 // Task routes
 Route::get('/tasks', [\App\Livewire\TaskList::class, '__invoke'])->name('tasks');
+Route::get('/tasks/list', TaskList::class)->name('tasks.list');
+Route::get('/tasks/board', TaskBoardUnified::class)->name('tasks.board');
+Route::get('/tasks/executive', TaskExecutive::class)->name('tasks.executive');
+Route::get('/tasks/create', TaskEdit::class)->name('tasks.create');
+Route::get('/tasks/{task}/edit', TaskEdit::class)->name('tasks.edit');
 Route::get('/tasks/{task}', [\App\Livewire\TaskDetail::class, 'show'])->name('tasks.show');
+
 Route::get('/org-chart', function () {
     return view('org-chart');
 })->name('org-chart');
@@ -77,33 +87,6 @@ Route::view('/board', 'board')->name('board');
 // Test Status Dashboard
 // Route::get('/tests', TestStatus::class)->name('tests');
 Route::view('/tests', 'tests')->name('tests');
-
-// API routes (unprotected for HTMX)
-Route::prefix('api')->name('api.')->group(function () {
-    Route::get('/status', StatusController::class)->name('status');
-
-    // Task Manager API
-    Route::get('/tasks', [TaskManagerController::class, 'index'])->name('tasks.index');
-    Route::get('/tasks/stats', [TaskManagerController::class, 'stats'])->name('tasks.stats');
-    Route::get('/tasks/filters', [TaskManagerController::class, 'filters'])->name('tasks.filters');
-    Route::get('/tasks/{task}', [TaskManagerController::class, 'show'])->name('tasks.show');
-
-    // Org Chart API
-    Route::get('/org-chart', [OrgChartController::class, 'index'])->name('org-chart.index');
-    Route::get('/org-chart/stats', [OrgChartController::class, 'stats'])->name('org-chart.stats');
-    Route::get('/org-chart/health', [OrgChartController::class, 'health'])->name('org-chart.health');
-    Route::get('/org-chart/{agent}', [OrgChartController::class, 'show'])->name('org-chart.show');
-
-    // Workspace API
-    Route::get('/workspace', [WorkspaceController::class, 'index'])->name('workspace.index');
-    Route::get('/workspace/{path}', [WorkspaceController::class, 'show'])->name('workspace.show')->where('path', '.*');
-    
-    // Activity Ingest API (for OpenClaw webhook)
-    Route::post('/activity/ingest', [\App\Http\Controllers\Api\ActivityIngestController::class, 'ingest'])->name('activity.ingest');
-    Route::post('/activity/poll', [\App\Http\Controllers\Api\ActivityIngestController::class, 'poll'])->name('activity.poll');
-    Route::get('/activity/health', [\App\Http\Controllers\Api\ActivityIngestController::class, 'health'])->name('activity.health');
-    
-});
 
 // Kanban Board (outside API group)
 Route::view('/kanban', 'pages.kanban')->name('kanban.index');
