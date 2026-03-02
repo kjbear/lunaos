@@ -19,8 +19,8 @@ class BoardOrchestrator
 
     // Model mapping - use Ollama Cloud for glm-5
     protected array $modelMap = [
-        'ollama-local/glm-5' => 'glm-5',
-        'glm-5' => 'glm-5',
+        'ollama-local/glm-5' => 'glm-5:cloud',
+        'glm-5' => 'glm-5:cloud',
         'haiku' => 'claude-3-haiku',
         'dolphin' => 'dolphin-3.0',
     ];
