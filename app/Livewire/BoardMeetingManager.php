@@ -170,7 +170,7 @@ class BoardMeetingManager extends Component
                 'session_id' => $session->id,
                 'member_id' => $member['id'],
                 'member_name' => $member['name'],
-                'member_role' => $member['title'],
+                'member_role' => $member['role'] ?? $member['title'] ?? 'Executive',
                 'response' => "[API unavailable - {$member['name']} would provide their {$member['title']} perspective here.]",
                 'model_used' => $member['model'],
                 'response_order' => $order++,

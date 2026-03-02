@@ -58,7 +58,7 @@ class BoardOrchestrator
                     'session_id' => $sessionId,
                     'member_id' => $member->id,
                     'member_name' => $member->name,
-                    'member_role' => $member->title,
+                    'member_role' => $member->role ?? $member->title ?? 'Executive',
                     'response' => $response,
                     'model_used' => $member->model,
                     'response_order' => $order,
