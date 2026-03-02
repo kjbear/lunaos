@@ -19,6 +19,8 @@ class ExecutiveBoard extends Component
     public ?string $finalDecision = null;
     public ?string $risksBenefits = null;
     public bool $isDebating = false;
+    public bool $isLoading = false;
+    public string $loadingStep = '';
     public array $stats = [];
     public bool $apiConfigured = false;
 
@@ -103,7 +105,11 @@ class ExecutiveBoard extends Component
             return;
         }
 
-        $this->dispatch('toast-info', message: 'Convening the board...');
+        // Set loading state immediately
+        $this->isLoading = true;
+        $this->loadingStep = 'convening';
+        $this->isDebating = true;
+        $this->dispatch('toast-info', message: 'Convening executive board...');
 
         // Create session
         $session = BoardSession::create([
@@ -113,24 +119,36 @@ class ExecutiveBoard extends Component
         ]);
 
         $this->currentSessionId = $session->id;
-        $this->isDebating = true;
         $this->transcript = [];
         $this->finalDecision = null;
         $this->risksBenefits = null;
 
         // Run the board session with new orchestrator
         try {
+            // Board members joining
+            $this->loadingStep = 'joining';
+            $this->dispatch('toast-info', message: 'Board members joining...');
+            
             $orchestrator = app(BoardDebateOrchestrator::class);
             $result = $orchestrator->runDebate(
                 $this->question,
                 $this->context ?: null
             );
 
+            // Debate starts
+            $this->loadingStep = 'debating';
+            $rounds = $result->rounds ?? 2;
+            $this->dispatch('toast-info', message: "Debate in progress - Round 1 of {$rounds}");
+
             // Reload the session to get updated data
             $session->refresh();
             
             // Load transcript
             $this->loadTranscript();
+            
+            // Consolidating decision
+            $this->loadingStep = 'consolidating';
+            $this->dispatch('toast-info', message: 'Consolidating decision...');
             
             // Load decision
             $this->finalDecision = $session->final_decision;
@@ -151,6 +169,8 @@ class ExecutiveBoard extends Component
             $this->dispatch('toast-error', message: 'Board session failed: ' . $e->getMessage());
         }
 
+        $this->isLoading = false;
+        $this->loadingStep = '';
         $this->isDebating = false;
         $this->loadStats();
     }

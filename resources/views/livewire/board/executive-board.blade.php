@@ -80,10 +80,36 @@
                     <div class="flex items-center justify-end gap-3">
                         <button 
                             wire:click="conveneBoard" 
-                            class="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-xl hover:from-purple-500 hover:to-pink-500 transition-all shadow-lg shadow-purple-500/25 {{ $isDebating ? 'opacity-50 cursor-not-allowed' : '' }}"
-                            {{ $isDebating ? 'disabled' : '' }}
+                            wire:loading.attr="disabled"
+                            wire:target="conveneBoard"
+                            class="relative px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-xl hover:from-purple-500 hover:to-pink-500 transition-all shadow-lg shadow-purple-500/25 disabled:opacity-70 disabled:cursor-not-allowed overflow-hidden"
+                            {{ $isDebating && !$isLoading ? 'disabled' : '' }}
                         >
-                            {{ $isDebating ? '🎙 Board in Session...' : '🎙 Convene Board' }}
+                            {{-- Loading Overlay --}}
+                            <div wire:loading wire:target="conveneBoard" class="absolute inset-0 bg-purple-900/90 flex items-center justify-center gap-2">
+                                <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <span class="font-semibold">
+                                    @if($loadingStep === 'convening')
+                                        Convening...
+                                    @elseif($loadingStep === 'joining')
+                                        Board Joining...
+                                    @elseif($loadingStep === 'debating')
+                                        Debate in Progress...
+                                    @elseif($loadingStep === 'consolidating')
+                                        Finalizing...
+                                    @else
+                                        Processing...
+                                    @endif
+                                </span>
+                            </div>
+                            
+                            {{-- Button Content (hidden when loading) --}}
+                            <span wire:loading.remove wire:target="conveneBoard">
+                                🎙 Convene Board
+                            </span>
                         </button>
                     </div>
                 </div>
