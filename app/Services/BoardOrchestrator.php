@@ -304,10 +304,6 @@ class BoardOrchestrator
         }
     }
 
-            return null;
-        }
-    }
-
     /**
      * Parse the decision response into structured format.
      */
