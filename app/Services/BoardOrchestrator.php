@@ -110,7 +110,7 @@ class BoardOrchestrator
                 'Authorization' => 'Bearer ' . $apiKey,
                 'Content-Type' => 'application/json',
                 'HTTP-Referer' => config('app.url', 'http://localhost'),
-            ])->post('https://openrouter.ai/api/v1/chat/completions', [
+            ])->timeout(60)->post('https://openrouter.ai/api/v1/chat/completions', [
                 'model' => $model,
                 'messages' => [
                     ['role' => 'system', 'content' => $systemPrompt],
