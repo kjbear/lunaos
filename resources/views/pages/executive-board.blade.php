@@ -1,3 +1,8 @@
+@extends('components.layouts.app')
+
+@section('title', 'Executive Board')
+
+@section('content')
 <div class="executive-board-page">
     <div class="page-container max-w-7xl mx-auto">
         <!-- Page Header -->
@@ -12,3 +17,4 @@
         </main>
     </div>
 </div>
+@endsection
