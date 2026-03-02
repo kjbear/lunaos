@@ -186,10 +186,19 @@ class TaskList extends Component
 
     public function render()
     {
+        // Re-calculate agent counts on each render to ensure they're always available
+        $agentCounts = [
+            'all' => Task::count(),
+            'dave' => Task::where('assigned_to', 'dave')->count(),
+            'sam' => Task::where('assigned_to', 'sam')->count(),
+            'chen' => Task::where('assigned_to', 'chen')->count(),
+            'security' => Task::where('assigned_to', 'security')->count(),
+        ];
+        
         return view('livewire.task-list', [
             'stats' => $this->stats,
             'tasks' => $this->tasks,
-            'agentCounts' => $this->agentCounts,
+            'agentCounts' => $agentCounts,
         ]);
     }
 }
