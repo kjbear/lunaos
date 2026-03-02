@@ -117,6 +117,8 @@ class BoardMeetingManager extends Component
 
     public function conveneBoard(): void
     {
+        set_time_limit(300); // 5 minutes for board debate
+        
         if (empty($this->question)) {
             $this->dispatch('toast', type: 'warning', message: 'Please enter a question for the board.');
             return;
