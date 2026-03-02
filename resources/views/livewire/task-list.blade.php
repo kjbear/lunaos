@@ -154,43 +154,43 @@
                                 wire:click="setSort('id')"
                                 class="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white transition-colors"
                             >
-                                ID @if($this->sortField === 'id'){{ $this->sortDirection === 'asc' ? '↑' : '↓' }}@else ↕️ @endif
+                                ID @if($sortField === 'id'){{ $sortDirection === 'asc' ? '↑' : '↓' }}@else ↕️ @endif
                             </th>
                             <th 
                                 wire:click="setSort('title')"
                                 class="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white transition-colors"
                             >
-                                Task @if($this->sortField === 'title'){{ $this->sortDirection === 'asc' ? '↑' : '↓' }}@else ↕️ @endif
+                                Task @if($sortField === 'title'){{ $sortDirection === 'asc' ? '↑' : '↓' }}@else ↕️ @endif
                             </th>
                             <th 
                                 wire:click="setSort('assigned_to')"
                                 class="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white transition-colors"
                             >
-                                Agent @if($this->sortField === 'assigned_to'){{ $this->sortDirection === 'asc' ? '↑' : '↓' }}@else ↕️ @endif
+                                Agent @if($sortField === 'assigned_to'){{ $sortDirection === 'asc' ? '↑' : '↓' }}@else ↕️ @endif
                             </th>
                             <th 
                                 wire:click="setSort('step')"
                                 class="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white transition-colors"
                             >
-                                Step @if($this->sortField === 'step'){{ $this->sortDirection === 'asc' ? '↑' : '↓' }}@else ↕️ @endif
+                                Step @if($sortField === 'step'){{ $sortDirection === 'asc' ? '↑' : '↓' }}@else ↕️ @endif
                             </th>
                             <th 
                                 wire:click="setSort('priority')"
                                 class="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white transition-colors"
                             >
-                                Priority @if($this->sortField === 'priority'){{ $this->sortDirection === 'asc' ? '↑' : '↓' }}@else ↕️ @endif
+                                Priority @if($sortField === 'priority'){{ $sortDirection === 'asc' ? '↑' : '↓' }}@else ↕️ @endif
                             </th>
                             <th 
                                 wire:click="setSort('status')"
                                 class="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white transition-colors"
                             >
-                                Status @if($this->sortField === 'status'){{ $this->sortDirection === 'asc' ? '↑' : '↓' }}@else ↕️ @endif
+                                Status @if($sortField === 'status'){{ $sortDirection === 'asc' ? '↑' : '↓' }}@else ↕️ @endif
                             </th>
                             <th 
                                 wire:click="setSort('created_at')"
                                 class="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white transition-colors"
                             >
-                                Created @if($this->sortField === 'created_at'){{ $this->sortDirection === 'asc' ? '↑' : '↓' }}@else ↕️ @endif
+                                Created @if($sortField === 'created_at'){{ $sortDirection === 'asc' ? '↑' : '↓' }}@else ↕️ @endif
                             </th>
                         </tr>
                     </thead>

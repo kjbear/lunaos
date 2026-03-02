@@ -8,7 +8,6 @@ use Livewire\WithPagination;
 use Livewire\Attributes\Url;
 use App\Models\Task;
 
-#[Layout('components.layouts.app')]
 class TaskList extends Component
 {
     use WithPagination;
@@ -220,6 +219,8 @@ class TaskList extends Component
             'stats' => $this->stats,
             'tasks' => $this->tasks,
             'agentCounts' => $agentCounts,
+            'sortField' => $this->sortField,
+            'sortDirection' => $this->sortDirection,
         ]);
     }
 }
