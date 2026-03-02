@@ -108,7 +108,7 @@ class TaskExecutive extends Component
         $metrics = [];
         
         foreach ($steps as $step) {
-            $count = Task::inStep($step)->whereIn('status', ['pending', 'in_progress'])->count();
+            $count = Task::where('step', $step)->whereIn('status', ['pending', 'in_progress'])->count();
             $avgAge = $this->calculateAverageStepAge($step);
             
             $metrics[$step] = [

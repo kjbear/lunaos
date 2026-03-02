@@ -46,10 +46,10 @@ class TaskList extends Component
         // Set up agent counts
         $this->agentCounts = [
             'all' => Task::count(),
-            'dave' => Task::where('assigned_agent', 'dave')->count(),
-            'sam' => Task::where('assigned_agent', 'sam')->count(),
-            'chen' => Task::where('assigned_agent', 'chen')->count(),
-            'security' => Task::where('assigned_agent', 'security')->count(),
+            'dave' => Task::where('assigned_to', 'dave')->count(),
+            'sam' => Task::where('assigned_to', 'sam')->count(),
+            'chen' => Task::where('assigned_to', 'chen')->count(),
+            'security' => Task::where('assigned_to', 'security')->count(),
         ];
         
         // Load any query parameters
@@ -189,6 +189,7 @@ class TaskList extends Component
         return view('livewire.task-list', [
             'stats' => $this->stats,
             'tasks' => $this->tasks,
+            'agentCounts' => $this->agentCounts,
         ]);
     }
 }
