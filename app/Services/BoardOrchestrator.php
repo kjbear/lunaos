@@ -14,13 +14,15 @@ class BoardOrchestrator
     protected string $openclawUrl;
     protected string $openclawToken;
     protected ?string $openrouterKey;
+    protected ?string $ollamaCloudKey;
+    protected string $ollamaCloudUrl;
 
-    // Model mapping - all use OpenRouter
+    // Model mapping - use Ollama Cloud for glm-5
     protected array $modelMap = [
-        'ollama-local/glm-5' => 'z-ai/glm-5',
-        'glm-5' => 'z-ai/glm-5',
-        'haiku' => 'anthropic/claude-3-haiku-20240307',
-        'dolphin' => 'cognitivecomputations/dolphin-mixtral-8x7b',
+        'ollama-local/glm-5' => 'glm-5',
+        'glm-5' => 'glm-5',
+        'haiku' => 'claude-3-haiku',
+        'dolphin' => 'dolphin-3.0',
     ];
 
     public function __construct()
@@ -28,6 +30,8 @@ class BoardOrchestrator
         $this->openclawUrl = config('lunaos.openclaw_url', 'http://127.0.0.1:18789');
         $this->openclawToken = config('lunaos.openclaw_token', '');
         $this->openrouterKey = config('services.openrouter.key') ?: env('OPENROUTER_API_KEY');
+        $this->ollamaCloudKey = env('OLLAMA_CLOUD_API_KEY');
+        $this->ollamaCloudUrl = 'https://ollama.com/api/chat';
     }
 
     /**
@@ -91,11 +95,72 @@ class BoardOrchestrator
      */
     protected function getBoardMemberResponse(Persona $member, string $question, ?string $context, int $order): ?string
     {
-        $model = $this->modelMap[$member->model] ?? $this->modelMap['z-ai/glm-5'];
+        $model = $this->modelMap[$member->model] ?? $this->modelMap['glm-5'];
         
         $systemPrompt = $this->buildSystemPrompt($member);
         $userPrompt = $this->buildUserPrompt($member, $question, $context);
 
+        // Use Ollama Cloud for ollama-local/glm-5 models, OpenRouter for others
+        $useOllamaCloud = str_contains($member->model, 'ollama') || str_contains($member->model, 'glm-5');
+        
+        if ($useOllamaCloud && !empty($this->ollamaCloudKey)) {
+            return $this->getOllamaCloudResponse($model, $systemPrompt, $userPrompt, $member->name);
+        } else {
+            return $this->getOpenRouterResponse($model, $systemPrompt, $userPrompt, $member->name);
+        }
+    }
+
+    /**
+     * Get response from Ollama Cloud API.
+     */
+    protected function getOllamaCloudResponse(string $model, string $systemPrompt, string $userPrompt, string $memberName): ?string
+    {
+        if (empty($this->ollamaCloudKey)) {
+            Log::error('BoardOrchestrator: No Ollama Cloud API key configured');
+            return null;
+        }
+
+        try {
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . $this->ollamaCloudKey,
+                'Content-Type' => 'application/json',
+            ])->timeout(60)->post($this->ollamaCloudUrl, [
+                'model' => $model,
+                'messages' => [
+                    ['role' => 'system', 'content' => $systemPrompt],
+                    ['role' => 'user', 'content' => $userPrompt],
+                ],
+                'stream' => false,
+            ]);
+
+            if ($response->successful()) {
+                $body = $response->json();
+                // Ollama Cloud returns: { message: { role, content } }
+                return $body['message']['content'] ?? '[No content]';
+            }
+
+            Log::error('BoardOrchestrator: Ollama Cloud API error', [
+                'member' => $memberName,
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+
+            return null;
+        } catch (\Exception $e) {
+            Log::error('BoardOrchestrator: Ollama Cloud exception', [
+                'member' => $memberName,
+                'error' => $e->getMessage(),
+            ]);
+
+            return null;
+        }
+    }
+
+    /**
+     * Get response from OpenRouter API (fallback).
+     */
+    protected function getOpenRouterResponse(string $model, string $systemPrompt, string $userPrompt, string $memberName): ?string
+    {
         if (empty($this->openrouterKey)) {
             Log::error('BoardOrchestrator: No OpenRouter API key configured');
             return null;
@@ -120,12 +185,11 @@ class BoardOrchestrator
                 $content = $response->json('choices.0.message.content');
                 $reasoning = $response->json('choices.0.message.reasoning');
                 
-                // GLM-5 reasoning models may return content in different fields
                 return $content ?: $reasoning ?: null;
             }
 
             Log::error('BoardOrchestrator: OpenRouter API error', [
-                'member' => $member->name,
+                'member' => $memberName,
                 'status' => $response->status(),
                 'body' => $response->body(),
             ]);
@@ -133,7 +197,7 @@ class BoardOrchestrator
             return null;
         } catch (\Exception $e) {
             Log::error('BoardOrchestrator: OpenRouter exception', [
-                'member' => $member->name,
+                'member' => $memberName,
                 'error' => $e->getMessage(),
             ]);
 
