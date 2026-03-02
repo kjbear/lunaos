@@ -115,6 +115,26 @@ class BoardMeetingManager extends Component
         }
     }
 
+    public function cancelSession(): void
+    {
+        if ($this->currentSessionId) {
+            $session = BoardSession::find($this->currentSessionId);
+            if ($session && in_array($session->status, ['pending', 'debating'])) {
+                $session->update([
+                    'status' => 'cancelled',
+                    'final_decision' => 'Session cancelled by user',
+                ]);
+            }
+        }
+        
+        $this->isDebating = false;
+        $this->activeSpeakerId = null;
+        $this->currentSessionId = null;
+        $this->loadStats();
+        
+        $this->dispatch('toast', type: 'info', message: 'Session cancelled');
+    }
+
     public function conveneBoard(): void
     {
         set_time_limit(300); // 5 minutes for board debate
