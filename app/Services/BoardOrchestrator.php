@@ -246,10 +246,9 @@ class BoardOrchestrator
     {
         $model = $this->modelMap['glm-5'];
         
-        $apiKey = config('services.openrouter.key') ?: env('OPENROUTER_API_KEY');
-        
-        if (empty($apiKey)) {
-            Log::error('BoardOrchestrator: No OpenRouter API key for synthesis');
+        // Use Ollama Cloud for synthesis (same as executives)
+        if (empty($this->ollamaCloudKey)) {
+            Log::error('BoardOrchestrator: No Ollama Cloud API key for synthesis');
             return null;
         }
         
@@ -273,30 +272,37 @@ class BoardOrchestrator
 
         try {
             $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $apiKey,
+                'Authorization' => 'Bearer ' . $this->ollamaCloudKey,
                 'Content-Type' => 'application/json',
-                'HTTP-Referer' => config('app.url', 'http://localhost'),
-            ])->post('https://openrouter.ai/api/v1/chat/completions', [
+            ])->timeout(120)->post($this->ollamaCloudUrl, [
                 'model' => $model,
                 'messages' => [
                     ['role' => 'system', 'content' => $systemPrompt],
                     ['role' => 'user', 'content' => $userPrompt],
                 ],
-                'max_tokens' => 800,
-                'temperature' => 0.5,
+                'stream' => false,
             ]);
 
             if ($response->successful()) {
-                $content = $response->json('choices.0.message.content');
+                $content = $response->json('message.content');
                 
                 return $this->parseDecision($content);
             }
+
+            Log::error('BoardOrchestrator: Ollama Cloud synthesis error', [
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
 
             return null;
         } catch (\Exception $e) {
             Log::error('BoardOrchestrator: Exception synthesizing decision', [
                 'error' => $e->getMessage(),
             ]);
+
+            return null;
+        }
+    }
 
             return null;
         }
