@@ -32,4 +32,7 @@ Route::middleware('auth')->group(function () {
     // Logout route
     Route::post('logout', \App\Livewire\Actions\Logout::class)
         ->name('logout');
+
+    // Profile routes
+    Route::view('/profile', 'profile')->name('profile');
 });
