@@ -32,8 +32,8 @@ Route::view('/mission-control', 'pages.mission-control-original')->name('mission
 Route::view('/mission-control-polished', 'pages.mission-control-polished')->name('mission-control.polished');
 
 // Task routes
-Route::get('/tasks', fn() => redirect()->route('mission-control.polished'))->name('tasks');
-Route::view('/tasks/{task}', 'task-detail')->name('tasks.show');
+Route::get('/tasks', [\App\Livewire\TaskList::class, '__invoke'])->name('tasks');
+Route::get('/tasks/{task}', [\App\Livewire\TaskDetail::class, 'show'])->name('tasks.show');
 Route::get('/org-chart', function () {
     return view('org-chart');
 })->name('org-chart');

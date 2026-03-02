@@ -26,6 +26,7 @@ class Task extends Model
         'step',
         'priority',
         'task_type',
+        'view_mode',
         'context_json',
         'branch_name',
         'pr_url',
@@ -66,6 +67,9 @@ class Task extends Model
             }
             if (!$task->task_type) {
                 $task->task_type = 'feature';
+            }
+            if (!$task->view_mode) {
+                $task->view_mode = 'list';
             }
         });
     }
@@ -249,5 +253,39 @@ class Task extends Model
     public function getArtifactsAttribute(): array
     {
         return $this->artifacts_json ?? [];
+    }
+
+    /**
+     * Scope for tasks with a specific view mode
+     */
+    public function scopeWithViewMode($query, string $viewMode)
+    {
+        return $query->where('view_mode', $viewMode);
+    }
+
+    /**
+     * Get human-readable view mode label
+     */
+    public function getViewModeLabelAttribute(): string
+    {
+        return match($this->view_mode) {
+            'list' => 'List View',
+            'board' => 'Board View',
+            'executive' => 'Executive Summary',
+            default => 'List View',
+        };
+    }
+
+    /**
+     * Get view mode icon for UI
+     */
+    public function getViewModeIconAttribute(): string
+    {
+        return match($this->view_mode) {
+            'list' => '📋',
+            'board' => '/board',
+            'executive' => '📊',
+            default => '📋',
+        };
     }
 }

@@ -12,23 +12,44 @@ class TaskDetail extends Component
     public ?Task $task = null;
     public $activities = [];
     public $agent = null;
+    public string $viewMode = 'list';
+    public ?int $taskId = null;
 
     public function mount($task = null)
     {
         // Handle string ID or Task model from route binding
         if (is_string($task)) {
-            $this->task = Task::findOrFail($task);
+            $this->taskId = (int) $task;
         } elseif ($task instanceof Task) {
             $this->task = $task;
         } elseif (request()->route('task')) {
             $routeTask = request()->route('task');
-            $this->task = $routeTask instanceof Task ? $routeTask : Task::findOrFail($routeTask);
+            if ($routeTask instanceof Task) {
+                $this->task = $routeTask;
+            } else {
+                $this->taskId = (int) $routeTask;
+            }
         } else {
             abort(404, 'Task not found');
         }
         
+        // Load view_mode from query string
+        if ($viewMode = request()->query('view_mode')) {
+            $this->viewMode = $viewMode;
+        }
+        
+        // Load task if not already loaded
+        if (!$this->task && $this->taskId) {
+            $this->task = Task::findOrFail($this->taskId);
+        }
+        
         $this->loadActivities();
         $this->loadAgent();
+    }
+
+    public function updateViewMode(string $mode): void
+    {
+        $this->viewMode = $mode;
     }
 
     public function loadActivities(): void
@@ -65,6 +86,11 @@ class TaskDetail extends Component
             'low' => 'bg-slate-500/20 text-slate-400 border-slate-500/30',
             default => 'bg-slate-500/20 text-slate-400 border-slate-500/30',
         };
+    }
+
+    public function __invoke()
+    {
+        return $this->render();
     }
 
     public function render()
