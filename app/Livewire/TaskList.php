@@ -105,6 +105,14 @@ class TaskList extends Component
         $this->sortBy($field);
     }
     
+    public function getSortDirection(string $field): string
+    {
+        if ($this->sortField !== $field) {
+            return '';
+        }
+        return $this->sortDirection === 'asc' ? 'asc' : 'desc';
+    }
+
     public function getSortIcon(string $field): string
     {
         if ($this->sortField !== $field) {
@@ -123,6 +131,19 @@ class TaskList extends Component
             'failed' => 'Failed',
             default => ucfirst($status),
         };
+    }
+    
+    // Computed properties for blade
+    public function getTaskStatsProperty(): array
+    {
+        return [
+            'total' => Task::count(),
+            'pending' => Task::where('status', 'pending')->count(),
+            'in_progress' => Task::where('status', 'in_progress')->count(),
+            'completed' => Task::where('status', 'complete')->count(),
+            'failed' => Task::where('status', 'failed')->count(),
+            'blocked' => Task::where('status', 'blocked')->count(),
+        ];
     }
 
     public function clearFilters(): void

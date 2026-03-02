@@ -154,43 +154,43 @@
                                 wire:click="setSort('id')"
                                 class="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white transition-colors"
                             >
-                                ID {{ $this->getSortIcon('id') }}
+                                ID @if($sortField === 'id'){{ $sortDirection === 'asc' ? '↑' : '↓' }}@else ↕️ @endif
                             </th>
                             <th 
                                 wire:click="setSort('title')"
                                 class="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white transition-colors"
                             >
-                                Task {{ $this->getSortIcon('title') }}
+                                Task @if($sortField === 'title'){{ $sortDirection === 'asc' ? '↑' : '↓' }}@else ↕️ @endif
                             </th>
                             <th 
                                 wire:click="setSort('assigned_to')"
                                 class="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white transition-colors"
                             >
-                                Agent {{ $this->getSortIcon('assigned_to') }}
+                                Agent @if($sortField === 'assigned_to'){{ $sortDirection === 'asc' ? '↑' : '↓' }}@else ↕️ @endif
                             </th>
                             <th 
                                 wire:click="setSort('step')"
                                 class="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white transition-colors"
                             >
-                                Step {{ $this->getSortIcon('step') }}
+                                Step @if($sortField === 'step'){{ $sortDirection === 'asc' ? '↑' : '↓' }}@else ↕️ @endif
                             </th>
                             <th 
                                 wire:click="setSort('priority')"
                                 class="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white transition-colors"
                             >
-                                Priority {{ $this->getSortIcon('priority') }}
+                                Priority @if($sortField === 'priority'){{ $sortDirection === 'asc' ? '↑' : '↓' }}@else ↕️ @endif
                             </th>
                             <th 
                                 wire:click="setSort('status')"
                                 class="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white transition-colors"
                             >
-                                Status {{ $this->getSortIcon('status') }}
+                                Status @if($sortField === 'status'){{ $sortDirection === 'asc' ? '↑' : '↓' }}@else ↕️ @endif
                             </th>
                             <th 
                                 wire:click="setSort('created_at')"
                                 class="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white transition-colors"
                             >
-                                Created {{ $this->getSortIcon('created_at') }}
+                                Created @if($sortField === 'created_at'){{ $sortDirection === 'asc' ? '↑' : '↓' }}@else ↕️ @endif
                             </th>
                         </tr>
                     </thead>
