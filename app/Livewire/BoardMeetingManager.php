@@ -142,65 +142,23 @@ class BoardMeetingManager extends Component
             return;
         }
 
-        // Step 1: Create session and show modal IMMEDIATELY
+        // Create session and return immediately (no blocking)
         $session = BoardSession::create([
             'question' => $this->question,
             'context' => $this->context,
-            'status' => 'pending', // Start as pending, not debating
+            'status' => 'pending',
         ]);
 
         $this->currentSessionId = $session->id;
         $this->isDebating = true;
-        $this->transcript = [];
-        $this->finalDecision = null;
-        $this->risksBenefits = null;
-        $this->confidenceScore = null;
-        $this->currentRound = 0;
-        $this->activeSpeakerId = null;
-
-        // Step 2: Dispatch browser event to start polling
-        $this->dispatch('start-board-debate', sessionId: $session->id);
         
-        // Step 3: Start background processing via dispatchAfterRender
-        $this->dispatchAfterRender('processBoardDebate', sessionId: $session->id);
-    }
-
-    #[On('processBoardDebate')]
-    public function processBoardDebate($sessionId): void
-    {
-        set_time_limit(300); // 5 minutes for board debate
-
-        $session = BoardSession::find($sessionId);
-        if (!$session) {
-            $this->dispatch('toast', type: 'error', message: 'Session not found.');
-            $this->isDebating = false;
-            return;
-        }
-
-        $session->update(['status' => 'debating']);
-
-        try {
-            $orchestrator = app(BoardOrchestrator::class);
-            $orchestrator->runSession($session->id, $session->question, $session->context ?: null);
-
-            $session->refresh();
-            $this->loadTranscript();
-            $this->finalDecision = $session->final_decision;
-            $this->risksBenefits = $session->risks_benefits;
-            $this->confidenceScore = $session->confidence ?? null;
-
-            // Redirect to results page
-            $this->redirect(route('tasks.executive.result', ['sessionId' => $session->id]), navigate: true);
-
-        } catch (\Exception $e) {
-            Log::error('BoardMeetingManager: Failed to run session', ['error' => $e->getMessage()]);
-            $this->createFallbackResponse($session);
-            $this->dispatch('toast', type: 'error', message: 'Board session failed. Check API configuration.');
-            $this->isDebating = false;
-            $this->activeSpeakerId = null;
-        }
+        // Store the question for processing
+        session(['board_debate_session' => $session->id]);
         
-        $this->loadStats();
+        $this->dispatch('toast', type: 'info', message: 'Board session started...');
+        
+        // Redirect immediately to wait page
+        $this->redirect(route('tasks.executive.wait', ['sessionId' => $session->id]), navigate: true);
     }
 
     protected function createFallbackResponse(BoardSession $session): void
