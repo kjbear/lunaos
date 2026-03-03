@@ -322,4 +322,70 @@ class BoardController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Get session status (for polling).
+     * 
+     * GET /api/board/sessions/{sessionId}/status
+     * 
+     * @param string $sessionId
+     * @return JsonResponse
+     */
+    public function getSessionStatus($sessionId): JsonResponse
+    {
+        $session = BoardSession::find($sessionId);
+        
+        if (!$session) {
+            return response()->json(['success' => false, 'error' => 'Session not found'], 404);
+        }
+        
+        return response()->json([
+            'success' => true,
+            'status' => $session->status,
+            'question' => $session->question,
+            'has_decision' => $session->final_decision !== null,
+        ]);
+    }
+
+    /**
+     * Start background processing of board session.
+     * 
+     * POST /api/board/sessions/{sessionId}/start
+     * 
+     * @param string $sessionId
+     * @return JsonResponse
+     */
+    public function startProcessing($sessionId): JsonResponse
+    {
+        $session = BoardSession::find($sessionId);
+        
+        if (!$session) {
+            return response()->json(['success' => false, 'error' => 'Session not found'], 404);
+        }
+
+        // Update status
+        $session->update(['status' => 'debating']);
+        
+        // Run processing (with timeout)
+        set_time_limit(300);
+        
+        try {
+            $orchestrator = app(\App\Services\BoardOrchestrator::class);
+            $orchestrator->runSession($session->id, $session->question, $session->context ?: null);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Processing complete',
+                'status' => $session->fresh()->status,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('BoardController: Processing failed', ['error' => $e->getMessage()]);
+            $session->update(['status' => 'failed']);
+            
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
 }

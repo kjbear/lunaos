@@ -99,6 +99,8 @@ Route::name('api.')->group(function () {
         Route::post('/sessions', [BoardController::class, 'createSession'])->name('sessions.create');
         Route::get('/sessions', [BoardController::class, 'listSessions'])->name('sessions.index');
         Route::get('/sessions/{sessionId}', [BoardController::class, 'getSession'])->name('sessions.show');
+        Route::get('/sessions/{sessionId}/status', [BoardController::class, 'getSessionStatus'])->name('sessions.status');
+        Route::post('/sessions/{sessionId}/start', [BoardController::class, 'startProcessing'])->name('sessions.start');
         Route::post('/sessions/{sessionId}/round', [BoardController::class, 'runRound'])->name('sessions.round');
         Route::post('/sessions/{sessionId}/consolidate', [BoardController::class, 'consolidateDecision'])->name('sessions.consolidate');
         Route::get('/sessions/{sessionId}/transcript', [BoardController::class, 'getTranscript'])->name('sessions.transcript');

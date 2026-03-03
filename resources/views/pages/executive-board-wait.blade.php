@@ -34,6 +34,11 @@
          }
      }"
      x-init="
+         // Start processing immediately
+         fetch(`/api/board/sessions/${sessionId}/start`, { method: 'POST' })
+             .catch(err => console.error('Start failed:', err));
+         
+         // Poll for status
          const timer = setInterval(() => checkStatus(), 2000);
          $watch('polling', value => { if (!value) clearInterval(timer); });
      "
