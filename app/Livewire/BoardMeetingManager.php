@@ -137,17 +137,16 @@ class BoardMeetingManager extends Component
 
     public function conveneBoard(): void
     {
-        set_time_limit(300); // 5 minutes for board debate
-        
         if (empty($this->question)) {
             $this->dispatch('toast', type: 'warning', message: 'Please enter a question for the board.');
             return;
         }
 
+        // Step 1: Create session and show modal IMMEDIATELY
         $session = BoardSession::create([
             'question' => $this->question,
             'context' => $this->context,
-            'status' => 'debating',
+            'status' => 'pending', // Start as pending, not debating
         ]);
 
         $this->currentSessionId = $session->id;
@@ -159,9 +158,30 @@ class BoardMeetingManager extends Component
         $this->currentRound = 0;
         $this->activeSpeakerId = null;
 
+        // Step 2: Dispatch browser event to start polling
+        $this->dispatch('start-board-debate', sessionId: $session->id);
+        
+        // Step 3: Start background processing via dispatchAfterRender
+        $this->dispatchAfterRender('processBoardDebate', sessionId: $session->id);
+    }
+
+    #[On('processBoardDebate')]
+    public function processBoardDebate($sessionId): void
+    {
+        set_time_limit(300); // 5 minutes for board debate
+
+        $session = BoardSession::find($sessionId);
+        if (!$session) {
+            $this->dispatch('toast', type: 'error', message: 'Session not found.');
+            $this->isDebating = false;
+            return;
+        }
+
+        $session->update(['status' => 'debating']);
+
         try {
             $orchestrator = app(BoardOrchestrator::class);
-            $orchestrator->runSession($session->id, $this->question, $this->context ?: null);
+            $orchestrator->runSession($session->id, $session->question, $session->context ?: null);
 
             $session->refresh();
             $this->loadTranscript();
