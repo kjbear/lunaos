@@ -182,7 +182,6 @@ class BoardMeetingManager extends Component
         
         $this->loadStats();
     }
-    }
 
     protected function createFallbackResponse(BoardSession $session): void
     {
