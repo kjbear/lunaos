@@ -32,6 +32,14 @@ class BoardSession extends Model
         'decided_at' => 'datetime',
     ];
 
+    /**
+     * Get confidence score percentage.
+     */
+    public function getConfidencePercentageAttribute(): int
+    {
+        return (int) round(($this->confidence_score ?? 0) * 100);
+    }
+
     protected static function boot()
     {
         parent::boot();
@@ -104,25 +112,6 @@ class BoardSession extends Model
             ->toArray();
     }
 
-    /**
-     * Get confidence score as percentage.
-     */
-    public function getConfidencePercentageAttribute(): int
-    {
-        return (int) ($this->confidence_score * 100);
-    }
+    
 
-    /**
-     * Get formatted decision with reasoning.
-     */
-    public function getFormattedDecisionAttribute(): string
-    {
-        $decision = $this->final_decision ?? 'No decision rendered.';
-        
-        $confidence = $this->confidence_score > 0 
-            ? " (Confidence: {$this->confidence_percentage}%)"
-            : '';
-        
-        return $decision . $confidence;
-    }
 }

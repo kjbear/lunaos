@@ -30,7 +30,7 @@ class BoardOrchestrator
         $this->openclawUrl = config('lunaos.openclaw_url', 'http://127.0.0.1:18789');
         $this->openclawToken = config('lunaos.openclaw_token', '');
         $this->openrouterKey = config('services.openrouter.key') ?: env('OPENROUTER_API_KEY');
-        $this->ollamaCloudKey = env('OLLAMA_CLOUD_API_KEY');
+        $this->ollamaCloudKey = config('ai.providers.ollama.key') ?: env('OLLAMA_CLOUD_API_KEY');
         $this->ollamaCloudUrl = 'https://ollama.com/api/chat';
     }
 
@@ -39,6 +39,9 @@ class BoardOrchestrator
      */
     public function runSession(string $sessionId, string $question, ?string $context = null): void
     {
+        // Allow up to 5 minutes for board session execution
+        set_time_limit(300);
+        
         $members = Persona::where('role', 'board_member')
             ->where('status', 'active')
             ->orderBy('title')

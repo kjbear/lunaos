@@ -349,6 +349,72 @@ class BoardController extends Controller
     }
 
     /**
+     * Get responses for a session (for real-time polling).
+     * 
+     * GET /api/board/sessions/{sessionId}/responses
+     * 
+     * @param string $sessionId
+     * @return JsonResponse
+     */
+    public function getResponses(string $sessionId): JsonResponse
+    {
+        $session = BoardSession::find($sessionId);
+        
+        if (!$session) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Session not found',
+            ], 404);
+        }
+
+        $responses = \App\Models\BoardResponse::where('session_id', $sessionId)
+            ->orderBy('response_order')
+            ->get()
+            ->map(function ($r) {
+                return [
+                    'id' => $r->id,
+                    'member_id' => $r->member_id,
+                    'member_name' => $r->member_name,
+                    'member_role' => $r->member_role,
+                    'response' => $r->response,
+                    'model_used' => $r->model_used,
+                    'response_order' => $r->response_order,
+                    'avatar' => $this->getAvatarForRole($r->member_role),
+                    'timestamp' => $r->created_at->format('H:i'),
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'session_id' => $sessionId,
+                'status' => $session->status,
+                'responses' => $responses,
+                'response_count' => $responses->count(),
+                'final_decision' => $session->final_decision,
+                'risks_benefits' => $session->risks_benefits,
+                'confidence' => $session->confidence,
+            ],
+        ]);
+    }
+
+    /**
+     * Get avatar emoji for a role.
+     */
+    private function getAvatarForRole(string $role): string
+    {
+        return match(strtoupper($role)) {
+            'CEO' => '🎯',
+            'COO' => '👔',
+            'CTO' => '💻',
+            'CFO' => '💰',
+            'CMO' => '📢',
+            'CPO' => '📦',
+            default => '👔',
+        };
+    }
+
+    /**
      * Start background processing of board session via queue.
      * 
      * POST /api/board/sessions/{sessionId}/start

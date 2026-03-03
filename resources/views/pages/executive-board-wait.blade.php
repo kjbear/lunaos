@@ -19,6 +19,7 @@
                  .then(data => {
                      if (data.status === 'decided') {
                          this.polling = false;
+                         // Redirect to live discussion page
                          window.location.href = `/tasks/executive/board/${sessionId}`;
                      }
                      if (data.status === 'failed' || data.status === 'cancelled') {
@@ -43,7 +44,7 @@
          $watch('polling', value => { if (!value) clearInterval(timer); });
      "
 >
-    <div class="page-container max-w-3xl mx-auto">
+    <div class="page-container max-w-2xl mx-auto">
         <!-- Header -->
         <header class="text-center mb-12">
             <div class="text-6xl mb-6 animate-bounce">🎙</div>
@@ -110,18 +111,27 @@
             </ul>
         </div>
 
+        <!-- Redirect Notice -->
+        <div class="bg-purple-500/10 border border-purple-500/30 rounded-xl p-4">
+            <div class="flex items-center gap-3">
+                <svg class="animate-spin h-5 w-5 text-purple-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <p class="text-purple-200 text-sm">
+                    <strong>Auto-redirect active</strong> — You'll be automatically redirected to the live discussion page when ready
+                </p>
+            </div>
+        </div>
+
         <!-- Actions -->
-        <div class="text-center">
+        <div class="text-center mt-6">
             <a href="{{ route('tasks.executive.board') }}" 
                class="text-slate-400 hover:text-white text-sm transition-colors"
                @click.prevent="polling = false">
                 ← Cancel and return to board
             </a>
         </div>
-
-        <!-- Hidden Status Element for Livewire Polling -->
-        <div wire:poll.3s="checkSessionStatus" class="hidden"></div>
     </div>
 </div>
-
 @endsection

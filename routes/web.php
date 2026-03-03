@@ -84,9 +84,12 @@ Route::get('/projects/{id}/requirements', function ($id) {
 
 // Executive Board Module
 Route::view('/board', 'board')->name('board');
-Route::view('/tasks/executive/board', 'pages.executive-board')->name('tasks.executive.board');
+Route::get('/tasks/executive/board', ExecutiveBoard::class)->name('tasks.executive.board');
 Route::view('/tasks/executive/wait/{sessionId}', 'pages.executive-board-wait')->name('tasks.executive.wait');
-Route::view('/tasks/executive/board/{sessionId}', 'pages.executive-board-result')->name('tasks.executive.result');
+Route::get('/tasks/executive/board/{sessionId}', function ($sessionId) {
+    $session = \App\Models\BoardSession::findOrFail($sessionId);
+    return view('pages.executive-board-result', ['session' => $session]);
+})->name('tasks.executive.result');
 
 // Test Status Dashboard
 // Route::get('/tests', TestStatus::class)->name('tests');

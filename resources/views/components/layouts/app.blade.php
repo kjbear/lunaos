@@ -171,6 +171,7 @@
             <!-- Page Content -->
             <div class="p-6">
                 @yield('content')
+                {{ $slot ?? '' }}
             </div>
         </main>
     </div>

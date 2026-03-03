@@ -8,7 +8,7 @@ class BoardResponse extends Model
 {
     protected $fillable = [
         'session_id',
-        'member_id',
+        'member_id',  // Can be null for persona-based responses
         'member_name',
         'member_role',
         'response',
@@ -20,6 +20,7 @@ class BoardResponse extends Model
     protected $casts = [
         'response_order' => 'integer',
         'round' => 'integer',
+        'member_id' => 'string',
     ];
 
     /**

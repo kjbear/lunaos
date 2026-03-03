@@ -5,7 +5,7 @@ namespace App\Livewire\Board;
 use App\Models\BoardSession;
 use App\Models\BoardResponse;
 use App\Models\Persona;
-use App\Services\BoardDebateOrchestrator;
+use App\Services\BoardOrchestrator;
 use Livewire\Component;
 use Illuminate\Support\Facades\Log;
 
@@ -129,16 +129,12 @@ class ExecutiveBoard extends Component
             $this->loadingStep = 'joining';
             $this->dispatch('toast-info', message: 'Board members joining...');
             
-            $orchestrator = app(BoardDebateOrchestrator::class);
-            $result = $orchestrator->runDebate(
+            $orchestrator = app(BoardOrchestrator::class);
+            $orchestrator->runSession(
+                $this->currentSessionId,
                 $this->question,
                 $this->context ?: null
             );
-
-            // Debate starts
-            $this->loadingStep = 'debating';
-            $rounds = $result->rounds ?? 2;
-            $this->dispatch('toast-info', message: "Debate in progress - Round 1 of {$rounds}");
 
             // Reload the session to get updated data
             $session->refresh();
@@ -150,12 +146,21 @@ class ExecutiveBoard extends Component
             $this->loadingStep = 'consolidating';
             $this->dispatch('toast-info', message: 'Consolidating decision...');
             
-            // Load decision
+            // Load decision - get it from board_responses if not in session
             $this->finalDecision = $session->final_decision;
             $this->risksBenefits = $session->risks_benefits;
             
+            // If no decision but we have responses, build a summary
+            if (!$this->finalDecision && !empty($this->transcript)) {
+                $this->finalDecision = 'Board discussion complete. Review the transcript for insights.';
+            }
+            
             // Success notification
-            $this->dispatch('toast-success', message: 'Board session complete! Decision rendered.');
+            $this->dispatch('toast-success', message: 'Board session complete! Redirecting to discussion...');
+            
+            // Redirect to session page for live discussion
+            $this->redirect(route('tasks.executive.result', $session->id), navigate: true);
+            return;
             
         } catch (\Exception $e) {
             Log::error('ExecutiveBoard: Failed to run session', [
@@ -169,10 +174,13 @@ class ExecutiveBoard extends Component
             $this->dispatch('toast-error', message: 'Board session failed: ' . $e->getMessage());
         }
 
-        $this->isLoading = false;
-        $this->loadingStep = '';
-        $this->isDebating = false;
-        $this->loadStats();
+        // Only reset loading state if we're not redirecting
+        if (!$this->currentSessionId) {
+            $this->isLoading = false;
+            $this->loadingStep = '';
+            $this->isDebating = false;
+            $this->loadStats();
+        }
     }
 
     protected function createFallbackResponse(BoardSession $session, string $error): void
@@ -182,6 +190,7 @@ class ExecutiveBoard extends Component
         foreach ($this->boardMembers as $member) {
             BoardResponse::create([
                 'session_id' => $session->id,
+                'member_id' => $member['id'] ?? null,
                 'member_name' => $member['name'] ?? 'Executive',
                 'member_role' => $member['title'] ?? 'Board Member',
                 'response' => "[Error: {$error} - Response unavailable]",

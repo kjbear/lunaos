@@ -117,6 +117,9 @@ class BoardDebateOrchestrator
      */
     public function runDebate(string $question, ?string $context = null): array
     {
+        // Allow up to 5 minutes for board debate execution
+        set_time_limit(300);
+        
         $this->question = $question;
         $this->context = $context;
         $this->responses = [];
@@ -214,6 +217,7 @@ class BoardDebateOrchestrator
                 // Save to database
                 BoardResponse::create([
                     'session_id' => $this->sessionId,
+                    'member_id' => null, // Persona-based responses don't have member_id
                     'member_name' => $persona->name,
                     'member_role' => $persona->title,
                     'response' => $response,

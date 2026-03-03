@@ -316,7 +316,7 @@
         </div>
         
         <div class="bg-slate-900/60 backdrop-blur-sm rounded-2xl border border-white/10 overflow-hidden">
-            <livewire:board-meeting-manager />
+            @livewire('board.executive-board')
         </div>
     </section>
 </div>
