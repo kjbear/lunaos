@@ -8,6 +8,7 @@ use App\Models\BoardParticipant;
 use App\Models\BoardDiscussionEntry;
 use App\Models\BoardDecision;
 use App\Services\BoardService;
+use App\Jobs\ProcessBoardDebate;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
@@ -348,7 +349,7 @@ class BoardController extends Controller
     }
 
     /**
-     * Start background processing of board session.
+     * Start background processing of board session via queue.
      * 
      * POST /api/board/sessions/{sessionId}/start
      * 
@@ -366,26 +367,17 @@ class BoardController extends Controller
         // Update status
         $session->update(['status' => 'debating']);
         
-        // Run processing (with timeout)
-        set_time_limit(300);
+        // Dispatch to queue (non-blocking)
+        ProcessBoardDebate::dispatch($sessionId);
         
-        try {
-            $orchestrator = app(\App\Services\BoardOrchestrator::class);
-            $orchestrator->runSession($session->id, $session->question, $session->context ?: null);
-            
-            return response()->json([
-                'success' => true,
-                'message' => 'Processing complete',
-                'status' => $session->fresh()->status,
-            ]);
-        } catch (\Exception $e) {
-            Log::error('BoardController: Processing failed', ['error' => $e->getMessage()]);
-            $session->update(['status' => 'failed']);
-            
-            return response()->json([
-                'success' => false,
-                'error' => $e->getMessage(),
-            ], 500);
-        }
+        Log::info('BoardController: Processing queued', [
+            'session_id' => $sessionId,
+        ]);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Processing started',
+            'status' => 'debating',
+        ]);
     }
 }
