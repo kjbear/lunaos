@@ -144,6 +144,7 @@ class BoardMeetingManager extends Component
             return;
         }
 
+        // Dispatch toast IMMEDIATELY before any processing
         $this->dispatch('toast', type: 'info', message: 'Convening the board...');
 
         $session = BoardSession::create([
@@ -172,6 +173,9 @@ class BoardMeetingManager extends Component
             $this->confidenceScore = $session->confidence ?? null;
 
             $this->dispatch('toast', type: 'success', message: 'Board session complete!');
+            
+            // Redirect to results page
+            $this->redirect(route('tasks.executive.result', ['sessionId' => $session->id]), navigate: true);
 
         } catch (\Exception $e) {
             Log::error('BoardMeetingManager: Failed to run session', ['error' => $e->getMessage()]);
