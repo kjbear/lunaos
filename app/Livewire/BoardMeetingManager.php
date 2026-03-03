@@ -154,13 +154,17 @@ class BoardMeetingManager extends Component
         ]);
 
         $this->currentSessionId = $session->id;
-        $this->isDebating = true;
+        $this->isDebating = true; // Set BEFORE dispatching toast so modal shows immediately
         $this->transcript = [];
         $this->finalDecision = null;
         $this->risksBenefits = null;
         $this->confidenceScore = null;
         $this->currentRound = 0;
         $this->activeSpeakerId = null;
+
+        // Dispatch toast AFTER setting state so modal appears
+        $this->dispatch('toast', type: 'info', message: 'Convening the board...');
+        $this->dispatch('$refresh'); // Force immediate re-render
 
         try {
             $orchestrator = app(BoardOrchestrator::class);
