@@ -3,6 +3,10 @@
 @section('title', 'Board Session')
 
 @section('content')
+@php
+    $session = \App\Models\BoardSession::with(['responses'])->find($sessionId);
+@endphp
+
 <div class="executive-board-result-page">
     <div class="page-container max-w-5xl mx-auto">
         <!-- Back Button -->
