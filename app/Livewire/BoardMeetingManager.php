@@ -144,9 +144,6 @@ class BoardMeetingManager extends Component
             return;
         }
 
-        // Dispatch toast IMMEDIATELY before any processing
-        $this->dispatch('toast', type: 'info', message: 'Convening the board...');
-
         $session = BoardSession::create([
             'question' => $this->question,
             'context' => $this->context,
@@ -154,17 +151,13 @@ class BoardMeetingManager extends Component
         ]);
 
         $this->currentSessionId = $session->id;
-        $this->isDebating = true; // Set BEFORE dispatching toast so modal shows immediately
+        $this->isDebating = true;
         $this->transcript = [];
         $this->finalDecision = null;
         $this->risksBenefits = null;
         $this->confidenceScore = null;
         $this->currentRound = 0;
         $this->activeSpeakerId = null;
-
-        // Dispatch toast AFTER setting state so modal appears
-        $this->dispatch('toast', type: 'info', message: 'Convening the board...');
-        $this->dispatch('$refresh'); // Force immediate re-render
 
         try {
             $orchestrator = app(BoardOrchestrator::class);
@@ -176,8 +169,6 @@ class BoardMeetingManager extends Component
             $this->risksBenefits = $session->risks_benefits;
             $this->confidenceScore = $session->confidence ?? null;
 
-            $this->dispatch('toast', type: 'success', message: 'Board session complete!');
-            
             // Redirect to results page
             $this->redirect(route('tasks.executive.result', ['sessionId' => $session->id]), navigate: true);
 
@@ -185,11 +176,12 @@ class BoardMeetingManager extends Component
             Log::error('BoardMeetingManager: Failed to run session', ['error' => $e->getMessage()]);
             $this->createFallbackResponse($session);
             $this->dispatch('toast', type: 'error', message: 'Board session failed. Check API configuration.');
+            $this->isDebating = false;
+            $this->activeSpeakerId = null;
         }
-
-        $this->isDebating = false;
-        $this->activeSpeakerId = null;
+        
         $this->loadStats();
+    }
     }
 
     protected function createFallbackResponse(BoardSession $session): void
