@@ -113,6 +113,30 @@ class TeamMember extends Model
     }
 
     /**
+     * Get metrics for this team member.
+     */
+    public function metrics(): HasMany
+    {
+        return $this->hasMany(TeamMemberMetric::class, 'team_member_id');
+    }
+
+    /**
+     * Get workspaces for this team member.
+     */
+    public function workspaces(): HasMany
+    {
+        return $this->hasMany(TeamMemberWorkspace::class, 'team_member_id');
+    }
+
+    /**
+     * Get activities for this team member.
+     */
+    public function activities(): HasMany
+    {
+        return $this->hasMany(AgentActivity::class, 'team_member_id');
+    }
+
+    /**
      * Get tasks assigned to this member.
      */
     public function tasks(): HasMany
@@ -149,7 +173,15 @@ class TeamMember extends Model
      */
     public function scopeActive(Builder $query): Builder
     {
-        return $query->where('status', 'active');
+        return $query->whereIn('status', ['active', 'online', 'busy']);
+    }
+
+    /**
+     * Scope to filter by category.
+     */
+    public function scopeByCategory(Builder $query, string $category): Builder
+    {
+        return $query->where('category', $category);
     }
 
     /**
@@ -237,12 +269,12 @@ class TeamMember extends Model
     public function getStatusBadgeClassAttribute(): string
     {
         return match($this->status) {
-            'active', 'online' => 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
-            'inactive', 'offline' => 'bg-slate-500/20 text-slate-400 border-slate-500/30',
-            'error' => 'bg-red-500/20 text-red-400 border-red-500/30',
-            'busy' => 'bg-amber-500/20 text-amber-400 border-amber-500/30',
-            'archived' => 'bg-gray-500/20 text-gray-400 border-gray-500/30',
-            default => 'bg-slate-500/20 text-slate-400 border-slate-500/30',
+            'active', 'online' => 'badge-success',
+            'inactive', 'offline' => 'badge-secondary',
+            'error' => 'badge-danger',
+            'busy' => 'badge-warning',
+            'archived' => 'badge-gray',
+            default => 'badge-secondary',
         };
     }
 

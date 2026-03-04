@@ -153,7 +153,7 @@ class ConsolidateHrAndAgentsTest extends TestCase
         ]);
 
         // Run migration
-        $this->artisan('migrate', ['--path' => 'database/migrations/2026_03_03_consolidate_hr_and_agents.php'])
+        $this->artisan('migrate', ['--path' => 'database/migrations/2026_03_03_100000_consolidate_hr_and_agents_to_team.php'])
             ->assertExitCode(0);
 
         // Verify team_members table exists
@@ -183,7 +183,7 @@ class ConsolidateHrAndAgentsTest extends TestCase
         ]);
 
         // Run migration
-        $this->artisan('migrate', ['--path' => 'database/migrations/2026_03_03_consolidate_hr_and_agents.php'])
+        $this->artisan('migrate', ['--path' => 'database/migrations/2026_03_03_100000_consolidate_hr_and_agents_to_team.php'])
             ->assertExitCode(0);
 
         // Verify persona was migrated
@@ -208,7 +208,7 @@ class ConsolidateHrAndAgentsTest extends TestCase
         ]);
 
         // Run migration
-        $this->artisan('migrate', ['--path' => 'database/migrations/2026_03_03_consolidate_hr_and_agents.php'])
+        $this->artisan('migrate', ['--path' => 'database/migrations/2026_03_03_100000_consolidate_hr_and_agents_to_team.php'])
             ->assertExitCode(0);
 
         // Verify agent was migrated
@@ -241,7 +241,7 @@ class ConsolidateHrAndAgentsTest extends TestCase
         ]);
 
         // Run migration
-        $result = $this->artisan('migrate', ['--path' => 'database/migrations/2026_03_03_consolidate_hr_and_agents.php']);
+        $result = $this->artisan('migrate', ['--path' => 'database/migrations/2026_03_03_100000_consolidate_hr_and_agents_to_team.php']);
 
         // Migration should complete (exit code 0)
         $this->assertEquals(0, $result);
@@ -274,7 +274,7 @@ class ConsolidateHrAndAgentsTest extends TestCase
         ]);
 
         // Run migration
-        $this->artisan('migrate', ['--path' => 'database/migrations/2026_03_03_consolidate_hr_and_agents.php'])
+        $this->artisan('migrate', ['--path' => 'database/migrations/2026_03_03_100000_consolidate_hr_and_agents_to_team.php'])
             ->assertExitCode(0);
 
         // Verify task still references valid team member
@@ -308,7 +308,7 @@ class ConsolidateHrAndAgentsTest extends TestCase
         ]);
 
         // Run migration
-        $this->artisan('migrate', ['--path' => 'database/migrations/2026_03_03_consolidate_hr_and_agents.php'])
+        $this->artisan('migrate', ['--path' => 'database/migrations/2026_03_03_100000_consolidate_hr_and_agents_to_team.php'])
             ->assertExitCode(0);
 
         // Verify metrics migrated
@@ -343,7 +343,7 @@ class ConsolidateHrAndAgentsTest extends TestCase
         ]);
 
         // Run migration
-        $this->artisan('migrate', ['--path' => 'database/migrations/2026_03_03_consolidate_hr_and_agents.php'])
+        $this->artisan('migrate', ['--path' => 'database/migrations/2026_03_03_100000_consolidate_hr_and_agents_to_team.php'])
             ->assertExitCode(0);
 
         // Verify workspaces migrated
@@ -375,7 +375,7 @@ class ConsolidateHrAndAgentsTest extends TestCase
         ]);
 
         // Run migration
-        $this->artisan('migrate', ['--path' => 'database/migrations/2026_03_03_consolidate_hr_and_agents.php'])
+        $this->artisan('migrate', ['--path' => 'database/migrations/2026_03_03_100000_consolidate_hr_and_agents_to_team.php'])
             ->assertExitCode(0);
 
         // Verify activities migrated
@@ -408,7 +408,7 @@ class ConsolidateHrAndAgentsTest extends TestCase
         ]);
 
         // Run migration
-        $this->artisan('migrate', ['--path' => 'database/migrations/2026_03_03_consolidate_hr_and_agents.php'])
+        $this->artisan('migrate', ['--path' => 'database/migrations/2026_03_03_100000_consolidate_hr_and_agents_to_team.php'])
             ->assertExitCode(0);
 
         // Verify migration worked
@@ -416,7 +416,7 @@ class ConsolidateHrAndAgentsTest extends TestCase
         $this->assertDatabaseHas('team_members', ['name' => 'rollback-agent']);
 
         // Run rollback
-        $this->artisan('migrate:rollback', ['--path' => 'database/migrations/2026_03_03_consolidate_hr_and_agents.php'])
+        $this->artisan('migrate:rollback', ['--path' => 'database/migrations/2026_03_03_100000_consolidate_hr_and_agents_to_team.php'])
             ->assertExitCode(0);
 
         // Verify rollback restored original tables
@@ -433,7 +433,7 @@ class ConsolidateHrAndAgentsTest extends TestCase
         $totalCount = $personaCount + $agentCount;
 
         // Run migration
-        $this->artisan('migrate', ['--path' => 'database/migrations/2026_03_03_consolidate_hr_and_agents.php'])
+        $this->artisan('migrate', ['--path' => 'database/migrations/2026_03_03_100000_consolidate_hr_and_agents_to_team.php'])
             ->assertExitCode(0);
 
         // Count migrated records
@@ -457,10 +457,10 @@ class ConsolidateHrAndAgentsTest extends TestCase
         ]);
 
         // Run migration twice
-        $this->artisan('migrate', ['--path' => 'database/migrations/2026_03_03_consolidate_hr_and_agents.php'])
+        $this->artisan('migrate', ['--path' => 'database/migrations/2026_03_03_100000_consolidate_hr_and_agents_to_team.php'])
             ->assertExitCode(0);
 
-        $result = $this->artisan('migrate', ['--path' => 'database/migrations/2026_03_03_consolidate_hr_and_agents.php']);
+        $result = $this->artisan('migrate', ['--path' => 'database/migrations/2026_03_03_100000_consolidate_hr_and_agents_to_team.php']);
 
         // Second run should not fail (may be skipped if already migrated)
         $this->assertGreaterThanOrEqual(0, $result);
