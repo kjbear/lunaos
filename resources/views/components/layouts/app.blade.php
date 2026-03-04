@@ -21,29 +21,14 @@
     <script>
         function sidebarApp() {
             return {
-                pinned: true,      // true = sidebar visible (takes space), false = slid off-canvas
-                expanded: true,    // true = 256px, false = 64px (only when pinned)
+                collapsed: false,      // false = 256px expanded, true = 64px collapsed
                 mobileOpen: false,
-                
-                // Computed sidebar width
-                get sidebarWidth() {
-                    if (!this.pinned) return 'w-0';
-                    return this.expanded ? 'w-64' : 'w-16';
-                },
-                
-                // Computed main content margin
-                get contentMargin() {
-                    if (!this.pinned) return 'ml-0';
-                    return this.expanded ? 'ml-64' : 'ml-16';
-                },
                 
                 initApp() {
                     // Restore state from localStorage
-                    const stored = localStorage.getItem('lunaos.sidebar.state');
-                    if (stored) {
-                        const state = JSON.parse(stored);
-                        this.pinned = state.pinned ?? true;
-                        this.expanded = state.expanded ?? true;
+                    const stored = localStorage.getItem('lunaos.sidebar.collapsed');
+                    if (stored !== null) {
+                        this.collapsed = (stored === 'true');
                     }
                     
                     // Escape key closes mobile overlay
@@ -52,37 +37,21 @@
                             this.mobileOpen = false;
                         }
                     });
+                    
+                    // Update time immediately to avoid flash
+                    const now = new Date();
+                    const time = now.toLocaleTimeString('en-US', { 
+                        hour: '2-digit', 
+                        minute: '2-digit',
+                        hour12: false 
+                    });
+                    const el = document.getElementById('current-time');
+                    if (el) el.textContent = time;
                 },
                 
                 toggleSidebar() {
-                    if (this.pinned) {
-                        // Pinned → Unpin (slide off)
-                        this.pinned = false;
-                    } else {
-                        // Unpinned → Pin as icon-only
-                        this.pinned = true;
-                        this.expanded = false;
-                    }
-                    this.saveState();
-                },
-                
-                toggleExpand() {
-                    if (this.pinned) {
-                        this.expanded = !this.expanded;
-                        this.saveState();
-                    }
-                },
-                
-                pinSidebar() {
-                    this.pinned = true;
-                    this.saveState();
-                },
-                
-                saveState() {
-                    localStorage.setItem('lunaos.sidebar.state', JSON.stringify({
-                        pinned: this.pinned,
-                        expanded: this.expanded
-                    }));
+                    this.collapsed = !this.collapsed;
+                    localStorage.setItem('lunaos.sidebar.collapsed', this.collapsed);
                 },
                 
                 openMobile() {
@@ -198,37 +167,24 @@
     
     <!-- Desktop Layout -->
     <div class="flex min-h-screen">
-        <!-- Desktop Sidebar (slide-over when unpinned, push when pinned) -->
+        <!-- Desktop Sidebar (always visible, just changes width) -->
         <aside 
-            :class="sidebarWidth"
+            :class="collapsed ? 'w-16' : 'w-64'"
             class="hidden md:block fixed inset-y-0 left-0 z-30 bg-[#12121f] border-r border-[#1f1f35] flex flex-col transition-all duration-300 ease-in-out overflow-hidden"
-            :aria-expanded="pinned"
+            :aria-expanded="!collapsed"
             aria-label="Main navigation"
         >
-            <!-- Toggle/Pin Button -->
-            <!-- When expanded: button on right edge of sidebar -->
-            <div x-show="pinned && expanded" x-transition class="absolute top-8 right-0 z-50">
-                <button
-                    @click="toggleSidebar()"
-                    class="w-6 h-6 rounded-full bg-[#7c3aed] text-white shadow-lg hover:bg-[#6d28d9] transition-colors focus:outline-none focus:ring-2 focus:ring-[#7c3aed] focus:ring-offset-2 focus:ring-offset-[#12121f] flex items-center justify-center"
-                    aria-label="Collapse sidebar"
-                    title="Collapse sidebar"
-                >
-                    <span class="text-xs font-bold">←</span>
-                </button>
-            </div>
-            
-            <!-- When icon-only: button floats to right of sidebar -->
-            <div x-show="pinned && !expanded" x-transition class="fixed top-8 left-16 z-50">
-                <button
-                    @click="toggleSidebar()"
-                    class="w-6 h-6 rounded-full bg-[#7c3aed] text-white shadow-lg hover:bg-[#6d28d9] transition-colors focus:outline-none focus:ring-2 focus:ring-[#7c3aed] focus:ring-offset-2 focus:ring-offset-[#12121f] flex items-center justify-center"
-                    aria-label="Expand sidebar"
-                    title="Expand sidebar"
-                >
-                    <span class="text-xs font-bold">→</span>
-                </button>
-            </div>
+            <!-- Collapse/Expand Toggle Button -->
+            <button
+                @click="toggleSidebar()"
+                :class="collapsed ? 'left-8' : 'right-0'"
+                class="absolute top-8 w-6 h-6 rounded-full bg-[#7c3aed] text-white shadow-lg hover:bg-[#6d28d9] transition-all focus:outline-none focus:ring-2 focus:ring-[#7c3aed] focus:ring-offset-2 focus:ring-offset-[#12121f] flex items-center justify-center z-50"
+                aria-label="Toggle navigation"
+                :aria-expanded="!collapsed"
+                :title="collapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+            >
+                <span x-text="collapsed ? '→' : '←'" class="text-xs font-bold"></span>
+            </button>
             
             <!-- Sidebar Header -->
             <div class="p-4 border-b border-[#1f1f35]">
@@ -236,7 +192,7 @@
                     <div class="w-10 h-10 rounded-full bg-[#7c3aed]/20 flex items-center justify-center text-xl flex-shrink-0">
                         🌙
                     </div>
-                    <div x-show="expanded" x-transition:enter="transition-opacity duration-200" x-transition:leave="transition-opacity duration-200" class="overflow-hidden">
+                    <div x-show="!collapsed" x-transition:enter="transition-opacity duration-200" x-transition:leave="transition-opacity duration-200" class="overflow-hidden">
                         <span class="font-semibold text-[#e4e4f0]">LunaOS</span>
                         <p class="text-xs text-[#6b6b80]">Dashboard</p>
                     </div>
@@ -247,51 +203,51 @@
             <nav class="flex-1 p-3 space-y-1 overflow-y-auto">
                 <a href="{{ route('tasks') }}" 
                    class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('tasks') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}"
-                   :title="!expanded ? 'Tasks' : ''">
+                   :title="collapsed ? 'Tasks' : ''">
                     <span class="text-lg flex-shrink-0">📋</span>
-                    <span x-show="expanded" x-transition:enter="transition-opacity duration-200" x-transition:leave="transition-opacity duration-200" class="font-medium">Tasks</span>
+                    <span x-show="!collapsed" x-transition:enter="transition-opacity duration-200" x-transition:leave="transition-opacity duration-200" class="font-medium">Tasks</span>
                 </a>
                 <a href="{{ route('org-chart') }}" 
                    class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('org-chart') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}"
-                   :title="!expanded ? 'Org Chart' : ''">
+                   :title="collapsed ? 'Org Chart' : ''">
                     <span class="text-lg flex-shrink-0">🏢</span>
-                    <span x-show="expanded" x-transition:enter="transition-opacity duration-200" x-transition:leave="transition-opacity duration-200" class="font-medium">Org Chart</span>
+                    <span x-show="!collapsed" x-transition:enter="transition-opacity duration-200" x-transition:leave="transition-opacity duration-200" class="font-medium">Org Chart</span>
                 </a>
                 <a href="{{ route('team') }}" 
                    class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('team*') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}"
-                   :title="!expanded ? 'Team' : ''">
+                   :title="collapsed ? 'Team' : ''">
                     <span class="text-lg flex-shrink-0">👥</span>
-                    <span x-show="expanded" x-transition:enter="transition-opacity duration-200" x-transition:leave="transition-opacity duration-200" class="font-medium">Team</span>
+                    <span x-show="!collapsed" x-transition:enter="transition-opacity duration-200" x-transition:leave="transition-opacity duration-200" class="font-medium">Team</span>
                 </a>
                 <a href="{{ route('projects') }}" 
                    class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('projects*') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}"
-                   :title="!expanded ? 'Projects' : ''">
+                   :title="collapsed ? 'Projects' : ''">
                     <span class="text-lg flex-shrink-0">📊</span>
-                    <span x-show="expanded" x-transition:enter="transition-opacity duration-200" x-transition:leave="transition-opacity duration-200" class="font-medium">Projects</span>
+                    <span x-show="!collapsed" x-transition:enter="transition-opacity duration-200" x-transition:leave="transition-opacity duration-200" class="font-medium">Projects</span>
                 </a>
                 <a href="{{ route('board') }}" 
                    class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('board*') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}"
-                   :title="!expanded ? 'Board' : ''">
+                   :title="collapsed ? 'Board' : ''">
                     <span class="text-lg flex-shrink-0">🎯</span>
-                    <span x-show="expanded" x-transition:enter="transition-opacity duration-200" x-transition:leave="transition-opacity duration-200" class="font-medium">Board</span>
+                    <span x-show="!collapsed" x-transition:enter="transition-opacity duration-200" x-transition:leave="transition-opacity duration-200" class="font-medium">Board</span>
                 </a>
                 <a href="{{ route('kanban.index') }}" 
                    class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('kanban*') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}"
-                   :title="!expanded ? 'Kanban' : ''">
+                   :title="collapsed ? 'Kanban' : ''">
                     <span class="text-lg flex-shrink-0">📋</span>
-                    <span x-show="expanded" x-transition:enter="transition-opacity duration-200" x-transition:leave="transition-opacity duration-200" class="font-medium">Kanban</span>
+                    <span x-show="!collapsed" x-transition:enter="transition-opacity duration-200" x-transition:leave="transition-opacity duration-200" class="font-medium">Kanban</span>
                 </a>
             </nav>
             
             <!-- Sidebar Footer -->
-            <div class="p-4 border-t border-[#1f1f35]" x-show="expanded">
+            <div class="p-4 border-t border-[#1f1f35]" x-show="!collapsed" x-transition:enter="transition-opacity duration-200" x-transition:leave="transition-opacity duration-200">
                 @include('layouts.partials.sidebar-footer')
             </div>
         </aside>
         
-        <!-- Main Content (full width when unpinned) -->
+        <!-- Main Content -->
         <main 
-            :class="contentMargin"
+            :class="collapsed ? 'ml-16' : 'ml-64'"
             class="flex-1 transition-all duration-300 ease-in-out min-h-screen"
         >
             <!-- Header -->
