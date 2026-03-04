@@ -1,0 +1,13 @@
+@props(['href', 'active' => false, 'icon', 'label'])
+
+@php
+$baseClasses = "sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] transition-colors";
+$activeClasses = $active ? 'bg-[#1f1f35] text-[#e4e4f0]' : '';
+@endphp
+
+<a href="{{ $href }}" 
+   class="{{ $baseClasses }} {{ $activeClasses }}"
+   title="{{ $label }}">
+    <span class="text-lg flex-shrink-0">{{ $icon }}</span>
+    <span x-show="!collapsed" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" class="font-medium">{{ $label }}</span>
+</a>
