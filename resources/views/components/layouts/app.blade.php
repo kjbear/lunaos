@@ -17,6 +17,44 @@
     <!-- HTMX -->
     <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
     
+    <!-- Alpine.js Sidebar App (define BEFORE Alpine CDN) -->
+    <script>
+        function sidebarApp() {
+            return {
+                collapsed: false,
+                mobileOpen: false,
+                
+                initApp() {
+                    // Restore state from localStorage
+                    const stored = localStorage.getItem('lunaos.sidebar.collapsed');
+                    if (stored !== null) {
+                        this.collapsed = (stored === 'true');
+                    }
+                    
+                    // Escape key closes mobile overlay
+                    document.addEventListener('keydown', (e) => {
+                        if (e.key === 'Escape' && this.mobileOpen) {
+                            this.mobileOpen = false;
+                        }
+                    });
+                },
+                
+                toggleSidebar() {
+                    this.collapsed = !this.collapsed;
+                    localStorage.setItem('lunaos.sidebar.collapsed', this.collapsed);
+                },
+                
+                openMobile() {
+                    this.mobileOpen = true;
+                },
+                
+                closeMobile() {
+                    this.mobileOpen = false;
+                }
+            }
+        }
+    </script>
+    
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     
@@ -318,49 +356,6 @@
     </script>
     <script src="https://cdn.jsdelivr.net/gh/livewire/livewire@v3.7.10/dist/livewire.min.js"></script>
     <script>
-        // Manually start Livewire after script loads
-        if (typeof Livewire !== 'undefined') {
-            Livewire.start();
-        }
-    </script>
-    
-    <script>
-        // Register Alpine.js component BEFORE Alpine initializes
-        document.addEventListener('alpine:init', () => {
-            Alpine.data('sidebarApp', () => ({
-                collapsed: false,
-                mobileOpen: false,
-                
-                initApp() {
-                    // Restore state from localStorage
-                    const stored = localStorage.getItem('lunaos.sidebar.collapsed');
-                    if (stored !== null) {
-                        this.collapsed = (stored === 'true');
-                    }
-                    
-                    // Escape key closes mobile overlay
-                    document.addEventListener('keydown', (e) => {
-                        if (e.key === 'Escape' && this.mobileOpen) {
-                            this.mobileOpen = false;
-                        }
-                    });
-                },
-                
-                toggleSidebar() {
-                    this.collapsed = !this.collapsed;
-                    localStorage.setItem('lunaos.sidebar.collapsed', this.collapsed);
-                },
-                
-                openMobile() {
-                    this.mobileOpen = true;
-                },
-                
-                closeMobile() {
-                    this.mobileOpen = false;
-                }
-            }));
-        });
-        
         // Update time every minute
         setInterval(() => {
             const now = new Date();
