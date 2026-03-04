@@ -14,11 +14,59 @@
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     
-    <!-- Alpine.js -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    
     <!-- HTMX -->
     <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
+    
+    <!-- Alpine.js Sidebar App (define BEFORE Alpine CDN) -->
+    <script>
+        function sidebarApp() {
+            return {
+                collapsed: false,      // false = 256px expanded, true = 64px collapsed
+                mobileOpen: false,
+                
+                initApp() {
+                    // Restore state from localStorage
+                    const stored = localStorage.getItem('lunaos.sidebar.collapsed');
+                    if (stored !== null) {
+                        this.collapsed = (stored === 'true');
+                    }
+                    
+                    // Escape key closes mobile overlay
+                    document.addEventListener('keydown', (e) => {
+                        if (e.key === 'Escape' && this.mobileOpen) {
+                            this.mobileOpen = false;
+                        }
+                    });
+                    
+                    // Update time immediately to avoid flash
+                    const now = new Date();
+                    const time = now.toLocaleTimeString('en-US', { 
+                        hour: '2-digit', 
+                        minute: '2-digit',
+                        hour12: false 
+                    });
+                    const el = document.getElementById('current-time');
+                    if (el) el.textContent = time;
+                },
+                
+                toggleSidebar() {
+                    this.collapsed = !this.collapsed;
+                    localStorage.setItem('lunaos.sidebar.collapsed', this.collapsed);
+                },
+                
+                openMobile() {
+                    this.mobileOpen = true;
+                },
+                
+                closeMobile() {
+                    this.mobileOpen = false;
+                }
+            }
+        }
+    </script>
+    
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     
     <!-- Prevent flash of unstyled content -->
     <style>
@@ -30,163 +78,209 @@
     
     @stack('head')
 </head>
-<body class="antialiased min-h-screen overflow-hidden" x-cloak>
+<body class="antialiased bg-base-100 text-base-content min-h-screen overflow-hidden" x-data="sidebarApp()" x-init="initApp()" x-cloak>
     
-    <!-- Mobile Sidebar (Alpine.js slide-over) -->
-    <div 
-        x-data="{ mobileOpen: false }" 
-        @open.window="mobileOpen = true"
-        @close.window="mobileOpen = false"
-        class="md:hidden"
-    >
+    <!-- Mobile Sidebar Overlay (visible only when mobileOpen is true) -->
+    <div x-show="mobileOpen" class="md:hidden" style="display: none;">
         <!-- Backdrop -->
         <div 
             x-show="mobileOpen"
-            x-transition:enter="transition-opacity ease-linear duration-300"
+            x-transition:enter="transition ease-out duration-300"
             x-transition:enter-start="opacity-0"
             x-transition:enter-end="opacity-100"
-            x-transition:leave="transition-opacity ease-linear duration-300"
+            x-transition:leave="transition ease-in duration-200"
             x-transition:leave-start="opacity-100"
             x-transition:leave-end="opacity-0"
             @click="mobileOpen = false"
-            class="fixed inset-0 bg-black/50 z-40"
+            class="fixed inset-0 bg-black bg-opacity-50 z-40"
         ></div>
         
-        <!-- Sidebar Panel -->
-        <div
+        <!-- Mobile Sidebar (slide-in overlay) -->
+        <aside 
             x-show="mobileOpen"
-            x-transition:enter="transition ease-in-out duration-300 transform"
+            x-transition:enter="transition ease-out duration-300 transform"
             x-transition:enter-start="-translate-x-full"
             x-transition:enter-end="translate-x-0"
-            x-transition:leave="transition ease-in-out duration-300 transform"
+            x-transition:leave="transition ease-in duration-200 transform"
             x-transition:leave-start="translate-x-0"
             x-transition:leave-end="-translate-x-full"
-            class="fixed inset-y-0 left-0 z-50 w-64 bg-base-200 border-r border-base-300 flex flex-col"
+            class="fixed inset-y-0 left-0 z-50 w-64 bg-[#12121f] border-r border-[#1f1f35] flex flex-col"
+            aria-label="Mobile navigation"
         >
-            <!-- Header -->
-            <div class="p-4 border-b border-base-300 flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-xl">🌙</div>
-                    <div>
-                        <span class="font-semibold">LunaOS</span>
-                        <p class="text-xs text-base-content/60">Dashboard</p>
+            <!-- Mobile Header -->
+            <div class="p-4 border-b border-[#1f1f35] flex items-center justify-between">
+                <a href="{{ route('tasks') }}" class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-[#7c3aed]/20 flex items-center justify-center text-xl flex-shrink-0">
+                        🌙
                     </div>
-                </div>
-                <button @click="mobileOpen = false" class="btn btn-ghost btn-square btn-sm">✕</button>
+                    <span class="font-semibold text-[#e4e4f0]">LunaOS</span>
+                </a>
+                <button 
+                    @click="mobileOpen = false"
+                    class="p-2 text-[#a0a0b8] hover:text-[#e4e4f0] focus:outline-none focus:ring-2 focus:ring-[#7c3aed] rounded-lg"
+                    aria-label="Close navigation menu"
+                >
+                    ✕
+                </button>
             </div>
             
-            <!-- Nav Items -->
-            <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
-                <a href="{{ route('tasks') }}" class="btn btn-ghost justify-start gap-3 w-full {{ request()->routeIs('tasks') ? 'btn-active' : '' }}">
-                    <span class="text-xl">📋</span> Tasks
+            <!-- Mobile Nav Items -->
+            <nav class="flex-1 p-3 space-y-1 overflow-y-auto">
+                <a href="{{ route('tasks') }}" 
+                   class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('tasks') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
+                    <span class="text-lg flex-shrink-0">📋</span>
+                    <span class="font-medium">Tasks</span>
                 </a>
-                <a href="{{ route('org-chart') }}" class="btn btn-ghost justify-start gap-3 w-full {{ request()->routeIs('org-chart') ? 'btn-active' : '' }}">
-                    <span class="text-xl">🏢</span> Org Chart
+                <a href="{{ route('org-chart') }}" 
+                   class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('org-chart') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
+                    <span class="text-lg flex-shrink-0">🏢</span>
+                    <span class="font-medium">Org Chart</span>
                 </a>
-                <a href="{{ route('team') }}" class="btn btn-ghost justify-start gap-3 w-full {{ request()->routeIs('team*') ? 'btn-active' : '' }}">
-                    <span class="text-xl">👥</span> Team
+                <a href="{{ route('team') }}" 
+                   class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('team*') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
+                    <span class="text-lg flex-shrink-0">👥</span>
+                    <span class="font-medium">Team</span>
                 </a>
-                <a href="{{ route('projects') }}" class="btn btn-ghost justify-start gap-3 w-full {{ request()->routeIs('projects*') ? 'btn-active' : '' }}">
-                    <span class="text-xl">📊</span> Projects
+                <a href="{{ route('projects') }}" 
+                   class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('projects*') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
+                    <span class="text-lg flex-shrink-0">📊</span>
+                    <span class="font-medium">Projects</span>
                 </a>
-                <a href="{{ route('board') }}" class="btn btn-ghost justify-start gap-3 w-full {{ request()->routeIs('board*') ? 'btn-active' : '' }}">
-                    <span class="text-xl">🎯</span> Board
+                <a href="{{ route('board') }}" 
+                   class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('board*') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
+                    <span class="text-lg flex-shrink-0">🎯</span>
+                    <span class="font-medium">Board</span>
                 </a>
-                <a href="{{ route('kanban.index') }}" class="btn btn-ghost justify-start gap-3 w-full {{ request()->routeIs('kanban*') ? 'btn-active' : '' }}">
-                    <span class="text-xl">📋</span> Kanban
+                <a href="{{ route('kanban.index') }}" 
+                   class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('kanban*') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
+                    <span class="text-lg flex-shrink-0">📋</span>
+                    <span class="font-medium">Kanban</span>
                 </a>
             </nav>
             
-            <!-- Footer -->
-            <div class="p-4 border-t border-base-300">
+            <!-- Mobile Footer -->
+            <div class="p-4 border-t border-[#1f1f35]">
                 @include('layouts.partials.sidebar-footer')
             </div>
-        </div>
+        </aside>
     </div>
     
     <!-- Desktop Layout -->
     <div class="flex min-h-screen">
-        <!-- Desktop Sidebar -->
+        <!-- Desktop Sidebar (always visible, just changes width) -->
         <aside 
-            x-data="{ collapsed: localStorage.getItem('lunaos.sidebar.collapsed') === 'true' }"
-            x-init="$watch('collapsed', value => localStorage.setItem('lunaos.sidebar.collapsed', value))"
-            :class="collapsed ? 'w-20' : 'w-64'"
-            class="hidden md:block fixed inset-y-0 left-0 z-30 bg-base-200 border-r border-base-300 flex flex-col transition-all duration-300 ease-in-out"
+            :class="collapsed ? 'w-16' : 'w-64'"
+            class="hidden md:block fixed inset-y-0 left-0 z-30 bg-[#12121f] border-r border-[#1f1f35] flex flex-col transition-all duration-300 ease-in-out overflow-hidden"
+            :aria-expanded="!collapsed"
+            aria-label="Main navigation"
         >
-            <!-- Header -->
-            <div class="p-4 border-b border-base-300 flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-xl flex-shrink-0">🌙</div>
-                <div x-show="!collapsed" x-transition class="overflow-hidden">
-                    <span class="font-semibold">LunaOS</span>
-                    <p class="text-xs text-base-content/60">Dashboard</p>
-                </div>
+            <!-- Collapse/Expand Toggle Button -->
+            <button
+                @click="toggleSidebar()"
+                :class="collapsed ? 'left-8' : 'right-0'"
+                class="absolute top-8 w-6 h-6 rounded-full bg-[#7c3aed] text-white shadow-lg hover:bg-[#6d28d9] transition-all focus:outline-none focus:ring-2 focus:ring-[#7c3aed] focus:ring-offset-2 focus:ring-offset-[#12121f] flex items-center justify-center z-50"
+                aria-label="Toggle navigation"
+                :aria-expanded="!collapsed"
+                :title="collapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+            >
+                <span x-text="collapsed ? '→' : '←'" class="text-xs font-bold"></span>
+            </button>
+            
+            <!-- Sidebar Header -->
+            <div class="p-4 border-b border-[#1f1f35]">
+                <a href="{{ route('tasks') }}" class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-[#7c3aed]/20 flex items-center justify-center text-xl flex-shrink-0">
+                        🌙
+                    </div>
+                    <div x-show="!collapsed" x-transition:enter="transition-opacity duration-200" x-transition:leave="transition-opacity duration-200" class="overflow-hidden">
+                        <span class="font-semibold text-[#e4e4f0]">LunaOS</span>
+                        <p class="text-xs text-[#6b6b80]">Dashboard</p>
+                    </div>
+                </a>
             </div>
             
             <!-- Navigation -->
             <nav class="flex-1 p-3 space-y-1 overflow-y-auto">
-                <a href="{{ route('tasks') }}" class="btn btn-ghost justify-start gap-3 w-full {{ request()->routeIs('tasks') ? 'btn-active' : '' }}" :title="collapsed ? 'Tasks' : ''">
-                    <span class="text-xl">📋</span>
-                    <span x-show="!collapsed" x-transition>Tasks</span>
+                <a href="{{ route('tasks') }}" 
+                   class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('tasks') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}"
+                   :title="collapsed ? 'Tasks' : ''">
+                    <span class="text-lg flex-shrink-0">📋</span>
+                    <span x-show="!collapsed" x-transition:enter="transition-opacity duration-200" x-transition:leave="transition-opacity duration-200" class="font-medium">Tasks</span>
                 </a>
-                <a href="{{ route('org-chart') }}" class="btn btn-ghost justify-start gap-3 w-full {{ request()->routeIs('org-chart') ? 'btn-active' : '' }}" :title="collapsed ? 'Org Chart' : ''">
-                    <span class="text-xl">🏢</span>
-                    <span x-show="!collapsed" x-transition>Org Chart</span>
+                <a href="{{ route('org-chart') }}" 
+                   class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('org-chart') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}"
+                   :title="collapsed ? 'Org Chart' : ''">
+                    <span class="text-lg flex-shrink-0">🏢</span>
+                    <span x-show="!collapsed" x-transition:enter="transition-opacity duration-200" x-transition:leave="transition-opacity duration-200" class="font-medium">Org Chart</span>
                 </a>
-                <a href="{{ route('team') }}" class="btn btn-ghost justify-start gap-3 w-full {{ request()->routeIs('team*') ? 'btn-active' : '' }}" :title="collapsed ? 'Team' : ''">
-                    <span class="text-xl">👥</span>
-                    <span x-show="!collapsed" x-transition>Team</span>
+                <a href="{{ route('team') }}" 
+                   class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('team*') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}"
+                   :title="collapsed ? 'Team' : ''">
+                    <span class="text-lg flex-shrink-0">👥</span>
+                    <span x-show="!collapsed" x-transition:enter="transition-opacity duration-200" x-transition:leave="transition-opacity duration-200" class="font-medium">Team</span>
                 </a>
-                <a href="{{ route('projects') }}" class="btn btn-ghost justify-start gap-3 w-full {{ request()->routeIs('projects*') ? 'btn-active' : '' }}" :title="collapsed ? 'Projects' : ''">
-                    <span class="text-xl">📊</span>
-                    <span x-show="!collapsed" x-transition>Projects</span>
+                <a href="{{ route('projects') }}" 
+                   class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('projects*') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}"
+                   :title="collapsed ? 'Projects' : ''">
+                    <span class="text-lg flex-shrink-0">📊</span>
+                    <span x-show="!collapsed" x-transition:enter="transition-opacity duration-200" x-transition:leave="transition-opacity duration-200" class="font-medium">Projects</span>
                 </a>
-                <a href="{{ route('board') }}" class="btn btn-ghost justify-start gap-3 w-full {{ request()->routeIs('board*') ? 'btn-active' : '' }}" :title="collapsed ? 'Board' : ''">
-                    <span class="text-xl">🎯</span>
-                    <span x-show="!collapsed" x-transition>Board</span>
+                <a href="{{ route('board') }}" 
+                   class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('board*') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}"
+                   :title="collapsed ? 'Board' : ''">
+                    <span class="text-lg flex-shrink-0">🎯</span>
+                    <span x-show="!collapsed" x-transition:enter="transition-opacity duration-200" x-transition:leave="transition-opacity duration-200" class="font-medium">Board</span>
                 </a>
-                <a href="{{ route('kanban.index') }}" class="btn btn-ghost justify-start gap-3 w-full {{ request()->routeIs('kanban*') ? 'btn-active' : '' }}" :title="collapsed ? 'Kanban' : ''">
-                    <span class="text-xl">📋</span>
-                    <span x-show="!collapsed" x-transition>Kanban</span>
+                <a href="{{ route('kanban.index') }}" 
+                   class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('kanban*') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}"
+                   :title="collapsed ? 'Kanban' : ''">
+                    <span class="text-lg flex-shrink-0">📋</span>
+                    <span x-show="!collapsed" x-transition:enter="transition-opacity duration-200" x-transition:leave="transition-opacity duration-200" class="font-medium">Kanban</span>
                 </a>
             </nav>
             
-            <!-- Toggle -->
-            <div class="p-3 border-t border-base-300">
-                <button @click="collapsed = !collapsed" class="btn btn-sm btn-primary w-full">
-                    <span x-text="collapsed ? '→' : '←'" class="font-bold"></span>
-                    <span x-show="!collapsed" x-transition>Collapse</span>
-                </button>
+            <!-- Sidebar Footer -->
+            <div class="p-4 border-t border-[#1f1f35]" x-show="!collapsed" x-transition:enter="transition-opacity duration-200" x-transition:leave="transition-opacity duration-200">
+                @include('layouts.partials.sidebar-footer')
             </div>
         </aside>
         
         <!-- Main Content -->
         <main 
-            x-data="{ getMargin() { return window.innerWidth >= 768 ? (localStorage.getItem('lunaos.sidebar.collapsed') === 'true' ? 'ml-20' : 'ml-64') : 'ml-0' } }"
-            :class="getMargin()"
+            :class="collapsed ? 'ml-16' : 'ml-64'"
             class="flex-1 transition-all duration-300 ease-in-out min-h-screen"
         >
             <!-- Header -->
-            <header class="h-16 bg-base-100 border-b border-base-300 flex items-center justify-between px-6 sticky top-0 z-10">
-                <!-- Mobile Menu Button -->
-                <button @click="$dispatch('open')" class="md:hidden btn btn-ghost btn-square">
+            <header class="h-16 bg-[#0f0f1a] border-b border-[#1f1f35] flex items-center justify-between px-6 sticky top-0 z-10">
+                <!-- Mobile Menu Button (visible only on mobile) -->
+                <button 
+                    @click="mobileOpen = true"
+                    class="md:hidden p-2 rounded-lg bg-[#1a1a2e] border border-[#2a2a40] text-[#a0a0b8] hover:text-[#e4e4f0] focus:outline-none focus:ring-2 focus:ring-[#7c3aed]"
+                    aria-label="Open navigation menu"
+                >
                     ☰
                 </button>
                 
                 <!-- Search -->
                 @livewire('global-search')
                 
-                <!-- Right Side -->
+                <!-- Right Side: Time, User -->
                 <div class="flex items-center gap-4">
-                    <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-base-200 rounded-lg border border-base-300">
-                        <span>🌙</span>
-                        <span id="current-time" class="text-sm font-medium font-mono"></span>
+                    <!-- Clock -->
+                    <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-[#1a1a2e] rounded-lg border border-[#2a2a40]">
+                        <span class="text-[#6b6b80]">🌙</span>
+                        <span id="current-time" class="text-sm font-medium text-[#a0a0b8] font-mono"></span>
                     </div>
-                    <div class="dropdown dropdown-end">
-                        <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
-                            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary/20 to-secondary/20 border border-primary/30">
-                                <img src="https://api.dicebear.com/9.x/avataaars/svg?seed=User" alt="User avatar">
-                            </div>
-                        </div>
+                    
+                    <!-- User Avatar -->
+                    <div class="relative group">
+                        <button class="flex items-center gap-2 p-1 rounded-lg hover:bg-[#1a1a2e] transition-colors focus:outline-none focus:ring-2 focus:ring-[#7c3aed]">
+                            <img 
+                                src="https://api.dicebear.com/9.x/avataaars/svg?seed=User" 
+                                alt="User avatar" 
+                                class="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30"
+                            >
+                        </button>
                     </div>
                 </div>
             </header>
@@ -198,7 +292,7 @@
         </main>
     </div>
     
-    <!-- Livewire Scripts -->
+    <!-- Livewire Config & Script -->
     <script>
         window.livewireScriptConfig = {
             uri: '/livewire/update',
@@ -208,23 +302,29 @@
     <script src="https://cdn.jsdelivr.net/gh/livewire/livewire@v3.7.10/dist/livewire.min.js"></script>
     
     <script>
-        // Update time
+        // Update time every minute
         setInterval(() => {
             const now = new Date();
-            const time = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+            const time = now.toLocaleTimeString('en-US', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                hour12: false 
+            });
             const el = document.getElementById('current-time');
             if (el) el.textContent = time;
         }, 60000);
         
-        // HTMX
+        // HTMX configuration
         document.body.addEventListener('htmx:configRequest', (event) => {
             event.detail.headers['X-CSRF-TOKEN'] = document.querySelector('meta[name="csrf-token"]').content;
         });
         
-        // Keyboard shortcut
+        // Keyboard navigation
         document.addEventListener('keydown', (e) => {
+            // Cmd/Ctrl + K for search focus
             if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
                 e.preventDefault();
+                // Dispatch Livewire event to open global search
                 if (typeof Livewire !== 'undefined') {
                     Livewire.dispatch('openSearch');
                 }
