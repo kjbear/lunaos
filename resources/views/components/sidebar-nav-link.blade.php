@@ -9,5 +9,5 @@ $activeClasses = $active ? 'bg-[#1f1f35] text-[#e4e4f0]' : '';
    class="{{ $baseClasses }} {{ $activeClasses }}"
    title="{{ $label }}">
     <span class="text-lg flex-shrink-0">{{ $icon }}</span>
-    <span x-show="!collapsed" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" class="font-medium">{{ $label }}</span>
+    <span x-show="expanded" x-transition:enter="transition-opacity duration-200" x-transition:leave="transition-opacity duration-200" class="font-medium">{{ $label }}</span>
 </a>

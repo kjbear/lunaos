@@ -3,7 +3,7 @@
     <div class="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-purple-500 flex items-center justify-center text-sm shadow-lg flex-shrink-0">
         👤
     </div>
-    <div x-show="!collapsed" class="flex-1 min-w-0 overflow-hidden">
+    <div x-show="expanded" class="flex-1 min-w-0 overflow-hidden">
         <p class="text-sm font-medium text-[#e4e4f0] truncate">{{ auth()->user()->name }}</p>
         <p class="text-xs text-[#6b6b80] truncate">{{ auth()->user()->email }}</p>
     </div>
