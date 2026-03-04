@@ -122,11 +122,9 @@
                                     <div class="text-4xl mb-2">💻</div>
                                     <div class="font-semibold text-white mb-1">Dave</div>
                                     <div class="text-xs text-slate-400 mb-2">PHP Coder</div>
-                                    <span style="background: rgba(34,211,238,0.2);" class="inline-flex items-center px-2 py-0.5 rounded text-xs border border-cyan-400 text-cyan-200 mb-2">Dolphin 3.0</span>
+                                    <x-badge type="info" class="mb-2">Dolphin 3.0</x-badge>
                                     <br>
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs border {{ $runtimeClass }}">
-                                        {{ $runtimeLabel }}
-                                    </span>
+                                    <x-badge :type="$runtimeLabel === 'OpenClaw' ? 'primary' : 'neutral'">{{ $runtimeLabel }}</x-badge>
                                 </div>
                             </div>
                         </div>
@@ -144,11 +142,9 @@
                                     <div class="text-4xl mb-2">🎨</div>
                                     <div class="font-semibold text-white mb-1">Maya</div>
                                     <div class="text-xs text-slate-400 mb-2">Frontend</div>
-                                    <span style="background: rgba(34,211,238,0.2);" class="inline-flex items-center px-2 py-0.5 rounded text-xs border border-cyan-400 text-cyan-200 mb-2">Dolphin 3.0</span>
+                                    <x-badge type="info" class="mb-2">Dolphin 3.0</x-badge>
                                     <br>
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs border {{ $mayaRuntimeClass }}">
-                                        {{ $mayaRuntimeLabel }}
-                                    </span>
+                                    <x-badge :type="$mayaRuntimeLabel === 'OpenClaw' ? 'primary' : 'neutral'">{{ $mayaRuntimeLabel }}</x-badge>
                                 </div>
                             </div>
                         </div>

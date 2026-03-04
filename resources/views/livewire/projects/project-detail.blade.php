@@ -157,9 +157,7 @@
                             <span class="text-sm">📋</span>
                         </div>
                         <h2 class="text-lg font-semibold text-[#e4e4f0]">Requirements</h2>
-                        <span class="px-2.5 py-0.5 bg-[#7c3aed]/20 text-[#7c3aed] rounded-full text-xs font-medium">
-                            {{ count($requirements) }}
-                        </span>
+                        <x-badge type="info">{{ count($requirements) }}</x-badge>
                     </div>
                     <button wire:click="$set('showNewRequirementModal', true)"
                             class="px-4 py-2 bg-[#7c3aed] text-white rounded-lg hover:bg-[#6d28d9] transition-colors text-sm font-medium">
