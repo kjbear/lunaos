@@ -2,38 +2,31 @@
 @tailwind components;
 @tailwind utilities;
 
-/* LunaOS Custom Polish - Boost readability */
+/* LunaOS Custom Polish - Force high contrast on dark theme */
 @layer components {
-  /* High-contrast placeholder for dark theme */
-  .luna-input {
-    @apply bg-base-300 border border-base-content/30 text-base-content placeholder-white/60;
+  /* All text on dark backgrounds should be bright white or near-white */
+  .text-readable {
+    color: #f1f5f9 !important; /* Slate-100 - bright white-gray */
   }
   
-  /* Stat titles and descriptions - readable on dark */
-  .luna-stat-title {
-    @apply text-white/90 font-medium;
+  .text-readable-dim {
+    color: #cbd5e1 !important; /* Slate-300 - readable but clearly secondary */
   }
   
-  .luna-stat-desc {
-    @apply text-white/75 text-sm;
+  /* Input placeholders - actually visible */
+  .input::placeholder {
+    color: #94a3b8 !important; /* Slate-400 - readable placeholder */
+    opacity: 1 !important;
   }
   
-  /* Table headers - high contrast */
-  .luna-table-header {
-    @apply text-white/85 font-semibold uppercase tracking-wide;
+  /* Force table headers to be readable */
+  .table thead th {
+    color: #e2e8f0 !important; /* Slate-200 */
   }
   
-  /* Section labels */
-  .luna-section-label {
-    @apply text-white/80 font-semibold uppercase tracking-wider text-sm;
-  }
-  
-  /* Empty state - readable */
-  .luna-empty-state {
-    @apply text-white/90 font-semibold text-lg;
-  }
-  
-  .luna-empty-state-hint {
-    @apply text-white/70 text-sm;
+  /* Stat descriptions - no more invisible text */
+  .stat .stat-title,
+  .stat .stat-desc {
+    color: #cbd5e1 !important; /* Slate-300 */
   }
 }
