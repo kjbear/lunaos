@@ -1,6 +1,19 @@
 <div 
-    x-data="{ open: $wire.entangle('isOpen').live }"
-    x-on:keydown.escape.window="closeSearch()"
+    x-data="{ open: false }"
+    x-init="
+        $watch('open', value => {
+            if (value) {
+                setTimeout(() => $refs.searchInput?.focus(), 50);
+            }
+        });
+        Livewire.on('openSearch', () => { open = true; });
+        Livewire.hook('commit', ({ component, succeed, fail }) => {
+            if (component.snapshot.data.isOpen === false) {
+                open = false;
+            }
+        });
+    "
+    x-on:keydown.escape.window="open = false"
     class="relative"
 >
     {{-- Search Input with Keyboard Shortcut --}}
@@ -29,7 +42,7 @@
         x-transition:leave="transition ease-in duration-150"
         x-transition:leave-start="opacity-100 scale-100"
         x-transition:leave-end="opacity-0 scale-95"
-        x-on:click.away="closeSearch()"
+        x-on:click.away="open = false"
         class="absolute top-full left-0 right-0 mt-3 bg-slate-900/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl shadow-purple-500/10 z-50 max-h-[70vh] overflow-y-auto"
     >
         {{-- Results Header --}}
@@ -41,7 +54,7 @@
                 </span>
             </div>
             <button 
-                wire:click="closeSearch"
+                @click="open = false"
                 class="text-xs text-slate-500 hover:text-slate-300 transition-colors"
             >
                 ESC to close
@@ -59,7 +72,7 @@
                     @foreach($results[$type] as $item)
                     <a 
                         href="{{ $item['url'] }}"
-                        wire:click="closeSearch"
+                        @click="open = false"
                         class="flex items-center gap-4 px-5 py-3 hover:bg-white/[0.02] hover:border-white/5 border border-transparent transition-all group"
                     >
                         <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30 flex items-center justify-center text-lg group-hover:scale-110 transition-transform">
