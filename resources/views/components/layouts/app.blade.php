@@ -325,9 +325,9 @@
     </script>
     
     <script>
-        // Alpine.js Sidebar Application
-        function sidebarApp() {
-            return {
+        // Register Alpine.js component BEFORE Alpine initializes
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('sidebarApp', () => ({
                 collapsed: false,
                 mobileOpen: false,
                 
@@ -349,9 +349,17 @@
                 toggleSidebar() {
                     this.collapsed = !this.collapsed;
                     localStorage.setItem('lunaos.sidebar.collapsed', this.collapsed);
+                },
+                
+                openMobile() {
+                    this.mobileOpen = true;
+                },
+                
+                closeMobile() {
+                    this.mobileOpen = false;
                 }
-            }
-        }
+            }));
+        });
         
         // Update time every minute
         setInterval(() => {
@@ -361,7 +369,8 @@
                 minute: '2-digit',
                 hour12: false 
             });
-            document.getElementById('current-time').textContent = time;
+            const el = document.getElementById('current-time');
+            if (el) el.textContent = time;
         }, 60000);
         
         // HTMX configuration
@@ -375,7 +384,9 @@
             if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
                 e.preventDefault();
                 // Dispatch Livewire event to open global search
-                Livewire.dispatch('openSearch');
+                if (typeof Livewire !== 'undefined') {
+                    Livewire.dispatch('openSearch');
+                }
             }
         });
     </script>
