@@ -272,15 +272,13 @@
                         <span id="current-time" class="text-sm font-medium text-[#a0a0b8] font-mono"></span>
                     </div>
                     
-                    <!-- User Avatar -->
-                    <div class="relative group">
-                        <button class="flex items-center gap-2 p-1 rounded-lg hover:bg-[#1a1a2e] transition-colors focus:outline-none focus:ring-2 focus:ring-[#7c3aed]">
-                            <img 
-                                src="https://api.dicebear.com/9.x/avataaars/svg?seed=User" 
-                                alt="User avatar" 
-                                class="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30"
-                            >
-                        </button>
+                    <!-- User Avatar (daisyUI) -->
+                    <div class="dropdown dropdown-end">
+                        <label tabindex="0" class="btn btn-ghost btn-circle avatar">
+                            <div class="w-10 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2 bg-gradient-to-br from-primary/20 to-secondary/20">
+                                <img src="https://api.dicebear.com/9.x/avataaars/svg?seed=User" alt="User avatar">
+                            </div>
+                        </label>
                     </div>
                 </div>
             </header>

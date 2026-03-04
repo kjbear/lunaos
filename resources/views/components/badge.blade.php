@@ -1,14 +1,15 @@
-@props(['type' => 'info'])
+@props(['type' => 'info', 'outline' => false])
 
 @php
-    $types = [
-        'success' => 'bg-[#10b981]/20 text-[#10b981]',
-        'warning' => 'bg-[#f59e0b]/20 text-[#f59e0b]',
-        'error' => 'bg-[#ef4444]/20 text-[#ef4444]',
-        'info' => 'bg-[#3b82f6]/20 text-[#3b82f6]',
+    $variants = [
+        'success' => $outline ? 'badge-success badge-outline' : 'badge-success',
+        'warning' => $outline ? 'badge-warning badge-outline' : 'badge-warning',
+        'error' => $outline ? 'badge-error badge-outline' : 'badge-error',
+        'info' => $outline ? 'badge-info badge-outline' : 'badge-info',
+        'neutral' => $outline ? 'badge-ghost badge-outline' : 'badge-ghost',
     ];
 @endphp
 
-<span {{ $attributes->merge(['class' => "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {$types[$type]}"]) }}>
+<span {{ $attributes->merge(['class' => "badge " . ($variants[$type] ?? $variants['info'])]) }}>
     {{ $slot }}
 </span>

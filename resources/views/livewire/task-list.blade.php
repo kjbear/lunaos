@@ -51,39 +51,31 @@
             </div>
         </div>
         
-        {{-- Stats Row --}}
+        {{-- Stats Row (daisyUI) --}}
         <div class="relative px-6 pb-6">
-            <div class="flex flex-wrap gap-4">
-                <div class="group relative flex-1 min-w-[150px]">
-                    <div class="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <div class="relative bg-slate-900/60 backdrop-blur-sm rounded-xl p-4 border border-white/10 hover:border-blue-400/30 transition-all">
-                        <div class="text-sm text-slate-400 font-medium mb-1">Total</div>
-                        <div class="text-2xl font-bold text-white">{{ $stats['total'] }}</div>
-                    </div>
+            <div class="stats stats-vertical lg:stats-horizontal shadow-2xl bg-white/10 backdrop-blur-xl border border-white/10 w-full">
+                <div class="stat group">
+                    <div class="stat-title text-white/70">Total</div>
+                    <div class="stat-value text-white text-3xl">{{ $stats['total'] }}</div>
+                    <div class="stat-desc text-white/60 group-hover:text-white/80 transition-colors">All tasks</div>
                 </div>
                 
-                <div class="group relative flex-1 min-w-[150px]">
-                    <div class="absolute inset-0 bg-gradient-to-br from-yellow-500/10 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <div class="relative bg-slate-900/60 backdrop-blur-sm rounded-xl p-4 border border-white/10 hover:border-yellow-400/30 transition-all">
-                        <div class="text-sm text-slate-400 font-medium mb-1">Pending</div>
-                        <div class="text-2xl font-bold text-yellow-400">{{ $stats['pending'] }}</div>
-                    </div>
+                <div class="stat group">
+                    <div class="stat-title text-white/70">Pending</div>
+                    <div class="stat-value text-warning text-3xl">{{ $stats['pending'] }}</div>
+                    <div class="stat-desc text-white/60 group-hover:text-warning/80 transition-colors">Awaiting start</div>
                 </div>
                 
-                <div class="group relative flex-1 min-w-[150px]">
-                    <div class="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <div class="relative bg-slate-900/60 backdrop-blur-sm rounded-xl p-4 border border-white/10 hover:border-blue-400/30 transition-all">
-                        <div class="text-sm text-slate-400 font-medium mb-1">In Progress</div>
-                        <div class="text-2xl font-bold text-blue-400">{{ $stats['in_progress'] }}</div>
-                    </div>
+                <div class="stat group">
+                    <div class="stat-title text-white/70">In Progress</div>
+                    <div class="stat-value text-info text-3xl">{{ $stats['in_progress'] }}</div>
+                    <div class="stat-desc text-white/60 group-hover:text-info/80 transition-colors">Active work</div>
                 </div>
                 
-                <div class="group relative flex-1 min-w-[150px]">
-                    <div class="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <div class="relative bg-slate-900/60 backdrop-blur-sm rounded-xl p-4 border border-white/10 hover:border-emerald-400/30 transition-all">
-                        <div class="text-sm text-slate-400 font-medium mb-1">Completed</div>
-                        <div class="text-2xl font-bold text-emerald-400">{{ $stats['completed'] }}</div>
-                    </div>
+                <div class="stat group">
+                    <div class="stat-title text-white/70">Completed</div>
+                    <div class="stat-value text-success text-3xl">{{ $stats['completed'] }}</div>
+                    <div class="stat-desc text-white/60 group-hover:text-success/80 transition-colors">Done</div>
                 </div>
             </div>
         </div>
