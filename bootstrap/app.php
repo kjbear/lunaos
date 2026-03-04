@@ -18,6 +18,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             'api/activity/*',
         ]);
+        
+        // Register middleware to prevent destructive operations in production
+        $middleware->append(\App\Http\Middleware\PreventDestructiveOperations::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
