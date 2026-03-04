@@ -1,5 +1,5 @@
 <div 
-    x-data="{ open: @entangle('isOpen') }"
+    x-data="{ open: $wire.entangle('isOpen').live }"
     x-on:keydown.escape.window="closeSearch()"
     class="relative"
 >

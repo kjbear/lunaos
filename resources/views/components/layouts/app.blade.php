@@ -184,7 +184,7 @@
         <!-- Desktop Sidebar (push mode, hidden on mobile) -->
         <aside 
             :class="collapsed ? 'w-16' : 'w-64'"
-            class="hidden md:block fixed inset-y-0 left-0 z-30 bg-[#12121f] border-r border-[#1f1f35] flex flex-col transition-all duration-300 ease-in-out"
+            class="hidden md:block fixed inset-y-0 left-0 z-30 bg-[#12121f] border-r border-[#1f1f35] flex flex-col transition-all duration-300 ease-in-out overflow-hidden"
             :aria-expanded="!collapsed"
             aria-label="Main navigation"
         >
