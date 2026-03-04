@@ -12,12 +12,8 @@
             <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-3 mb-2">
                     <h3 class="text-xl font-bold text-white">{{ $member->name }}</h3>
-                    <span class="px-3 py-1 rounded-full text-xs font-semibold bg-purple-500/20 text-purple-400 border border-purple-500/30">
-                        Persona
-                    </span>
-                    <span class="px-3 py-1 rounded-full text-xs font-semibold {{ $member->status === 'active' || $member->status === 'online' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-slate-500/20 text-slate-400 border border-slate-500/30' }}">
-                        {{ ucfirst($member->status) }}
-                    </span>
+                    <x-badge type="info">Persona</x-badge>
+                    <x-badge :type="in_array($member->status, ['active', 'online']) ? 'success' : 'neutral'">{{ ucfirst($member->status) }}</x-badge>
                 </div>
                 @if($member->title)
                     <p class="text-sm text-slate-400 mb-2">{{ $member->title }}</p>
@@ -27,14 +23,10 @@
                 @endif
                 <div class="flex items-center gap-3 mt-3">
                     @if($member->model)
-                        <span class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
-                            🧠 {{ ucfirst($member->model) }}
-                        </span>
+                        <x-badge type="primary">🧠 {{ ucfirst($member->model) }}</x-badge>
                     @endif
                     @if($member->parent)
-                        <span class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
-                            👤 Reports to: {{ $member->parent->name }}
-                        </span>
+                        <x-badge type="secondary">👤 Reports to: {{ $member->parent->name }}</x-badge>
                     @endif
                 </div>
             </div>

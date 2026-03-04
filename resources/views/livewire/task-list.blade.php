@@ -10,8 +10,8 @@
     }
 }">
     {{-- Task List Header --}}
-    <header class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-950/80 via-purple-950/80 to-slate-900/80 backdrop-blur-xl border border-white/10 mb-8 shadow-2xl">
-        <div class="absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-purple-500/5 to-pink-500/5"></div>
+    <header class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-base-300 via-base-200 to-base-100 backdrop-blur-xl border border-base-content/10 mb-8 shadow-2xl">
+        <div class="absolute inset-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-accent/5"></div>
         
         <div class="relative flex items-center justify-between p-6">
             <div class="flex items-center gap-5">
@@ -23,18 +23,18 @@
                 </div>
                 
                 <div>
-                    <h1 class="text-2xl font-bold text-white tracking-tight">Task List</h1>
-                    <p class="text-sm text-slate-400 font-medium mt-0.5">Comprehensive task management with filters</p>
+                    <h1 class="text-2xl font-bold text-base-content tracking-tight">Task List</h1>
+                    <p class="text-sm text-base-content/70 font-medium mt-0.5">Comprehensive task management with filters</p>
                 </div>
             </div>
             
             {{-- View Mode Toggle --}}
             <div class="flex items-center gap-3">
-                <div class="hidden md:flex items-center px-3 py-1.5 bg-white/5 border border-white/10 rounded-xl">
-                    <label class="text-xs font-medium text-slate-400 mr-3 uppercase tracking-wider">View</label>
+                <div class="hidden md:flex items-center px-3 py-1.5 bg-base-content/5 border border-base-content/10 rounded-xl">
+                    <label class="text-xs font-medium text-base-content/70 mr-3 uppercase tracking-wider">View</label>
                     <select 
                         wire:model.live="viewMode"
-                        class="bg-transparent text-sm font-medium text-white focus:outline-none cursor-pointer"
+                        class="bg-transparent text-sm font-medium text-base-content focus:outline-none cursor-pointer"
                     >
                         <option value="list">📋 List</option>
                         <option value="board">📊 Board</option>
@@ -44,7 +44,7 @@
                 
                 <button 
                     wire:click="$refresh"
-                    class="group relative p-2.5 rounded-xl bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all duration-200"
+                    class="group relative p-2.5 rounded-xl bg-base-content/5 border border-base-content/10 text-base-content/70 hover:text-base-content hover:bg-base-content/10 hover:border-base-content/20 transition-all duration-200"
                 >
                     <span class="group-hover:rotate-180 transition-transform duration-500 block">↻</span>
                 </button>
@@ -55,27 +55,27 @@
         <div class="relative px-6 pb-6">
             <div class="stats stats-vertical lg:stats-horizontal shadow-2xl bg-base-300 border border-base-300 w-full">
                 <div class="stat group">
-                    <div class="stat-title text-base-content/70">Total</div>
+                    <div class="stat-title text-base-content/80">Total</div>
                     <div class="stat-value text-primary text-3xl">{{ $stats['total'] }}</div>
-                    <div class="stat-desc text-base-content/60">All tasks</div>
+                    <div class="stat-desc text-base-content/90">All tasks</div>
                 </div>
                 
                 <div class="stat group">
-                    <div class="stat-title text-base-content/70">Pending</div>
+                    <div class="stat-title text-base-content/80">Pending</div>
                     <div class="stat-value text-warning text-3xl">{{ $stats['pending'] }}</div>
-                    <div class="stat-desc text-base-content/60">Awaiting start</div>
+                    <div class="stat-desc text-base-content/90">Awaiting start</div>
                 </div>
                 
                 <div class="stat group">
-                    <div class="stat-title text-base-content/70">In Progress</div>
+                    <div class="stat-title text-base-content/80">In Progress</div>
                     <div class="stat-value text-info text-3xl">{{ $stats['in_progress'] }}</div>
-                    <div class="stat-desc text-base-content/60">Active work</div>
+                    <div class="stat-desc text-base-content/90">Active work</div>
                 </div>
                 
                 <div class="stat group">
-                    <div class="stat-title text-base-content/70">Completed</div>
+                    <div class="stat-title text-base-content/80">Completed</div>
                     <div class="stat-value text-success text-3xl">{{ $stats['completed'] }}</div>
-                    <div class="stat-desc text-base-content/60">Done</div>
+                    <div class="stat-desc text-base-content/90">Done</div>
                 </div>
             </div>
         </div>
@@ -84,20 +84,20 @@
     {{-- Filters Bar --}}
     <section class="mb-6">
         <div class="flex items-center gap-3 mb-4">
-            <div class="w-1 h-6 bg-gradient-to-b from-cyan-400 to-purple-500 rounded-full"></div>
-            <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider">Filters</h2>
+            <div class="w-1 h-6 bg-gradient-to-b from-primary to-secondary rounded-full"></div>
+            <h2 class="text-sm font-semibold text-base-content uppercase tracking-wider">Filters</h2>
         </div>
         
-        <div class="bg-slate-900/60 backdrop-blur-sm rounded-xl p-4 border border-white/10">
+        <div class="bg-base-200/80 backdrop-blur-sm rounded-xl p-4 border border-base-content/10">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 {{-- Search --}}
                 <div class="md:col-span-2">
-                    <label class="block text-xs font-medium text-slate-400 mb-2">Search</label>
+                    <label class="block text-xs font-medium text-base-content/90 mb-2">Search</label>
                     <input 
                         type="text" 
                         wire:model.live.debounce.300ms="search"
                         placeholder="Search tasks..."
-                        class="w-full bg-slate-800/50 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/50 transition-all"
+                        class="w-full bg-base-300 border border-base-content/30 rounded-lg px-4 py-2.5 text-base-content placeholder-base-content/60 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all"
                     >
                 </div>
                 
@@ -137,50 +137,50 @@
 
     {{-- Task Table --}}
     <section>
-        <div class="bg-slate-900/60 backdrop-blur-sm rounded-xl border border-white/10 overflow-hidden">
+        <div class="bg-base-200 backdrop-blur-sm rounded-xl border border-base-content/10 overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="w-full text-left">
                     <thead>
-                        <tr class="border-b border-white/10 bg-slate-800/30">
+                        <tr class="border-b border-base-content/20 bg-base-300">
                             <th 
                                 wire:click="setSort('id')"
-                                class="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white transition-colors"
+                                class="px-6 py-4 text-xs font-semibold text-base-content uppercase tracking-wider cursor-pointer hover:text-primary transition-colors"
                             >
                                 ID @if($sortField === 'id'){{ $sortDirection === 'asc' ? '↑' : '↓' }}@else ↕️ @endif
                             </th>
                             <th 
                                 wire:click="setSort('title')"
-                                class="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white transition-colors"
+                                class="px-6 py-4 text-xs font-semibold text-base-content uppercase tracking-wider cursor-pointer hover:text-primary transition-colors"
                             >
                                 Task @if($sortField === 'title'){{ $sortDirection === 'asc' ? '↑' : '↓' }}@else ↕️ @endif
                             </th>
                             <th 
                                 wire:click="setSort('assigned_to')"
-                                class="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white transition-colors"
+                                class="px-6 py-4 text-xs font-semibold text-base-content uppercase tracking-wider cursor-pointer hover:text-primary transition-colors"
                             >
                                 Agent @if($sortField === 'assigned_to'){{ $sortDirection === 'asc' ? '↑' : '↓' }}@else ↕️ @endif
                             </th>
                             <th 
                                 wire:click="setSort('step')"
-                                class="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white transition-colors"
+                                class="px-6 py-4 text-xs font-semibold text-base-content uppercase tracking-wider cursor-pointer hover:text-primary transition-colors"
                             >
                                 Step @if($sortField === 'step'){{ $sortDirection === 'asc' ? '↑' : '↓' }}@else ↕️ @endif
                             </th>
                             <th 
                                 wire:click="setSort('priority')"
-                                class="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white transition-colors"
+                                class="px-6 py-4 text-xs font-semibold text-base-content uppercase tracking-wider cursor-pointer hover:text-primary transition-colors"
                             >
                                 Priority @if($sortField === 'priority'){{ $sortDirection === 'asc' ? '↑' : '↓' }}@else ↕️ @endif
                             </th>
                             <th 
                                 wire:click="setSort('status')"
-                                class="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white transition-colors"
+                                class="px-6 py-4 text-xs font-semibold text-base-content uppercase tracking-wider cursor-pointer hover:text-primary transition-colors"
                             >
                                 Status @if($sortField === 'status'){{ $sortDirection === 'asc' ? '↑' : '↓' }}@else ↕️ @endif
                             </th>
                             <th 
                                 wire:click="setSort('created_at')"
-                                class="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white transition-colors"
+                                class="px-6 py-4 text-xs font-semibold text-base-content uppercase tracking-wider cursor-pointer hover:text-primary transition-colors"
                             >
                                 Created @if($sortField === 'created_at'){{ $sortDirection === 'asc' ? '↑' : '↓' }}@else ↕️ @endif
                             </th>
@@ -193,16 +193,16 @@
                             class="group hover:bg-white/5 transition-colors cursor-pointer"
                             wire:click="viewTask({{ $task->id }})"
                         >
-                            <td class="px-6 py-4 text-sm font-mono text-slate-400 group-hover:text-white">
+                            <td class="px-6 py-4 text-sm font-mono text-base-content/80 group-hover:text-primary">
                                 #{{ $task->id }}
                             </td>
                             
                             <td class="px-6 py-4">
-                                <div class="text-sm font-medium text-white group-hover:text-cyan-400 transition-colors">
+                                <div class="text-sm font-medium text-base-content group-hover:text-primary transition-colors">
                                     {{ $task->title }}
                                 </div>
                                 @if($task->description)
-                                <div class="text-xs text-slate-500 mt-1 line-clamp-1">
+                                <div class="text-xs text-base-content/70 mt-1 line-clamp-1">
                                     {{ Str::limit($task->description, 60) }}
                                 </div>
                                 @endif
@@ -276,8 +276,8 @@
                         @empty
                         <tr>
                             <td colspan="7" class="px-6 py-12 text-center">
-                                <div class="text-slate-400 text-lg mb-2">No tasks found</div>
-                                <div class="text-slate-500 text-sm">Try adjusting your filters or search terms</div>
+                                <div class="text-base-content text-lg font-semibold mb-2">No tasks found</div>
+                                <div class="text-base-content/70 text-sm">Try adjusting your filters or search terms</div>
                             </td>
                         </tr>
                         @endforelse

@@ -54,7 +54,7 @@
         <div class="flex items-center gap-3 mb-4">
             <div class="w-1 h-6 bg-gradient-to-b from-cyan-400 to-purple-500 rounded-full"></div>
             <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider">Agent Fleet</h2>
-            <span class="px-2.5 py-0.5 rounded-full bg-white/5 border border-white/10 text-xs text-slate-400">{{ count($agents) }} agents</span>
+            <x-badge type="neutral">{{ count($agents) }} agents</x-badge>
         </div>
         
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-4">
@@ -91,9 +91,7 @@
                     
                     {{-- Badges --}}
                     <div class="flex items-center justify-between mt-3 pt-3 border-t border-white/5">
-                        <span class="text-xs px-2.5 py-1 rounded-lg {{ $agent['model'] === 'GLM-5' ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' : 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30' }} font-medium">
-                            {{ $agent['model'] }}
-                        </span>
+                        <x-badge :type="$agent['model'] === 'GLM-5' ? 'primary' : 'info'">{{ $agent['model'] }}</x-badge>
                         <span class="text-xs text-slate-500 font-mono">D{{ $agent['depth'] }}</span>
                     </div>
                 </div>
@@ -109,9 +107,7 @@
             <div class="flex items-center gap-3 mb-4">
                 <div class="w-1 h-6 bg-gradient-to-b from-purple-400 to-pink-500 rounded-full"></div>
                 <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider">Task Pipeline</h2>
-                <span class="px-2.5 py-0.5 rounded-full bg-white/5 border border-white/10 text-xs text-slate-400">
-                    {{ collect($tasks)->flatten()->count() }} total
-                </span>
+                <x-badge type="neutral">{{ collect($tasks)->flatten()->count() }} total</x-badge>
             </div>
             
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">

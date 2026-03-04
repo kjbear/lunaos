@@ -11,21 +11,15 @@
         <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 mb-1">
                 <h3 class="text-lg font-bold text-white truncate">{{ $member->name }}</h3>
-                <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-500/20 text-blue-400 border border-blue-500/30 flex-shrink-0">
-                    Worker
-                </span>
+                <x-badge type="primary" class="flex-shrink-0">Worker</x-badge>
             </div>
             @if($member->title)
                 <p class="text-sm text-slate-400">{{ $member->title }}</p>
             @endif
             <div class="flex items-center gap-2 mt-2">
-                <span class="px-2 py-1 rounded-lg text-xs font-semibold {{ $member->status === 'active' || $member->status === 'online' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-slate-500/20 text-slate-400 border border-slate-500/30' }}">
-                    {{ ucfirst($member->status) }}
-                </span>
+                <x-badge :type="in_array($member->status, ['active', 'online']) ? 'success' : 'neutral'">{{ ucfirst($member->status) }}</x-badge>
                 @if($member->model)
-                    <span class="px-2 py-1 rounded-lg text-xs font-semibold bg-purple-500/20 text-purple-400 border border-purple-500/30">
-                        {{ ucfirst($member->model) }}
-                    </span>
+                    <x-badge type="info">{{ ucfirst($member->model) }}</x-badge>
                 @endif
             </div>
         </div>

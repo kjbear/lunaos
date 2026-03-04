@@ -24,32 +24,36 @@ export default {
         require('daisyui')
     ],
 
-    // LunaOS Custom Theme - Purple/Violet aesthetic
+    // LunaOS Custom Theme - Purple/Violet aesthetic (v2 - HIGH CONTRAST)
     daisyui: {
         themes: [
             "black",  // Base dark theme
             {
                 lunaos: {
-                    primary: "#7c3aed",      // Violet-600
-                    "primary-focus": "#6d28d9", // Violet-700
-                    "primary-content": "#ffffff",
-                    secondary: "#06b6d4",    // Cyan-500
-                    "secondary-focus": "#0891b2", // Cyan-600
-                    "secondary-content": "#ffffff",
-                    accent: "#f43f5e",       // Rose-500
-                    "accent-focus": "#e11d48", // Rose-600
+                    // Purple brand - kept vibrant but accessible
+                    primary: "#a78bfa",      // Violet-400 - even brighter
+                    "primary-focus": "#8b5cf6", // Violet-500
+                    "primary-content": "#0f172a", // Dark text on purple
+                    secondary: "#22d3ee",    // Cyan-400
+                    "secondary-focus": "#06b6d4", // Cyan-500
+                    "secondary-content": "#0f172a", // Dark text on cyan
+                    accent: "#fb7185",       // Rose-400
+                    "accent-focus": "#f43f5e", // Rose-500
                     "accent-content": "#ffffff",
-                    neutral: "#1e1e3f",      // Custom dark
-                    "neutral-focus": "#2a2a50",
-                    "neutral-content": "#e4e4f0",
-                    "base-100": "#0f0f1a",   // LunaOS background
-                    "base-200": "#12121f",   // LunaOS sidebar
-                    "base-300": "#1a1a2e",   // Slightly lighter
-                    "base-content": "#e4e4f0",
-                    info: "#3abff8",
-                    success: "#36d399",
-                    warning: "#fbbf24",
-                    error: "#f87272",
+                    // Neutrals - more separation between levels
+                    neutral: "#1e293b",      // Slate-800
+                    "neutral-focus": "#475569", // Slate-600
+                    "neutral-content": "#ffffff", // Pure white text
+                    // Base layers - lighter for better contrast
+                    "base-100": "#1e293b",   // Slate-800 - main bg (was too dark)
+                    "base-200": "#334155",   // Slate-700 - cards
+                    "base-300": "#475569",   // Slate-600 - elevated
+                    "base-content": "#ffffff", // PURE WHITE text (max contrast)
+                    // State colors - bright and accessible
+                    info: "#0ea5e9",         // Sky-500
+                    success: "#22c55e",      // Green-500
+                    warning: "#f59e0b",      // Amber-500
+                    error: "#ef4444",        // Red-500
                 },
             },
         ],
