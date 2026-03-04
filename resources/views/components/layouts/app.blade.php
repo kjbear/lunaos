@@ -206,16 +206,27 @@
             aria-label="Main navigation"
         >
             <!-- Toggle/Pin Button -->
-            <div class="absolute top-8 z-50">
+            <!-- When expanded: button on right edge of sidebar -->
+            <div x-show="pinned && expanded" x-transition class="absolute top-8 right-0 z-50">
                 <button
                     @click="toggleSidebar()"
-                    :class="expanded ? 'right-0 -mr-3' : 'right-0 -mr-3'"
                     class="w-6 h-6 rounded-full bg-[#7c3aed] text-white shadow-lg hover:bg-[#6d28d9] transition-colors focus:outline-none focus:ring-2 focus:ring-[#7c3aed] focus:ring-offset-2 focus:ring-offset-[#12121f] flex items-center justify-center"
-                    aria-label="Toggle navigation menu"
-                    :aria-expanded="pinned"
-                    title="Toggle navigation"
+                    aria-label="Collapse sidebar"
+                    title="Collapse sidebar"
                 >
-                    <span x-text="pinned ? (expanded ? '←' : '→') : '→'" class="text-xs font-bold"></span>
+                    <span class="text-xs font-bold">←</span>
+                </button>
+            </div>
+            
+            <!-- When icon-only: button floats to right of sidebar -->
+            <div x-show="pinned && !expanded" x-transition class="fixed top-8 left-16 z-50">
+                <button
+                    @click="toggleSidebar()"
+                    class="w-6 h-6 rounded-full bg-[#7c3aed] text-white shadow-lg hover:bg-[#6d28d9] transition-colors focus:outline-none focus:ring-2 focus:ring-[#7c3aed] focus:ring-offset-2 focus:ring-offset-[#12121f] flex items-center justify-center"
+                    aria-label="Expand sidebar"
+                    title="Expand sidebar"
+                >
+                    <span class="text-xs font-bold">→</span>
                 </button>
             </div>
             
@@ -278,7 +289,7 @@
             </div>
         </aside>
         
-        <!-- Main Content -->
+        <!-- Main Content (full width when unpinned) -->
         <main 
             :class="contentMargin"
             class="flex-1 transition-all duration-300 ease-in-out min-h-screen"
