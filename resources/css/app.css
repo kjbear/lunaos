@@ -1,3 +1,39 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* LunaOS Custom Polish - Boost readability */
+@layer components {
+  /* High-contrast placeholder for dark theme */
+  .luna-input {
+    @apply bg-base-300 border border-base-content/30 text-base-content placeholder-white/60;
+  }
+  
+  /* Stat titles and descriptions - readable on dark */
+  .luna-stat-title {
+    @apply text-white/90 font-medium;
+  }
+  
+  .luna-stat-desc {
+    @apply text-white/75 text-sm;
+  }
+  
+  /* Table headers - high contrast */
+  .luna-table-header {
+    @apply text-white/85 font-semibold uppercase tracking-wide;
+  }
+  
+  /* Section labels */
+  .luna-section-label {
+    @apply text-white/80 font-semibold uppercase tracking-wider text-sm;
+  }
+  
+  /* Empty state - readable */
+  .luna-empty-state {
+    @apply text-white/90 font-semibold text-lg;
+  }
+  
+  .luna-empty-state-hint {
+    @apply text-white/70 text-sm;
+  }
+}
