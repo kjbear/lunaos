@@ -62,16 +62,34 @@ Route::get('/activity', function () {
     return view('activity');
 })->name('activity');
 
-// HR Module
-Route::view('/hr', 'hr')->name('hr');
+// Team Module (Unified - replaces HR and Agents)
+use App\Http\Controllers\TeamController;
+
+Route::get('/team', [TeamController::class, 'index'])->name('team');
+Route::get('/team/create', [TeamController::class, 'create'])->name('team.create');
+Route::post('/team', [TeamController::class, 'store'])->name('team.store');
+Route::get('/team/{id}', [TeamController::class, 'show'])->name('team.show');
+Route::get('/team/{id}/edit', [TeamController::class, 'edit'])->name('team.edit');
+Route::put('/team/{id}', [TeamController::class, 'update'])->name('team.update');
+Route::delete('/team/{id}', [TeamController::class, 'destroy'])->name('team.destroy');
+
+// Legacy Routes - Redirect old HR and Agents routes to /team
+Route::get('/hr', function () {
+    return redirect()->route('team', ['tab' => 'personas']);
+})->name('hr');
 Route::get('/hr/{id}/workspace', function ($id) {
-    return view('hr-workspace', ['id' => $id]);
+    return redirect()->route('team.show', $id);
 })->name('hr.workspace');
 
-// Agent Management
-Route::view('/agents', 'agents')->name('agents.index');
-Route::view('/agents/create', 'agents-create')->name('agents.create');
-Route::view('/agents/{id}/edit', 'agents-edit')->name('agents.edit');
+Route::get('/agents', function () {
+    return redirect()->route('team', ['tab' => 'workers']);
+})->name('agents.index');
+Route::get('/agents/create', function () {
+    return redirect()->route('team');
+})->name('agents.create');
+Route::get('/agents/{id}/edit', function ($id) {
+    return redirect()->route('team.show', $id);
+})->name('agents.edit');
 
 // Projects Module
 Route::view('/projects', 'projects')->name('projects');
@@ -83,9 +101,11 @@ Route::get('/projects/{id}/requirements', function ($id) {
 })->name('projects.requirements');
 
 // Executive Board Module
+use App\Livewire\Board\ExecutiveBoardWait;
+
 Route::view('/board', 'board')->name('board');
 Route::get('/tasks/executive/board', ExecutiveBoard::class)->name('tasks.executive.board');
-Route::view('/tasks/executive/wait/{sessionId}', 'pages.executive-board-wait')->name('tasks.executive.wait');
+Route::get('/tasks/executive/wait/{sessionId}', ExecutiveBoardWait::class)->name('tasks.executive.wait');
 Route::get('/tasks/executive/board/{sessionId}', function ($sessionId) {
     $session = \App\Models\BoardSession::findOrFail($sessionId);
     return view('pages.executive-board-result', ['session' => $session]);

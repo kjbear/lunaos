@@ -3,5 +3,11 @@
 @section('title', 'Executive Board - LunaOS')
 
 @section('content')
-<livewire:board.executive-board />
+<div class="space-y-8">
+    {{-- Ask the Board --}}
+    <livewire:board.executive-board />
+
+    {{-- Session History --}}
+    <livewire:board.board-session-history />
+</div>
 @endsection

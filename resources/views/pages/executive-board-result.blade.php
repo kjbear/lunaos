@@ -4,7 +4,12 @@
 
 @section('content')
 @php
-    $session = \App\Models\BoardSession::with(['responses'])->find($sessionId);
+    // $session is already passed from the route, but ensure it's loaded with responses
+    if (!$session instanceof \App\Models\BoardSession) {
+        $session = \App\Models\BoardSession::with(['responses'])->find($sessionId);
+    } else {
+        $session->load(['responses']);
+    }
 @endphp
 
 <div class="executive-board-result-page">

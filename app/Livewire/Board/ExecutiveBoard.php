@@ -4,8 +4,9 @@ namespace App\Livewire\Board;
 
 use App\Models\BoardSession;
 use App\Models\BoardResponse;
-use App\Models\Persona;
+use App\Models\TeamMember;
 use App\Services\BoardOrchestrator;
+use App\Jobs\ProcessBoardDebate;
 use Livewire\Component;
 use Illuminate\Support\Facades\Log;
 
@@ -39,7 +40,7 @@ class ExecutiveBoard extends Component
         $this->boardMembers = [];
         
         // Try to load from database first
-        $members = Persona::where('role', 'board_member')
+        $members = TeamMember::where('type', 'board-members')
             ->where('status', 'active')
             ->orderBy('title')
             ->get();
@@ -105,82 +106,24 @@ class ExecutiveBoard extends Component
             return;
         }
 
-        // Set loading state immediately
-        $this->isLoading = true;
-        $this->loadingStep = 'convening';
-        $this->isDebating = true;
-        $this->dispatch('toast-info', message: 'Convening executive board...');
-
-        // Create session
+        // Create session first
         $session = BoardSession::create([
             'question' => $this->question,
             'context' => $this->context,
-            'status' => 'debating',
+            'status' => 'pending', // Start as pending, job will set to debating
         ]);
 
-        $this->currentSessionId = $session->id;
-        $this->transcript = [];
-        $this->finalDecision = null;
-        $this->risksBenefits = null;
-
-        // Run the board session with new orchestrator
-        try {
-            // Board members joining
-            $this->loadingStep = 'joining';
-            $this->dispatch('toast-info', message: 'Board members joining...');
-            
-            $orchestrator = app(BoardOrchestrator::class);
-            $orchestrator->runSession(
-                $this->currentSessionId,
-                $this->question,
-                $this->context ?: null
-            );
-
-            // Reload the session to get updated data
-            $session->refresh();
-            
-            // Load transcript
-            $this->loadTranscript();
-            
-            // Consolidating decision
-            $this->loadingStep = 'consolidating';
-            $this->dispatch('toast-info', message: 'Consolidating decision...');
-            
-            // Load decision - get it from board_responses if not in session
-            $this->finalDecision = $session->final_decision;
-            $this->risksBenefits = $session->risks_benefits;
-            
-            // If no decision but we have responses, build a summary
-            if (!$this->finalDecision && !empty($this->transcript)) {
-                $this->finalDecision = 'Board discussion complete. Review the transcript for insights.';
-            }
-            
-            // Success notification
-            $this->dispatch('toast-success', message: 'Board session complete! Redirecting to discussion...');
-            
-            // Redirect to session page for live discussion
-            $this->redirect(route('tasks.executive.result', $session->id), navigate: true);
-            return;
-            
-        } catch (\Exception $e) {
-            Log::error('ExecutiveBoard: Failed to run session', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-            
-            // Create fallback response
-            $this->createFallbackResponse($session, $e->getMessage());
-            
-            $this->dispatch('toast-error', message: 'Board session failed: ' . $e->getMessage());
-        }
-
-        // Only reset loading state if we're not redirecting
-        if (!$this->currentSessionId) {
-            $this->isLoading = false;
-            $this->loadingStep = '';
-            $this->isDebating = false;
-            $this->loadStats();
-        }
+        $sessionId = $session->id;
+        
+        // Dispatch to queue for async processing
+        ProcessBoardDebate::dispatch($sessionId);
+        
+        // Clear form
+        $this->question = '';
+        $this->context = '';
+        
+        // Redirect to wait page immediately
+        $this->redirect(route('tasks.executive.wait', $sessionId), navigate: true);
     }
 
     protected function createFallbackResponse(BoardSession $session, string $error): void

@@ -43,6 +43,17 @@ return [
             'transaction_mode' => 'DEFERRED',
         ],
 
+        'sqlite-staging' => [
+            'driver' => 'sqlite',
+            'database' => env('DB_DATABASE_STAGING', database_path('database-staging.sqlite')),
+            'prefix' => '',
+            'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
+            'busy_timeout' => null,
+            'journal_mode' => null,
+            'synchronous' => null,
+            'transaction_mode' => 'DEFERRED',
+        ],
+
         'sqlite-projects' => [
             'driver' => 'sqlite',
             'database' => env('DB_PROJECTS_PATH', database_path('projects.db')),

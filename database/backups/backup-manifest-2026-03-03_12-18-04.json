@@ -1,0 +1,12 @@
+{
+    "timestamp": "2026-03-03_12-18-04",
+    "created_at": "2026-03-03T12:18:05-05:00",
+    "backup_type": "pre-migration",
+    "tables_backed_up": [
+        {"table": "personas", "file": "personas-2026-03-03_12-18-04.json", "records": 6},
+        {"table": "persona_metrics", "file": "persona_metrics-2026-03-03_12-18-04.json", "records": 0},
+        {"table": "persona_workspaces", "file": "persona_workspaces-2026-03-03_12-18-04.json", "records": 0},
+        {"table": "agents", "file": "agents-2026-03-03_12-18-04.json", "records": 0},
+        {"table": "agent_updates", "file": "agent_updates-2026-03-03_12-18-04.json", "records": 0}
+    ]
+}

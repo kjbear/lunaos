@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\TaskController;
 use App\Http\Controllers\Api\BoardController;
 use App\Http\Controllers\OrgChartController;
 use App\Http\Controllers\WorkspaceController;
+use App\Http\Controllers\TeamController;
 
 // API routes for task management (unprotected for internal use)
 // Note: Laravel's API routes automatically get /api prefix from bootstrap/app.php
@@ -106,5 +107,18 @@ Route::name('api.')->group(function () {
         Route::post('/sessions/{sessionId}/consolidate', [BoardController::class, 'consolidateDecision'])->name('sessions.consolidate');
         Route::get('/sessions/{sessionId}/transcript', [BoardController::class, 'getTranscript'])->name('sessions.transcript');
         Route::delete('/sessions/{sessionId}', [BoardController::class, 'closeSession'])->name('sessions.close');
+    });
+
+    // ==========================================
+    // TEAM API
+    // ==========================================
+    Route::prefix('team')->name('team.')->group(function () {
+        // API routes (defined first to match before generic routes)
+        Route::get('/', [TeamController::class, 'apiIndex'])->name('api.index');
+        Route::get('/{team}', [TeamController::class, 'apiShow'])->name('api.show');
+        Route::post('/', [TeamController::class, 'apiStore'])->name('api.store');
+        Route::put('/{team}', [TeamController::class, 'apiUpdate'])->name('api.update');
+        Route::delete('/{team}', [TeamController::class, 'apiDestroy'])->name('api.destroy');
+        Route::get('/{team}/members', [TeamController::class, 'members'])->name('api.members');
     });
 });

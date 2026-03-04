@@ -51,15 +51,10 @@
                     <span class="text-lg">🏢</span>
                     <span class="font-medium">Org Chart</span>
                 </a>
-                <a href="{{ route('hr') }}" 
-                   class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('hr*') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
+                <a href="{{ route('team') }}" 
+                   class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('team*') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
                     <span class="text-lg">👥</span>
-                    <span class="font-medium">HR</span>
-                </a>
-                <a href="{{ route('agents.index') }}" 
-                   class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('agents*') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
-                    <span class="text-lg">🤖</span>
-                    <span class="font-medium">Agents</span>
+                    <span class="font-medium">Team</span>
                 </a>
                 <a href="{{ route('projects') }}" 
                    class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('projects*') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">

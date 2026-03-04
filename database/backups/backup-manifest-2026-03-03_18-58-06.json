@@ -1,0 +1,11 @@
+{
+    "timestamp": "2026-03-03_18-58-06",
+    "created_at": "2026-03-03T18:58:07-05:00",
+    "backup_type": "pre-migration",
+    "tables_backed_up": [
+        {"table": "agents", "file": "agents-2026-03-03_18-58-06.json", "records": 0},
+        {"table": "agent_updates", "file": "agent_updates-2026-03-03_18-58-06.json", "records": 0},
+        {"table": "agent_conversations", "file": "agent_conversations-2026-03-03_18-58-06.json", "records": 0},
+        {"table": "agent_activities", "file": "agent_activities-2026-03-03_18-58-06.json", "records": 0}
+    ]
+}

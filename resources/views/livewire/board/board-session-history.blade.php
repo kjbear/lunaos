@@ -42,8 +42,10 @@
                     </div>
 
                     <!-- Question Preview -->
-                    <div class="flex-1 min-w-0">
-                        <p class="text-white font-medium truncate group-hover:text-purple-300 transition-colors">{{ $session->question }}</p>
+                    <div class="flex-1 min-w-0 max-w-xl">
+                        <p class="text-white font-medium truncate group-hover:text-purple-300 transition-colors" title="{{ $session->question }}">
+                            {{ Str::limit($session->question, 80) }}
+                        </p>
                         <div class="flex items-center gap-3 mt-1">
                             <p class="text-slate-500 text-sm">
                                 {{ $session->created_at->format('M j, Y g:i A') }}
