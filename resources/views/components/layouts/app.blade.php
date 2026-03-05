@@ -23,12 +23,19 @@
             return {
                 collapsed: false,      // false = 256px expanded, true = 64px collapsed
                 mobileOpen: false,
+                expandedGroups: ['work'], // Track which nav groups are expanded
                 
                 initApp() {
-                    // Restore state from localStorage
+                    // Restore sidebar collapsed state from localStorage
                     const stored = localStorage.getItem('lunaos.sidebar.collapsed');
                     if (stored !== null) {
                         this.collapsed = (stored === 'true');
+                    }
+                    
+                    // Restore expanded nav groups from localStorage
+                    const storedGroups = localStorage.getItem('lunaos.nav.groups');
+                    if (storedGroups !== null) {
+                        this.expandedGroups = JSON.parse(storedGroups);
                     }
                     
                     // Escape key closes mobile overlay
@@ -52,6 +59,22 @@
                 toggleSidebar() {
                     this.collapsed = !this.collapsed;
                     localStorage.setItem('lunaos.sidebar.collapsed', this.collapsed);
+                },
+                
+                toggleGroup(groupName) {
+                    const index = this.expandedGroups.indexOf(groupName);
+                    if (index > -1) {
+                        // Collapse: remove from array
+                        this.expandedGroups.splice(index, 1);
+                    } else {
+                        // Expand: add to array
+                        this.expandedGroups.push(groupName);
+                    }
+                    localStorage.setItem('lunaos.nav.groups', JSON.stringify(this.expandedGroups));
+                },
+                
+                isGroupExpanded(groupName) {
+                    return this.expandedGroups.includes(groupName);
                 },
                 
                 openMobile() {
@@ -200,43 +223,198 @@
             </div>
             
             <!-- Navigation -->
-            <nav class="flex-1 p-3 space-y-1 overflow-y-auto">
-                <a href="{{ route('tasks') }}" 
-                   class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('tasks') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}"
-                   :title="collapsed ? 'Tasks' : ''">
-                    <span class="text-lg flex-shrink-0">📋</span>
-                    <span x-show="!collapsed" x-transition:enter="transition-opacity duration-200" x-transition:leave="transition-opacity duration-200" class="font-medium">Tasks</span>
-                </a>
-                <a href="{{ route('org-chart') }}" 
-                   class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('org-chart') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}"
-                   :title="collapsed ? 'Org Chart' : ''">
-                    <span class="text-lg flex-shrink-0">🏢</span>
-                    <span x-show="!collapsed" x-transition:enter="transition-opacity duration-200" x-transition:leave="transition-opacity duration-200" class="font-medium">Org Chart</span>
-                </a>
-                <a href="{{ route('team') }}" 
-                   class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('team*') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}"
-                   :title="collapsed ? 'Team' : ''">
-                    <span class="text-lg flex-shrink-0">👥</span>
-                    <span x-show="!collapsed" x-transition:enter="transition-opacity duration-200" x-transition:leave="transition-opacity duration-200" class="font-medium">Team</span>
-                </a>
-                <a href="{{ route('projects') }}" 
-                   class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('projects*') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}"
-                   :title="collapsed ? 'Projects' : ''">
-                    <span class="text-lg flex-shrink-0">📊</span>
-                    <span x-show="!collapsed" x-transition:enter="transition-opacity duration-200" x-transition:leave="transition-opacity duration-200" class="font-medium">Projects</span>
-                </a>
-                <a href="{{ route('board') }}" 
-                   class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('board*') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}"
-                   :title="collapsed ? 'Board' : ''">
-                    <span class="text-lg flex-shrink-0">🎯</span>
-                    <span x-show="!collapsed" x-transition:enter="transition-opacity duration-200" x-transition:leave="transition-opacity duration-200" class="font-medium">Board</span>
-                </a>
-                <a href="{{ route('kanban.index') }}" 
-                   class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('kanban*') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}"
-                   :title="collapsed ? 'Kanban' : ''">
-                    <span class="text-lg flex-shrink-0">📋</span>
-                    <span x-show="!collapsed" x-transition:enter="transition-opacity duration-200" x-transition:leave="transition-opacity duration-200" class="font-medium">Kanban</span>
-                </a>
+            <nav class="flex-1 p-3 space-y-4 overflow-y-auto">
+                
+                {{-- 📋 WORK --}}
+                <div>
+                    <button 
+                        @click="toggleGroup('work')"
+                        class="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-[#6b6b80] uppercase tracking-wider hover:text-[#a0a0b8] focus:outline-none"
+                        :title="collapsed ? 'Work' : ''">
+                        <span class="flex items-center gap-2">
+                            <span>📋</span>
+                            <span x-show="!collapsed">Work</span>
+                        </span>
+                        <span x-show="!collapsed" 
+                              x-text="isGroupExpanded('work') ? '▼' : '▶'"
+                              class="text-xs transition-transform"></span>
+                    </button>
+                    <div x-show="!collapsed && isGroupExpanded('work')" 
+                         x-collapse
+                         class="mt-1 space-y-1 pl-2">
+                        <a href="{{ route('tasks') }}" 
+                           class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('tasks') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
+                            <span class="text-sm">✓</span>
+                            <span class="text-sm font-medium">Tasks</span>
+                        </a>
+                        <a href="{{ route('board') }}" 
+                           class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('board*') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
+                            <span class="text-sm">◆</span>
+                            <span class="text-sm font-medium">Board</span>
+                        </a>
+                    </div>
+                </div>
+                
+                {{-- 👥 TEAM --}}
+                <div>
+                    <button 
+                        @click="toggleGroup('team')"
+                        class="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-[#6b6b80] uppercase tracking-wider hover:text-[#a0a0b8] focus:outline-none"
+                        :title="collapsed ? 'Team' : ''">
+                        <span class="flex items-center gap-2">
+                            <span>👥</span>
+                            <span x-show="!collapsed">Team</span>
+                        </span>
+                        <span x-show="!collapsed" 
+                              x-text="isGroupExpanded('team') ? '▼' : '▶'"
+                              class="text-xs transition-transform"></span>
+                    </button>
+                    <div x-show="!collapsed && isGroupExpanded('team')" 
+                         x-collapse
+                         class="mt-1 space-y-1 pl-2">
+                        <a href="{{ route('org-chart') }}" 
+                           class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('org-chart') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
+                            <span class="text-sm">🏢</span>
+                            <span class="text-sm font-medium">Org Chart</span>
+                        </a>
+                    </div>
+                </div>
+                
+                {{-- 📊 PROJECTS --}}
+                <div>
+                    <button 
+                        @click="toggleGroup('projects')"
+                        class="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-[#6b6b80] uppercase tracking-wider hover:text-[#a0a0b8] focus:outline-none"
+                        :title="collapsed ? 'Projects' : ''">
+                        <span class="flex items-center gap-2">
+                            <span>📊</span>
+                            <span x-show="!collapsed">Projects</span>
+                        </span>
+                        <span x-show="!collapsed" 
+                              x-text="isGroupExpanded('projects') ? '▼' : '▶'"
+                              class="text-xs transition-transform"></span>
+                    </button>
+                    <div x-show="!collapsed && isGroupExpanded('projects')" 
+                         x-collapse
+                         class="mt-1 space-y-1 pl-2">
+                        <a href="{{ route('projects') }}" 
+                           class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('projects*') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
+                            <span class="text-sm">📊</span>
+                            <span class="text-sm font-medium">Projects</span>
+                        </a>
+                    </div>
+                </div>
+                
+                {{-- 🏢 WORKSPACE --}}
+                <div>
+                    <button 
+                        @click="toggleGroup('workspace')"
+                        class="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-[#6b6b80] uppercase tracking-wider hover:text-[#a0a0b8] focus:outline-none"
+                        :title="collapsed ? 'Workspace' : ''">
+                        <span class="flex items-center gap-2">
+                            <span>🏢</span>
+                            <span x-show="!collapsed">Workspace</span>
+                        </span>
+                        <span x-show="!collapsed" 
+                              x-text="isGroupExpanded('workspace') ? '▼' : '▶'"
+                              class="text-xs transition-transform"></span>
+                    </button>
+                    <div x-show="!collapsed && isGroupExpanded('workspace')" 
+                         x-collapse
+                         class="mt-1 space-y-1 pl-2">
+                        <a href="#" 
+                           class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35]">
+                            <span class="text-sm">📁</span>
+                            <span class="text-sm font-medium">Files</span>
+                        </a>
+                        <a href="#" 
+                           class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35]">
+                            <span class="text-sm">📄</span>
+                            <span class="text-sm font-medium">Docs</span>
+                        </a>
+                    </div>
+                </div>
+                
+                {{-- 📅 CALENDAR & EVENTS --}}
+                <div>
+                    <button 
+                        @click="toggleGroup('calendar')"
+                        class="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-[#6b6b80] uppercase tracking-wider hover:text-[#a0a0b8] focus:outline-none"
+                        :title="collapsed ? 'Calendar' : ''">
+                        <span class="flex items-center gap-2">
+                            <span>📅</span>
+                            <span x-show="!collapsed">Calendar</span>
+                        </span>
+                        <span x-show="!collapsed" 
+                              x-text="isGroupExpanded('calendar') ? '▼' : '▶'"
+                              class="text-xs transition-transform"></span>
+                    </button>
+                    <div x-show="!collapsed && isGroupExpanded('calendar')" 
+                         x-collapse
+                         class="mt-1 space-y-1 pl-2">
+                        <a href="#" 
+                           class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35]">
+                            <span class="text-sm">📅</span>
+                            <span class="text-sm font-medium">Calendar</span>
+                        </a>
+                        <a href="#" 
+                           class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35]">
+                            <span class="text-sm">🌙</span>
+                            <span class="text-sm font-medium">Standup</span>
+                        </a>
+                    </div>
+                </div>
+                
+                {{-- 📈 INSIGHTS --}}
+                <div>
+                    <button 
+                        @click="toggleGroup('insights')"
+                        class="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-[#6b6b80] uppercase tracking-wider hover:text-[#a0a0b8] focus:outline-none"
+                        :title="collapsed ? 'Insights' : ''">
+                        <span class="flex items-center gap-2">
+                            <span>📈</span>
+                            <span x-show="!collapsed">Insights</span>
+                        </span>
+                        <span x-show="!collapsed" 
+                              x-text="isGroupExpanded('insights') ? '▼' : '▶'"
+                              class="text-xs transition-transform"></span>
+                    </button>
+                    <div x-show="!collapsed && isGroupExpanded('insights')" 
+                         x-collapse
+                         class="mt-1 space-y-1 pl-2">
+                        <a href="#" 
+                           class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35]">
+                            <span class="text-sm">📊</span>
+                            <span class="text-sm font-medium">Activity Feed</span>
+                        </a>
+                    </div>
+                </div>
+                
+                {{-- 🧪 DEVELOPMENT --}}
+                <div>
+                    <button 
+                        @click="toggleGroup('development')"
+                        class="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-[#6b6b80] uppercase tracking-wider hover:text-[#a0a0b8] focus:outline-none"
+                        :title="collapsed ? 'Development' : ''">
+                        <span class="flex items-center gap-2">
+                            <span>🧪</span>
+                            <span x-show="!collapsed">Development</span>
+                        </span>
+                        <span x-show="!collapsed" 
+                              x-text="isGroupExpanded('development') ? '▼' : '▶'"
+                              class="text-xs transition-transform"></span>
+                    </button>
+                    <div x-show="!collapsed && isGroupExpanded('development')" 
+                         x-collapse
+                         class="mt-1 space-y-1 pl-2">
+                        <a href="#" 
+                           class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35]">
+                            <span class="text-sm">🧪</span>
+                            <span class="text-sm font-medium">Tests</span>
+                        </a>
+                    </div>
+                </div>
+                
             </nav>
             
             <!-- Sidebar Footer -->
