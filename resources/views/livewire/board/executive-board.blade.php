@@ -71,6 +71,14 @@
                     ></textarea>
                 </div>
                 <div class="flex items-center justify-end gap-3">
+                    {{-- DEBUG BUTTON --}}
+                    <button 
+                        wire:click="$dispatch('toast-info', {message: 'Wire click works!'})" 
+                        class="px-4 py-3 bg-red-600 text-white font-semibold rounded-xl"
+                    >
+                        🧪 TEST
+                    </button>
+                    
                     <button 
                         wire:click="conveneBoard" 
                         wire:loading.attr="disabled"

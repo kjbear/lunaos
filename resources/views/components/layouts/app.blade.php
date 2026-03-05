@@ -505,6 +505,9 @@
     <!-- Livewire Scripts -->
     @livewireScripts
     
+    <!-- Toast Container -->
+    <livewire:toast-container />
+    
     @stack('scripts')
 </body>
 </html>
