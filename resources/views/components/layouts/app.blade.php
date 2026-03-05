@@ -101,7 +101,7 @@
     
     @stack('head')
 </head>
-<body class="antialiased bg-base-100 text-base-content min-h-screen overflow-hidden" x-data="sidebarApp()" x-init="initApp()" x-cloak>
+<body class="antialiased bg-base-100 text-base-content min-h-screen" x-data="sidebarApp()" x-init="initApp()" x-cloak>
     
     <!-- Mobile Sidebar Overlay (visible only when mobileOpen is true) -->
     <div x-show="mobileOpen" class="md:hidden" style="display: none;">
