@@ -421,7 +421,7 @@
         <!-- Main Content -->
         <main 
             :class="collapsed ? 'ml-16' : 'ml-64'"
-            class="flex-1 transition-all duration-300 ease-in-out min-h-screen"
+            class="flex-1 transition-all duration-300 ease-in-out min-h-screen overflow-y-auto"
         >
             <!-- Header -->
             <header class="h-16 bg-[#0f0f1a] border-b border-[#1f1f35] flex items-center justify-between px-6 sticky top-0 z-10">
