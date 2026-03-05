@@ -37,6 +37,9 @@ class TaskList extends Component
     
     // Agent counts for filtering
     public array $agentCounts = [];
+    
+    // Table headers for x-table component
+    public array $headers = [];
 
     protected $listeners = ['refreshTasks' => 'refresh'];
 
@@ -49,6 +52,17 @@ class TaskList extends Component
             'sam' => Task::where('assigned_to', 'sam')->count(),
             'chen' => Task::where('assigned_to', 'chen')->count(),
             'security' => Task::where('assigned_to', 'security')->count(),
+        ];
+        
+        // Initialize table headers for x-table component
+        $this->headers = [
+            ['key' => 'id', 'label' => 'ID', 'sortBy' => 'asc', 'class' => 'w-20'],
+            ['key' => 'title', 'label' => 'Task', 'sortBy' => 'asc'],
+            ['key' => 'assigned_to', 'label' => 'Agent', 'sortBy' => 'asc'],
+            ['key' => 'step', 'label' => 'Step', 'sortBy' => 'asc'],
+            ['key' => 'priority', 'label' => 'Priority', 'sortBy' => 'asc'],
+            ['key' => 'status', 'label' => 'Status', 'sortBy' => 'asc'],
+            ['key' => 'created_at', 'label' => 'Created', 'sortBy' => 'desc'],
         ];
         
         // Load any query parameters
@@ -99,9 +113,11 @@ class TaskList extends Component
         $this->resetPage();
     }
     
-    public function setSort(string $field): void
+    public function setSort(string $field, string $direction = 'asc'): void
     {
-        $this->sortBy($field);
+        $this->sortField = $field;
+        $this->sortDirection = $direction;
+        $this->resetPage();
     }
     
     public function getSortDirection(string $field): string
@@ -219,6 +235,7 @@ class TaskList extends Component
             'stats' => $this->stats,
             'tasks' => $this->tasks,
             'agentCounts' => $agentCounts,
+            'headers' => $this->headers,
             'sortField' => $this->sortField,
             'sortDirection' => $this->sortDirection,
         ]);

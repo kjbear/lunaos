@@ -137,158 +137,105 @@
 
     {{-- Task Table --}}
     <section>
-        <div class="bg-base-200 backdrop-blur-sm rounded-xl border border-base-content/10 overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left">
-                    <thead>
-                        <tr class="border-b border-white/20 bg-base-300">
-                            <th 
-                                wire:click="setSort('id')"
-                                class="px-6 py-4 text-xs font-semibold text-readable uppercase tracking-wider cursor-pointer hover:text-white transition-colors"
-                            >
-                                ID @if($sortField === 'id'){{ $sortDirection === 'asc' ? '↑' : '↓' }}@else ↕️ @endif
-                            </th>
-                            <th 
-                                wire:click="setSort('title')"
-                                class="px-6 py-4 text-xs font-semibold text-readable uppercase tracking-wider cursor-pointer hover:text-white transition-colors"
-                            >
-                                Task @if($sortField === 'title'){{ $sortDirection === 'asc' ? '↑' : '↓' }}@else ↕️ @endif
-                            </th>
-                            <th 
-                                wire:click="setSort('assigned_to')"
-                                class="px-6 py-4 text-xs font-semibold text-readable uppercase tracking-wider cursor-pointer hover:text-white transition-colors"
-                            >
-                                Agent @if($sortField === 'assigned_to'){{ $sortDirection === 'asc' ? '↑' : '↓' }}@else ↕️ @endif
-                            </th>
-                            <th 
-                                wire:click="setSort('step')"
-                                class="px-6 py-4 text-xs font-semibold text-readable uppercase tracking-wider cursor-pointer hover:text-white transition-colors"
-                            >
-                                Step @if($sortField === 'step'){{ $sortDirection === 'asc' ? '↑' : '↓' }}@else ↕️ @endif
-                            </th>
-                            <th 
-                                wire:click="setSort('priority')"
-                                class="px-6 py-4 text-xs font-semibold text-readable uppercase tracking-wider cursor-pointer hover:text-white transition-colors"
-                            >
-                                Priority @if($sortField === 'priority'){{ $sortDirection === 'asc' ? '↑' : '↓' }}@else ↕️ @endif
-                            </th>
-                            <th 
-                                wire:click="setSort('status')"
-                                class="px-6 py-4 text-xs font-semibold text-readable uppercase tracking-wider cursor-pointer hover:text-white transition-colors"
-                            >
-                                Status @if($sortField === 'status'){{ $sortDirection === 'asc' ? '↑' : '↓' }}@else ↕️ @endif
-                            </th>
-                            <th 
-                                wire:click="setSort('created_at')"
-                                class="px-6 py-4 text-xs font-semibold text-readable uppercase tracking-wider cursor-pointer hover:text-white transition-colors"
-                            >
-                                Created @if($sortField === 'created_at'){{ $sortDirection === 'asc' ? '↑' : '↓' }}@else ↕️ @endif
-                            </th>
-                        </tr>
-                    </thead>
-                    
-                    <tbody class="divide-y divide-white/5">
-                        @forelse($tasks as $task)
-                        <tr 
-                            class="group hover:bg-white/5 transition-colors cursor-pointer"
-                            wire:click="viewTask({{ $task->id }})"
-                        >
-                            <td class="px-6 py-4 text-sm font-mono text-readable/80 group-hover:text-primary">
-                                #{{ $task->id }}
-                            </td>
-                            
-                            <td class="px-6 py-4">
-                                <div class="text-sm font-medium text-readable group-hover:text-primary transition-colors">
-                                    {{ $task->title }}
-                                </div>
-                                @if($task->description)
-                                <div class="text-xs text-readable/70 mt-1 line-clamp-1">
-                                    {{ Str::limit($task->description, 60) }}
-                                </div>
-                                @endif
-                            </td>
-                            
-                            <td class="px-6 py-4">
-                                @if($task->assigned_to)
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium
-                                    @if($task->assigned_to === 'dave') bg-blue-500/20 text-blue-400 border border-blue-500/30
-                                    @elseif($task->assigned_to === 'sam') bg-emerald-500/20 text-emerald-400 border border-emerald-500/30
-                                    @elseif($task->assigned_to === 'chen') bg-purple-500/20 text-purple-400 border border-purple-500/30
-                                    @elseif($task->assigned_to === 'security') bg-orange-500/20 text-orange-400 border border-orange-500/30
-                                    @else bg-slate-500/20 text-readable-dim border border-slate-500/30
-                                    @endif
-                                ">
-                                    {{ $task->agent_display_name ?? ucfirst($task->assigned_to) }}
-                                </span>
-                                @else
-                                <span class="text-sm text-readable-dim">Unassigned</span>
-                                @endif
-                            </td>
-                            
-                            <td class="px-6 py-4">
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-700/50 text-slate-300 border border-slate-600/50">
-                                    {{ $task->step === 'develop' ? '🔧' : ($task->step === 'qa' ? '🧪' : ($task->step === 'security' ? '🔒' : ($task->step === 'staging' ? '🚀' : '✅'))) }}
-                                    {{ ucfirst($task->step) }}
-                                </span>
-                            </td>
-                            
-                            <td class="px-6 py-4">
-                                <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium
-                                    @if($task->priority === 'critical') bg-red-500/20 text-red-400 border border-red-500/30
-                                    @elseif($task->priority === 'high') bg-orange-500/20 text-orange-400 border border-orange-500/30
-                                    @elseif($task->priority === 'medium') bg-yellow-500/20 text-yellow-400 border border-yellow-500/30
-                                    @else bg-slate-500/20 text-readable-dim border border-slate-500/30
-                                    @endif
-                                ">
-                                    {{ ucfirst($task->priority) }}
-                                </span>
-                            </td>
-                            
-                            <td class="px-6 py-4">
-                                <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium
-                                    @if($task->status === 'in_progress') bg-blue-500/20 text-blue-400 border border-blue-500/30
-                                    @elseif($task->status === 'complete') bg-emerald-500/20 text-emerald-400 border border-emerald-500/30
-                                    @elseif($task->status === 'blocked') bg-red-500/20 text-red-400 border border-red-500/30
-                                    @elseif($task->status === 'failed') bg-red-500/20 text-red-400 border border-red-500/30
-                                    @else bg-slate-500/20 text-readable-dim border border-slate-500/30
-                                    @endif
-                                ">
-                                    @if($task->status === 'pending')
-                                        <span class="px-2 py-1 text-xs rounded-full bg-gray-500/20 text-gray-400 border border-gray-400/30">Pending</span>
-                                    @elseif($task->status === 'in_progress')
-                                        <span class="px-2 py-1 text-xs rounded-full bg-blue-500/20 text-blue-400 border border-blue-400/30">In Progress</span>
-                                    @elseif($task->status === 'complete')
-                                        <span class="px-2 py-1 text-xs rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-400/30">Complete</span>
-                                    @elseif($task->status === 'blocked')
-                                        <span class="px-2 py-1 text-xs rounded-full bg-orange-500/20 text-orange-400 border border-orange-400/30">Blocked</span>
-                                    @elseif($task->status === 'failed')
-                                        <span class="px-2 py-1 text-xs rounded-full bg-red-500/20 text-red-400 border border-red-400/30">Failed</span>
-                                    @else
-                                        <span class="px-2 py-1 text-xs rounded-full bg-slate-500/20 text-readable-dim border border-slate-400/30">{{ ucfirst($task->status) }}</span>
-                                    @endif
-                                </span>
-                            </td>
-                            
-                            <td class="px-6 py-4 text-sm text-readable-dim">
-                                {{ $task->created_at->format('M j, Y') }}
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="7" class="px-6 py-12 text-center">
-                                <div class="text-readable text-lg font-semibold mb-2">No tasks found</div>
-                                <div class="text-readable text-sm">Try adjusting your filters or search terms</div>
-                            </td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-            
-            {{-- Pagination --}}
-            <div class="px-6 py-4 border-t border-white/10 bg-slate-800/30">
-                {{ $tasks->links() }}
-            </div>
+        <div class="bg-base-200 backdrop-blur-sm rounded-xl border border-white/10 overflow-hidden">
+            {{-- MaryUI x-table component --}}
+            <x-table 
+                :headers="$headers" 
+                :rows="$tasks"
+                striped 
+                with-pagination
+                pagination-per-page="{{ $perPage }}"
+                wire:sort="setSort($event.detail.field, $event.detail.direction)"
+                class="cursor-pointer"
+                @row-click="viewTask($event.detail.id)"
+            >
+                {{-- Custom cell rendering --}}
+                
+                {{-- ID column --}}
+                @scope('cell_id', $task)
+                    <span class="font-mono text-readable/80">#{{ $task->id }}</span>
+                @endscope
+                
+                {{-- Task column with description --}}
+                @scope('cell_title', $task)
+                    <div>
+                        <div class="font-medium text-readable group-hover:text-primary transition-colors">
+                            {{ $task->title }}
+                        </div>
+                        @if($task->description)
+                        <div class="text-xs text-readable/70 mt-1 line-clamp-1">
+                            {{ Str::limit($task->description, 60) }}
+                        </div>
+                        @endif
+                    </div>
+                @endscope
+                
+                {{-- Agent column with dynamic badge --}}
+                @scope('cell_assigned_to', $task)
+                    @if($task->assigned_to)
+                    @php
+                        $badgeType = match($task->assigned_to) {
+                            'dave' => 'info',
+                            'sam' => 'success',
+                            'chen' => 'primary',
+                            'security' => 'warning',
+                            default => 'neutral'
+                        };
+                    @endphp
+                    <x-badge :type="$badgeType">{{ $task->agent_display_name ?? ucfirst($task->assigned_to) }}</x-badge>
+                    @else
+                    <span class="text-readable-dim">Unassigned</span>
+                    @endif
+                @endscope
+                
+                {{-- Step column with icon --}}
+                @scope('cell_step', $task)
+                    @php
+                        $stepIcons = [
+                            'develop' => '🔧',
+                            'qa' => '🧪',
+                            'security' => '🔒',
+                            'staging' => '🚀',
+                            'complete' => '✅'
+                        ];
+                    @endphp
+                    <x-badge type="neutral">
+                        {{ $stepIcons[$task->step] ?? '📋' }} {{ ucfirst($task->step) }}
+                    </x-badge>
+                @endscope
+                
+                {{-- Priority column --}}
+                @scope('cell_priority', $task)
+                    @php
+                        $priorityTypes = [
+                            'critical' => 'error',
+                            'high' => 'warning',
+                            'medium' => 'info',
+                            'low' => 'neutral'
+                        ];
+                    @endphp
+                    <x-badge :type="$priorityTypes[$task->priority] ?? 'neutral'">{{ ucfirst($task->priority) }}</x-badge>
+                @endscope
+                
+                {{-- Status column --}}
+                @scope('cell_status', $task)
+                    @php
+                        $statusTypes = [
+                            'pending' => 'info',
+                            'in_progress' => 'warning',
+                            'complete' => 'success',
+                            'blocked' => 'error',
+                            'failed' => 'error'
+                        ];
+                    @endphp
+                    <x-badge :type="$statusTypes[$task->status] ?? 'neutral'">{{ ucfirst($task->status) }}</x-badge>
+                @endscope
+                
+                {{-- Created column --}}
+                @scope('cell_created_at', $task)
+                    <span class="text-readable-dim">{{ $task->created_at->format('M j, Y') }}</span>
+                @endscope
+            </x-table>
         </div>
     </section>
 </div>
