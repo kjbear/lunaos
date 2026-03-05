@@ -99,62 +99,69 @@
         </div>
         @else
         <div class="overflow-x-auto">
-            <table class="w-full">
-                <thead class="bg-[#0f0f1a]">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-[#6b6b80] uppercase tracking-wider">Date</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-[#6b6b80] uppercase tracking-wider">Status</th>
-                        <th class="px-6 py-3 text-center text-xs font-medium text-[#6b6b80] uppercase tracking-wider">Total</th>
-                        <th class="px-6 py-3 text-center text-xs font-medium text-[#6b6b80] uppercase tracking-wider">Passed</th>
-                        <th class="px-6 py-3 text-center text-xs font-medium text-[#6b6b80] uppercase tracking-wider">Failed</th>
-                        <th class="px-6 py-3 text-center text-xs font-medium text-[#6b6b80] uppercase tracking-wider">Skipped</th>
-                        <th class="px-6 py-3 text-center text-xs font-medium text-[#6b6b80] uppercase tracking-wider">Pass Rate</th>
-                        <th class="px-6 py-3 text-center text-xs font-medium text-[#6b6b80] uppercase tracking-wider">Duration</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-[#2a2a40]">
-                    @foreach($recentRuns as $run)
-                    <tr class="hover:bg-[#1f1f35] transition-colors">
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-[#e4e4f0]">{{ $run['date'] }}</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-3 py-1 text-xs font-medium rounded-full capitalize
-                                {{ $run['status'] === 'passed' ? 'bg-green-500/20 text-green-400' : '' }}
-                                {{ $run['status'] === 'failed' ? 'bg-red-500/20 text-red-400' : '' }}
-                                {{ $run['status'] === 'error' ? 'bg-yellow-500/20 text-yellow-400' : '' }}">
-                                {{ $run['status'] }}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-center">
-                            <span class="text-sm text-[#e4e4f0]">{{ $run['total'] }}</span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-center">
-                            <span class="text-sm text-green-400 font-semibold">{{ $run['passed'] }}</span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-center">
-                            <span class="text-sm text-red-400 font-semibold">{{ $run['failed'] }}</span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-center">
-                            <span class="text-sm text-gray-400">{{ $run['skipped'] }}</span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-center">
-                            <div class="flex items-center justify-center gap-2">
-                                <div class="w-24 bg-[#2a2a40] rounded-full h-2">
-                                    <div class="bg-gradient-to-r from-green-500 to-emerald-500 h-2 rounded-full" style="width: {{ $run['pass_rate'] }}%"></div>
-                                </div>
-                                <span class="text-sm font-semibold {{ $run['pass_rate'] >= 80 ? 'text-green-400' : 'text-yellow-400' }}">
-                                    {{ $run['pass_rate'] }}%
-                                </span>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-center">
-                            <span class="text-sm text-[#6b6b80]">{{ number_format($run['duration'] / 1000, 2) }}s</span>
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
+            {{-- MaryUI x-table component --}}
+            <x-table 
+                :headers="[
+                    ['key' => 'date', 'label' => 'Date'],
+                    ['key' => 'status', 'label' => 'Status'],
+                    ['key' => 'total', 'label' => 'Total'],
+                    ['key' => 'passed', 'label' => 'Passed'],
+                    ['key' => 'failed', 'label' => 'Failed'],
+                    ['key' => 'skipped', 'label' => 'Skipped'],
+                    ['key' => 'pass_rate', 'label' => 'Pass Rate'],
+                    ['key' => 'duration', 'label' => 'Duration'],
+                ]"
+                :rows="$recentRuns"
+                striped
+                no-pagination
+            >
+                {{-- Custom cell rendering --}}
+                @scope('cell_date', $run)
+                    <div class="text-readable text-sm">{{ $run['date'] }}</div>
+                @endscope
+                
+                @scope('cell_status', $run)
+                    @php
+                        $statusTypes = [
+                            'passed' => 'success',
+                            'failed' => 'error',
+                            'error' => 'warning'
+                        ];
+                    @endphp
+                    <x-badge :type="$statusTypes[$run['status']] ?? 'neutral'" class="capitalize">{{ $run['status'] }}</x-badge>
+                @endscope
+                
+                @scope('cell_total', $run)
+                    <span class="text-readable text-sm">{{ $run['total'] }}</span>
+                @endscope
+                
+                @scope('cell_passed', $run)
+                    <span class="text-success text-sm font-semibold">{{ $run['passed'] }}</span>
+                @endscope
+                
+                @scope('cell_failed', $run)
+                    <span class="text-error text-sm font-semibold">{{ $run['failed'] }}</span>
+                @endscope
+                
+                @scope('cell_skipped', $run)
+                    <span class="text-readable-dim text-sm">{{ $run['skipped'] }}</span>
+                @endscope
+                
+                @scope('cell_pass_rate', $run)
+                    <div class="flex items-center justify-center gap-2">
+                        <div class="w-24 bg-base-300 rounded-full h-2">
+                            <div class="bg-gradient-to-r from-success to-emerald-500 h-2 rounded-full" style="width: {{ $run['pass_rate'] }}%"></div>
+                        </div>
+                        <span class="text-sm font-semibold {{ $run['pass_rate'] >= 80 ? 'text-success' : 'text-warning' }}">
+                            {{ $run['pass_rate'] }}%
+                        </span>
+                    </div>
+                @endscope
+                
+                @scope('cell_duration', $run)
+                    <span class="text-readable-dim text-sm">{{ number_format($run['duration'] / 1000, 2) }}s</span>
+                @endscope
+            </x-table>
         </div>
         @endif
     </div>

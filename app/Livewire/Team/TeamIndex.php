@@ -24,6 +24,7 @@ class TeamIndex extends Component
     public string $sortDirection = 'asc';
     public int $perPage = 10;
     public array $stats = [];
+    public array $headers = [];
     
     public function delete(string $id): void
     {
@@ -59,6 +60,17 @@ class TeamIndex extends Component
     {
         // Read tab from URL query param when #[Url] doesn't auto-populate
         $this->activeTab = request('tab', 'all');
+        
+        // Initialize table headers for x-table component
+        $this->headers = [
+            ['key' => 'name', 'label' => 'Member', 'sortBy' => 'asc'],
+            ['key' => 'type', 'label' => 'Type', 'sortBy' => 'asc'],
+            ['key' => 'role', 'label' => 'Role', 'sortBy' => 'asc'],
+            ['key' => 'status', 'label' => 'Status', 'sortBy' => 'asc'],
+            ['key' => 'model', 'label' => 'Model', 'sortBy' => 'asc'],
+            ['key' => 'created_at', 'label' => 'Created', 'sortBy' => 'desc'],
+        ];
+        
         $this->loadStats();
     }
 

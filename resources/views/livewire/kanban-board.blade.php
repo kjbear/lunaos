@@ -256,48 +256,42 @@
     <section class="mt-8">
         <div class="flex items-center gap-3 mb-4">
             <div class="w-1 h-6 bg-gradient-to-b from-purple-400 to-pink-500 rounded-full"></div>
-            <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider">Recent Activity</h2>
-            <span class="px-2.5 py-0.5 rounded-full bg-white/5 border border-white/10 text-xs text-slate-400">Last 10 actions</span>
+            <h2 class="text-sm font-semibold text-readable uppercase tracking-wider">Recent Activity</h2>
+            <span class="px-2.5 py-0.5 rounded-full bg-white/5 border border-white/10 text-xs text-readable-dim">Last 10 actions</span>
         </div>
         
-        <div class="bg-slate-900/60 backdrop-blur-sm rounded-xl border border-white/10 overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full">
-                    <thead>
-                        <tr class="border-b border-white/10 bg-slate-900/80">
-                            <th class="text-left text-slate-400 text-xs font-semibold uppercase tracking-wider p-4">Time</th>
-                            <th class="text-left text-slate-400 text-xs font-semibold uppercase tracking-wider p-4">Task</th>
-                            <th class="text-left text-slate-400 text-xs font-semibold uppercase tracking-wider p-4">Agent</th>
-                            <th class="text-left text-slate-400 text-xs font-semibold uppercase tracking-wider p-4">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-white/5">
-                        @forelse($recentActivity as $activity)
-                            <tr class="hover:bg-white/[0.02] transition-colors">
-                                <td class="p-4 text-slate-400 text-sm font-mono">{{ $activity->created_at->diffForHumans() }}</td>
-                                <td class="p-4">
-                                    <span class="text-white text-sm font-medium">#{{ $activity->task_id }} — {{ $activity->task?->title ?? 'Deleted' }}</span>
-                                </td>
-                                <td class="p-4">
-                                    <span class="text-purple-400 text-sm capitalize font-medium">{{ $activity->agent_name }}</span>
-                                </td>
-                                <td class="p-4">
-                                    <span class="px-2.5 py-1 rounded-lg bg-white/5 text-slate-300 text-xs font-medium border border-white/10">
-                                        {{ $activity->action }}
-                                    </span>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="4" class="p-8 text-center text-slate-500">
-                                    <div class="text-4xl mb-2">📊</div>
-                                    <div class="text-sm font-medium">No recent activity</div>
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+        <div class="bg-base-200 backdrop-blur-sm rounded-xl border border-white/10 overflow-hidden">
+            {{-- MaryUI x-table component --}}
+            <x-table 
+                :headers="[
+                    ['key' => 'created_at', 'label' => 'Time'],
+                    ['key' => 'task_id', 'label' => 'Task'],
+                    ['key' => 'agent_name', 'label' => 'Agent'],
+                    ['key' => 'action', 'label' => 'Action'],
+                ]"
+                :rows="$recentActivity"
+                striped
+                no-pagination
+            >
+                {{-- Custom cell rendering --}}
+                @scope('cell_created_at', $activity)
+                    <span class="font-mono text-readable/80 text-sm">{{ $activity->created_at->diffForHumans() }}</span>
+                @endscope
+                
+                @scope('cell_task_id', $activity)
+                    <span class="text-readable text-sm font-medium">
+                        #{{ $activity->task_id }} — {{ $activity->task?->title ?? 'Deleted' }}
+                    </span>
+                @endscope
+                
+                @scope('cell_agent_name', $activity)
+                    <span class="text-purple-400 text-sm capitalize font-medium">{{ $activity->agent_name }}</span>
+                @endscope
+                
+                @scope('cell_action', $activity)
+                    <x-badge type="neutral">{{ $activity->action }}</x-badge>
+                @endscope
+            </x-table>
         </div>
     </section>
 
