@@ -305,7 +305,7 @@
                     </div>
                 </div>
                 
-                {{-- 🏢 WORKSPACE --}}
+                {{--  WORKSPACE --}}
                 <div>
                     <button 
                         @click="toggleGroup('workspace')"
@@ -322,15 +322,15 @@
                     <div x-show="!collapsed && isGroupExpanded('workspace')" 
                          x-collapse
                          class="mt-1 space-y-1 pl-2">
-                        <a href="#" 
-                           class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35]">
+                        <a href="{{ route('workspace') }}" 
+                           class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('workspace') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
                             <span class="text-sm">📁</span>
                             <span class="text-sm font-medium">Files</span>
                         </a>
-                        <a href="#" 
-                           class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35]">
+                        <a href="{{ route('activity') }}" 
+                           class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('activity') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
                             <span class="text-sm">📄</span>
-                            <span class="text-sm font-medium">Docs</span>
+                            <span class="text-sm font-medium">Activity Feed</span>
                         </a>
                     </div>
                 </div>
@@ -352,16 +352,12 @@
                     <div x-show="!collapsed && isGroupExpanded('calendar')" 
                          x-collapse
                          class="mt-1 space-y-1 pl-2">
-                        <a href="#" 
-                           class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35]">
+                        <a href="{{ route('calendar') }}" 
+                           class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('calendar') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
                             <span class="text-sm">📅</span>
                             <span class="text-sm font-medium">Calendar</span>
                         </a>
-                        <a href="#" 
-                           class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35]">
-                            <span class="text-sm">🌙</span>
-                            <span class="text-sm font-medium">Standup</span>
-                        </a>
+                        {{-- Standup - route doesn't exist yet, will add later --}}
                     </div>
                 </div>
                 
@@ -382,11 +378,10 @@
                     <div x-show="!collapsed && isGroupExpanded('insights')" 
                          x-collapse
                          class="mt-1 space-y-1 pl-2">
-                        <a href="#" 
-                           class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35]">
-                            <span class="text-sm">📊</span>
-                            <span class="text-sm font-medium">Activity Feed</span>
-                        </a>
+                        {{-- Move Activity Feed to Workspace, keep this section ready for future items --}}
+                        <div class="px-3 py-2 text-xs text-[#6b6b80] italic">
+                            <span x-show="!collapsed">More insights coming soon...</span>
+                        </div>
                     </div>
                 </div>
                 
@@ -407,8 +402,8 @@
                     <div x-show="!collapsed && isGroupExpanded('development')" 
                          x-collapse
                          class="mt-1 space-y-1 pl-2">
-                        <a href="#" 
-                           class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35]">
+                        <a href="{{ route('tests') }}" 
+                           class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('tests') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
                             <span class="text-sm">🧪</span>
                             <span class="text-sm font-medium">Tests</span>
                         </a>
