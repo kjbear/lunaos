@@ -463,14 +463,13 @@
         </main>
     </div>
     
-    <!-- Livewire Config & Script -->
+    <!-- Livewire Config -->
     <script>
         window.livewireScriptConfig = {
             uri: '/livewire/update',
             csrf: '{{ csrf_token() }}'
         };
     </script>
-    <script src="https://cdn.jsdelivr.net/gh/livewire/livewire@v3.7.10/dist/livewire.min.js"></script>
     
     <script>
         // Update time every minute
