@@ -152,24 +152,16 @@
                                 @if($activity->metadata_json)
                                 <div class="flex flex-wrap items-center gap-2">
                                     @if(isset($activity->metadata_json['from']) && isset($activity->metadata_json['to']))
-                                    <span class="px-2 py-1 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30 text-xs font-medium">
-                                        {{ $activity->metadata_json['from'] }} → {{ $activity->metadata_json['to'] }}
-                                    </span>
+                                    <x-badge type="info">{{ $activity->metadata_json['from'] }} → {{ $activity->metadata_json['to'] }}</x-badge>
                                     @endif
                                     @if(isset($activity->metadata_json['assignee']))
-                                    <span class="px-2 py-1 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 text-xs font-medium">
-                                        Assigned to: {{ $activity->metadata_json['assignee'] }}
-                                    </span>
+                                    <x-badge type="primary">Assigned to: {{ $activity->metadata_json['assignee'] }}</x-badge>
                                     @endif
                                     @if(isset($activity->metadata_json['priority']))
-                                    <span class="px-2 py-1 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-medium">
-                                        Priority: {{ ucfirst($activity->metadata_json['priority']) }}
-                                    </span>
+                                    <x-badge type="warning">Priority: {{ ucfirst($activity->metadata_json['priority']) }}</x-badge>
                                     @endif
                                     @if(isset($activity->metadata_json['reason']))
-                                    <span class="px-2 py-1 rounded bg-slate-500/20 text-slate-300 border border-slate-500/30 text-xs">
-                                        {{ Str::limit($activity->metadata_json['reason'], 50) }}
-                                    </span>
+                                    <x-badge type="neutral">{{ Str::limit($activity->metadata_json['reason'], 50) }}</x-badge>
                                     @endif
                                 </div>
                                 @endif

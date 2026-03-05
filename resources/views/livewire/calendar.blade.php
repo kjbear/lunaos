@@ -87,12 +87,17 @@
                         @if(isset($day['events']) && count($day['events']) > 0)
                         <div class="space-y-1">
                             @foreach(array_slice($day['events'], 0, 3) as $event)
-                            <div class="px-2 py-1 rounded text-xs truncate {{ $event['type'] === 'deadline' ? 'bg-red-500/20 text-red-300 border border-red-500/30' : ($event['type'] === 'standup' ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30' : 'bg-purple-500/20 text-purple-300 border border-purple-500/30') }}">
-                                {{ $event['title'] }}
-                            </div>
+                            @php
+                                $badgeType = match($event['type']) {
+                                    'deadline' => 'error',
+                                    'standup' => 'info',
+                                    default => 'primary'
+                                };
+                            @endphp
+                            <x-badge :type="$badgeType" class="truncate">{{ $event['title'] }}</x-badge>
                             @endforeach
                             @if(count($day['events']) > 3)
-                            <div class="text-xs text-slate-500 pl-2">
+                            <div class="text-xs text-white/60 pl-2">
                                 +{{ count($day['events']) - 3 }} more
                             </div>
                             @endif

@@ -215,12 +215,13 @@
             <div class="divide-y divide-white/5">
                 @forelse($tasks as $task)
                 @php
-                    $statusColors = [
-                        'pending' => 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-                        'running' => 'bg-amber-500/20 text-amber-400 border-amber-500/30',
-                        'completed' => 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
-                        'failed' => 'bg-red-500/20 text-red-400 border-red-500/30',
-                    ];
+                    $badgeType = match($task->status) {
+                        'pending' => 'info',
+                        'running' => 'warning',
+                        'completed' => 'success',
+                        'failed' => 'error',
+                        default => 'neutral'
+                    };
                 @endphp
                 <div 
                     class="group grid grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-white/[0.03] transition-all duration-200 cursor-pointer {{ $highlight === $task->id ? 'bg-purple-500/10 border-l-4 border-purple-500' : '' }}"
@@ -229,9 +230,7 @@
                 >
                     <!-- Status -->
                     <div class="col-span-1">
-                        <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold border {{ $statusColors[$task->status] ?? 'bg-slate-500/20 text-slate-400 border-slate-500/30' }}">
-                            {{ ucfirst($task->status) }}
-                        </span>
+                        <x-badge :type="$badgeType">{{ ucfirst($task->status) }}</x-badge>
                     </div>
                     
                     <!-- Task Name -->

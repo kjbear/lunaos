@@ -166,10 +166,8 @@
                     </div>
                     <div>
                         <div class="text-white font-semibold">{{ ucfirst($agent->name) }}</div>
-                        <div class="text-sm text-slate-400">{{ $agent->title ?? 'Agent' }}</div>
-                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-semibold border border-white/20 bg-white/5 text-slate-300 mt-1">
-                            {{ $agent->model ?? 'Unknown' }}
-                        </span>
+                        <div class="text-sm text-white/70">{{ $agent->title ?? 'Agent' }}</div>
+                        <x-badge type="neutral" class="mt-1">{{ $agent->model ?? 'Unknown' }}</x-badge>
                     </div>
                 </div>
                 @elseif($task->assigned_to)
