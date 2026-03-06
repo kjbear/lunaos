@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Task Model
@@ -14,6 +15,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class Task extends Model
 {
+    use SoftDeletes;
+    
     /**
      * The attributes that are mass assignable.
      */
@@ -22,6 +25,8 @@ class Task extends Model
         'description',
         'assigned_to',
         'repository_id',
+        'project_id',
+        'requirement_id',
         'status',
         'step',
         'priority',
@@ -35,6 +40,7 @@ class Task extends Model
         'retry_count',
         'started_at',
         'completed_at',
+        'deleted_at',
     ];
     
     // Allow all fields for mass assignment (guarded empty)
@@ -85,6 +91,22 @@ class Task extends Model
         return $query->where('assigned_to', $agent);
     }
     
+    /**
+     * Get the project that owns this task.
+     */
+    public function project(): BelongsTo
+    {
+        return $this->belongsTo(Project::class);
+    }
+
+    /**
+     * Get the requirement that this task implements.
+     */
+    public function requirement(): BelongsTo
+    {
+        return $this->belongsTo(Requirement::class);
+    }
+
     /**
      * Get the agent assigned to this task.
      */
