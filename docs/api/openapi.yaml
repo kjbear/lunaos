@@ -1,0 +1,887 @@
+openapi: 3.0.3
+info:
+  title: LunaOS API
+  description: |
+    Project Management API for LunaOS
+    
+    ## Authentication
+    
+    The API uses HTTP Basic authentication. Include your credentials in the request:
+    
+    - Username: `kyle`
+    - Password: `changeme`
+    
+    ## Rate Limiting
+    
+    Standard rate limits apply:
+    - 60 requests per minute for authenticated users
+    - 30 requests per minute for unauthenticated requests
+    
+    ## Pagination
+    
+    List endpoints support pagination with the following query parameters:
+    - `per_page`: Number of items per page (default: 15, max: 100)
+    - `page`: Page number (default: 1)
+    
+    Pagination metadata is included in the response under the `meta` key.
+    
+    ## Filtering
+    
+    Most list endpoints support filtering via query parameters.
+    See individual endpoints for available filters.
+    
+    ## Sorting
+    
+    List endpoints support sorting via:
+    - `sort`: Field to sort by
+    - `direction`: Sort direction (`asc` or `desc`, default: `desc`)
+  version: 1.0.0
+  contact:
+    name: LunaOS Support
+    email: support@lunaos.test
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://lunaos.test/api
+    description: Local development server
+  - url: https://lunaos.test/api
+    description: Production server
+
+tags:
+  - name: Projects
+    description: Project management operations
+  - name: Tasks
+    description: Task management operations
+  - name: Agents
+    description: Agent management operations
+
+paths:
+  # ==========================================
+  # PROJECTS
+  # ==========================================
+  /projects:
+    get:
+      tags:
+        - Projects
+      summary: List projects
+      description: |
+        Get a paginated list of projects with optional filtering and sorting.
+        
+        ## Available Filters
+        - `status`: Filter by project status (planning, active, completed, archived)
+        - `health`: Filter by health status (healthy, at_risk, blocked)
+        - `architecture_type`: Filter by architecture type
+        - `repository_id`: Filter by repository ID
+        - `project_manager_id`: Filter by project manager ID
+        - `search`: Search by name or description
+        - `created_after`: Filter projects created after date
+        - `created_before`: Filter projects created before date
+        - `with_trashed`: Include soft-deleted projects
+      operationId: listProjects
+      parameters:
+        - name: status
+          in: query
+          description: Filter by status (comma-separated for multiple)
+          schema:
+            type: string
+            example: "active,planning"
+        - name: health
+          in: query
+          description: Filter by health status (comma-separated for multiple)
+          schema:
+            type: string
+            enum: [healthy, at_risk, blocked]
+        - name: architecture_type
+          in: query
+          description: Filter by architecture type
+          schema:
+            type: string
+        - name: search
+          in: query
+          description: Search by name or description
+          schema:
+            type: string
+        - name: per_page
+          in: query
+          description: Items per page
+          schema:
+            type: integer
+            default: 15
+            minimum: 1
+            maximum: 100
+        - name: page
+          in: query
+          description: Page number
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: sort
+          in: query
+          description: Sort field
+          schema:
+            type: string
+            enum: [id, name, status, health, progress, created_at, updated_at]
+            default: created_at
+        - name: direction
+          in: query
+          description: Sort direction
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+        - name: with_trashed
+          in: query
+          description: Include soft-deleted projects
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    
+    post:
+      tags:
+        - Projects
+      summary: Create a project
+      description: Create a new project
+      operationId: createProject
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectCreate'
+            examples:
+              minimal:
+                summary: Minimal project
+                value:
+                  name: "My Project"
+              full:
+                summary: Full project details
+                value:
+                  name: "E-Commerce Platform"
+                  description: "A modern e-commerce platform built with Laravel and Vue"
+                  repo_url: "https://github.com/company/ecommerce"
+                  status: "planning"
+                  health: "healthy"
+                  architecture_type: "microservices"
+                  technologies:
+                    - "Laravel"
+                    - "Vue"
+                    - "PostgreSQL"
+                    - "Redis"
+                  progress: 0
+      responses:
+        '201':
+          description: Project created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /projects/stats:
+    get:
+      tags:
+        - Projects
+      summary: Get project statistics
+      description: Get project counts grouped by status and health
+      operationId: getProjectStats
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectStatsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /projects/filters:
+    get:
+      tags:
+        - Projects
+      summary: Get available filters
+      description: Get available filter options for projects
+      operationId: getProjectFilters
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FilterOptionsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /projects/{project_id}:
+    get:
+      tags:
+        - Projects
+      summary: Get a project
+      description: Get a single project by ID with relationships
+      operationId: getProject
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectDetailResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    
+    put:
+      tags:
+        - Projects
+      summary: Update a project
+      description: Update project details
+      operationId: updateProject
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectUpdate'
+            examples:
+              status:
+                summary: Update status
+                value:
+                  status: "active"
+                  health: "healthy"
+              progress:
+                summary: Update progress
+                value:
+                  progress: 75
+      responses:
+        '200':
+          description: Project updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    
+    delete:
+      tags:
+        - Projects
+      summary: Archive a project
+      description: |
+        Soft delete (archive) a project.
+        
+        **Note:** This cascades to:
+        - All tasks (soft delete)
+        - All agent assignments (delete)
+        - All issues (soft delete)
+      operationId: archiveProject
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        '200':
+          description: Project archived
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Project archived successfully"
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                      deleted_at:
+                        type: string
+                        format: date-time
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /projects/{project_id}/restore:
+    post:
+      tags:
+        - Projects
+      summary: Restore a project
+      description: Restore a soft-deleted project
+      operationId: restoreProject
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        '200':
+          description: Project restored
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectResponse'
+        '400':
+          description: Project is not deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Project is not deleted"
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /projects/{project_id}/force:
+    delete:
+      tags:
+        - Projects
+      summary: Permanently delete a project
+      description: |
+        Permanently delete a project. **This cannot be undone.**
+        
+        Use with caution. This removes the project and all related data from the database.
+      operationId: forceDeleteProject
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        '204':
+          description: Project permanently deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /projects/{project_id}/agents:
+    post:
+      tags:
+        - Projects
+      summary: Assign an agent to a project
+      description: Assign an AI agent to a project with a specific role
+      operationId: assignAgentToProject
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentAssignment'
+            examples:
+              developer:
+                summary: Assign developer
+                value:
+                  agent_id: "550e8400-e29b-41d4-a716-446655440001"
+                  role: "developer"
+              project_manager:
+                summary: Assign project manager
+                value:
+                  agent_id: "550e8400-e29b-41d4-a716-446655440002"
+                  role: "project_manager"
+      responses:
+        '201':
+          description: Agent assigned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentAssignmentResponse'
+        '409':
+          description: Agent already assigned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Agent already assigned to this project"
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /projects/{project_id}/agents/{agent_id}:
+    delete:
+      tags:
+        - Projects
+      summary: Remove an agent from a project
+      description: Remove an agent assignment from a project
+      operationId: removeAgentFromProject
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - name: agent_id
+          in: path
+          required: true
+          description: Agent UUID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Agent removed
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+components:
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+      description: HTTP Basic Authentication
+
+  parameters:
+    ProjectId:
+      name: project_id
+      in: path
+      required: true
+      description: Project UUID
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    Project:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Project UUID
+        name:
+          type: string
+          description: Project name
+          maxLength: 255
+          example: "LunaOS Main"
+        description:
+          type: string
+          description: Project description
+          nullable: true
+          example: "Main project repository"
+        repo_url:
+          type: string
+          format: uri
+          description: Repository URL
+          nullable: true
+          example: "https://github.com/kjbear/lunaos"
+        status:
+          type: string
+          enum: [planning, active, completed, archived]
+          default: planning
+          description: Project status
+        health:
+          type: string
+          enum: [healthy, at_risk, blocked]
+          default: healthy
+          description: Project health status
+        progress:
+          type: integer
+          minimum: 0
+          maximum: 100
+          default: 0
+          description: Progress percentage
+        percent_complete:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+          description: Auto-calculated completion percentage
+        architecture_type:
+          type: string
+          nullable: true
+          description: Architecture type
+          example: "microservices"
+        technologies:
+          type: array
+          items:
+            type: string
+          description: Technology stack
+          example: ["Laravel", "Vue", "PostgreSQL"]
+        repository_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: Repository ID
+        project_manager_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: Project manager agent ID
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    ProjectCreate:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          maxLength: 255
+          description: Project name
+        description:
+          type: string
+          nullable: true
+          description: Project description
+        repo_url:
+          type: string
+          format: uri
+          maxLength: 2048
+          nullable: true
+          description: Repository URL
+        repository_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: Repository ID
+        status:
+          type: string
+          enum: [planning, active, completed, archived]
+          default: planning
+        health:
+          type: string
+          enum: [healthy, at_risk, blocked]
+          default: healthy
+        architecture_type:
+          type: string
+          maxLength: 100
+          nullable: true
+        technologies:
+          type: array
+          items:
+            type: string
+            maxLength: 100
+        project_manager_id:
+          type: string
+          format: uuid
+          nullable: true
+        progress:
+          type: integer
+          minimum: 0
+          maximum: 100
+          default: 0
+
+    ProjectUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+        repo_url:
+          type: string
+          format: uri
+          maxLength: 2048
+          nullable: true
+        repository_id:
+          type: string
+          format: uuid
+          nullable: true
+        status:
+          type: string
+          enum: [planning, active, completed, archived]
+        health:
+          type: string
+          enum: [healthy, at_risk, blocked]
+        architecture_type:
+          type: string
+          maxLength: 100
+          nullable: true
+        technologies:
+          type: array
+          items:
+            type: string
+            maxLength: 100
+        project_manager_id:
+          type: string
+          format: uuid
+          nullable: true
+        progress:
+          type: integer
+          minimum: 0
+          maximum: 100
+        percent_complete:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+
+    AgentAssignment:
+      type: object
+      required:
+        - agent_id
+        - role
+      properties:
+        agent_id:
+          type: string
+          format: uuid
+          description: Agent UUID
+        role:
+          type: string
+          enum: [project_manager, architect, developer, qa, reviewer]
+          description: Agent role in the project
+
+    AgentAssignmentResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Agent assigned successfully"
+        data:
+          type: object
+          properties:
+            project_id:
+              type: string
+              format: uuid
+            agent_id:
+              type: string
+              format: uuid
+            role:
+              type: string
+            assigned_at:
+              type: string
+              format: date-time
+            agent:
+              $ref: '#/components/schemas/Agent'
+
+    Agent:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        role:
+          type: string
+        status:
+          type: string
+          enum: [online, offline, busy]
+
+    ProjectListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Project'
+        meta:
+          type: object
+          properties:
+            current_page:
+              type: integer
+            last_page:
+              type: integer
+            per_page:
+              type: integer
+            total:
+              type: integer
+            from:
+              type: integer
+            to:
+              type: integer
+        links:
+          type: object
+          properties:
+            first:
+              type: string
+              format: uri
+            last:
+              type: string
+              format: uri
+            prev:
+              type: string
+              format: uri
+              nullable: true
+            next:
+              type: string
+              format: uri
+              nullable: true
+
+    ProjectResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/Project'
+
+    ProjectDetailResponse:
+      type: object
+      properties:
+        data:
+          allOf:
+            - $ref: '#/components/schemas/Project'
+            - type: object
+              properties:
+                repository:
+                  type: object
+                  nullable: true
+                project_manager:
+                  $ref: '#/components/schemas/Agent'
+                agents:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      agent:
+                        $ref: '#/components/schemas/Agent'
+                      role:
+                        type: string
+                tasks:
+                  type: array
+                  items:
+                    type: object
+                issues:
+                  type: array
+                  items:
+                    type: object
+
+    ProjectStatsResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            total:
+              type: integer
+            by_status:
+              type: object
+              properties:
+                planning:
+                  type: integer
+                active:
+                  type: integer
+                completed:
+                  type: integer
+                archived:
+                  type: integer
+            by_health:
+              type: object
+              properties:
+                healthy:
+                  type: integer
+                at_risk:
+                  type: integer
+                blocked:
+                  type: integer
+            trashed:
+              type: integer
+
+    FilterOptionsResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            statuses:
+              type: array
+              items:
+                type: string
+            health_states:
+              type: array
+              items:
+                type: string
+            architecture_types:
+              type: array
+              items:
+                type: string
+
+    ValidationError:
+      type: object
+      properties:
+        message:
+          type: string
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+
+  responses:
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "Unauthenticated."
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "No query results for model [App\\Models\\Project]"
+
+    ServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "Internal server error"
+
+security:
+  - basicAuth: []

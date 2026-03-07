@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\StatusController;
 use App\Http\Controllers\Api\TaskController;
 use App\Http\Controllers\Api\BoardController;
+use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\OrgChartController;
 use App\Http\Controllers\WorkspaceController;
 use App\Http\Controllers\TeamController;
@@ -14,6 +15,56 @@ Route::name('api.')->group(function () {
     
     // Health check endpoint
     Route::get('/status', StatusController::class)->name('status');
+
+    // ==========================================
+    // PROJECT MANAGEMENT API
+    // ==========================================
+    
+    // List all projects with filtering, pagination, and sorting
+    // GET /api/projects
+    // Query params: status, health, architecture_type, repository_id, project_manager_id,
+    //               search, created_after, created_before, sort, direction, per_page, page, with_trashed
+    Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');
+    
+    // Get project statistics
+    // GET /api/projects/stats
+    Route::get('/projects/stats', [ProjectController::class, 'stats'])->name('projects.stats');
+    
+    // Get filter options
+    // GET /api/projects/filters
+    Route::get('/projects/filters', [ProjectController::class, 'filters'])->name('projects.filters');
+    
+    // Create a new project
+    // POST /api/projects
+    Route::post('/projects', [ProjectController::class, 'store'])->name('projects.store');
+    
+    // Show a specific project
+    // GET /api/projects/{project}
+    Route::get('/projects/{project}', [ProjectController::class, 'show'])->name('projects.show');
+    
+    // Update a project
+    // PUT /api/projects/{project}
+    Route::put('/projects/{project}', [ProjectController::class, 'update'])->name('projects.update');
+    
+    // Soft delete a project (archive)
+    // DELETE /api/projects/{project}
+    Route::delete('/projects/{project}', [ProjectController::class, 'destroy'])->name('projects.destroy');
+    
+    // Restore a soft-deleted project
+    // POST /api/projects/{id}/restore
+    Route::post('/projects/{id}/restore', [ProjectController::class, 'restore'])->name('projects.restore');
+    
+    // Permanently delete a project
+    // DELETE /api/projects/{id}/force
+    Route::delete('/projects/{id}/force', [ProjectController::class, 'forceDelete'])->name('projects.force-delete');
+    
+    // Assign an agent to a project
+    // POST /api/projects/{project}/agents
+    Route::post('/projects/{project}/agents', [ProjectController::class, 'assignAgent'])->name('projects.agents.assign');
+    
+    // Remove an agent from a project
+    // DELETE /api/projects/{project}/agents/{agent}
+    Route::delete('/projects/{project}/agents/{agent}', [ProjectController::class, 'removeAgent'])->name('projects.agents.remove');
 
     // ==========================================
     // TASK MANAGEMENT API (Unified Endpoints)
