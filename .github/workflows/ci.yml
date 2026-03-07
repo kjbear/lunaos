@@ -54,15 +54,15 @@ jobs:
 
       - name: Check for debug statements
         run: |
-          if grep -rq "dd(" app/ --include="*.php"; then
+          if grep -rqP '\bdd\(' app/ --include="*.php"; then
             echo "❌ Found dd() statements in app/"
             exit 1
           fi
-          if grep -rq "dump(" app/ --include="*.php"; then
+          if grep -rqP '\bdump\(' app/ --include="*.php"; then
             echo "❌ Found dump() statements in app/"
             exit 1
           fi
-          if grep -rq "ray(" app/ --include="*.php"; then
+          if grep -rqP '\bray\(' app/ --include="*.php"; then
             echo "❌ Found ray() statements in app/"
             exit 1
           fi
