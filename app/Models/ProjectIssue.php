@@ -22,12 +22,24 @@ class ProjectIssue extends Model
         'severity',
         'status',
         'assigned_to',
+        'github_id',
+        'github_number',
+        'github_url',
+        'github_state',
+        'github_labels',
+        'github_assignees',
+        'github_created_at',
+        'github_updated_at',
         'deleted_at',
     ];
 
     protected $casts = [
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'github_labels' => 'array',
+        'github_assignees' => 'array',
+        'github_created_at' => 'datetime',
+        'github_updated_at' => 'datetime',
     ];
 
     protected static function boot()
