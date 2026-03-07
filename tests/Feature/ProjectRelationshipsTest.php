@@ -26,7 +26,11 @@ class ProjectRelationshipsTest extends TestCase
     public function test_project_has_many_agents(): void
     {
         $project = Project::factory()->create();
-        $agent = Agent::factory()->create();
+        $agent = Agent::create([
+            'name' => 'test-agent',
+            'role' => 'developer',
+            'status' => 'online',
+        ]);
         
         ProjectAssignment::create([
             'project_id' => $project->id,
@@ -64,7 +68,11 @@ class ProjectRelationshipsTest extends TestCase
 
     public function test_agent_has_many_projects(): void
     {
-        $agent = Agent::factory()->create();
+        $agent = Agent::create([
+            'name' => 'test-agent',
+            'role' => 'developer',
+            'status' => 'online',
+        ]);
         $project = Project::factory()->create();
         
         $assignment = ProjectAssignment::create([
@@ -93,7 +101,11 @@ class ProjectRelationshipsTest extends TestCase
     public function test_cascade_delete_on_project_removes_assignments(): void
     {
         $project = Project::factory()->create();
-        $agent = Agent::factory()->create();
+        $agent = Agent::create([
+            'name' => 'test-agent',
+            'role' => 'developer',
+            'status' => 'online',
+        ]);
         
         ProjectAssignment::create([
             'project_id' => $project->id,
@@ -147,7 +159,11 @@ class ProjectRelationshipsTest extends TestCase
     {
         $project = Project::factory()->create();
         $task = Task::factory()->create(['project_id' => $project->id]);
-        $agent = Agent::factory()->create();
+        $agent = Agent::create([
+            'name' => 'test-agent',
+            'role' => 'developer',
+            'status' => 'online',
+        ]);
         ProjectAssignment::create(['project_id' => $project->id, 'agent_id' => $agent->id]);
         
         // Test eager loading
