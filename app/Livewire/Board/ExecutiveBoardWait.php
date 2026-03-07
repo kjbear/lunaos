@@ -30,7 +30,7 @@ class ExecutiveBoardWait extends Component
         // Check if session is complete
         if ($this->session->status === 'decided') {
             $this->polling = false;
-            $this->redirect(route('tasks.executive.result', $this->sessionId), navigate: true);
+            $this->redirect(route('tasks.executive.result', $this->sessionId));
             return;
         }
 

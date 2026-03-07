@@ -63,6 +63,7 @@ class PersonaSeeder extends Seeder
             // Executive Board Members
             [
                 'name' => 'Steven',
+                'title' => 'CEO',
                 'role' => 'board_member',
                 'model' => 'glm-5',
                 'avatar' => '🎯',
@@ -72,8 +73,9 @@ class PersonaSeeder extends Seeder
             ],
             [
                 'name' => 'Gwynne',
+                'title' => 'COO',
                 'role' => 'board_member',
-                'model' => 'haiku',
+                'model' => 'glm-5',
                 'avatar' => '👔',
                 'status' => 'active',
                 'inspiration' => 'Gwynne Shotwell (SpaceX) - operational excellence',
@@ -81,8 +83,9 @@ class PersonaSeeder extends Seeder
             ],
             [
                 'name' => 'Werner',
+                'title' => 'CTO',
                 'role' => 'board_member',
-                'model' => 'dolphin',
+                'model' => 'glm-5',
                 'avatar' => '💻',
                 'status' => 'active',
                 'inspiration' => 'Werner Vogels (Amazon) - scalability, architecture',
@@ -90,6 +93,7 @@ class PersonaSeeder extends Seeder
             ],
             [
                 'name' => 'Warren',
+                'title' => 'CFO',
                 'role' => 'board_member',
                 'model' => 'glm-5',
                 'avatar' => '💰',
@@ -99,8 +103,9 @@ class PersonaSeeder extends Seeder
             ],
             [
                 'name' => 'Bozoma',
+                'title' => 'CMO',
                 'role' => 'board_member',
-                'model' => 'haiku',
+                'model' => 'glm-5',
                 'avatar' => '📢',
                 'status' => 'active',
                 'inspiration' => 'Bozoma Saint John (Netflix) - cultural marketing',
@@ -108,6 +113,7 @@ class PersonaSeeder extends Seeder
             ],
             [
                 'name' => 'Fidji',
+                'title' => 'CPO',
                 'role' => 'board_member',
                 'model' => 'glm-5',
                 'avatar' => '📦',

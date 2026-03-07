@@ -3,15 +3,6 @@
 @section('title', 'Board Session')
 
 @section('content')
-@php
-    // $session is already passed from the route, but ensure it's loaded with responses
-    if (!$session instanceof \App\Models\BoardSession) {
-        $session = \App\Models\BoardSession::with(['responses'])->find($sessionId);
-    } else {
-        $session->load(['responses']);
-    }
-@endphp
-
 <div class="executive-board-result-page"
      @if(in_array($session->status, ['pending', 'debating']))
      x-data="{ 
@@ -23,11 +14,11 @@
              countdown--;
              if (countdown <= 0) countdown = 5;
          }, 1000);
-         // Auto-refresh page every 5 seconds
-         setInterval(() => {
-             window.location.reload();
-         }, 5000);
+         $nextTick(() => {
+             window.addEventListener('beforeunload', () => clearInterval(countdownInterval));
+         });
      "
+     wire:poll.3s="loadSession"
      @endif
 >
     <div class="page-container max-w-5xl mx-auto">
@@ -142,28 +133,22 @@
                class="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold rounded-xl hover:from-purple-500 hover:to-blue-500 transition-all shadow-lg">
                 Start New Session
             </a>
-            <form action="{{ route('tasks.executive.create-project', $sessionId) }}" method="POST" class="inline">
-                @csrf
-                <button type="submit"
-                        class="px-6 py-3 bg-gradient-to-r from-emerald-600 to-green-600 text-white font-semibold rounded-xl hover:from-emerald-500 hover:to-green-500 transition-all shadow-lg">
-                    💼 Create Project from Decision
-                </button>
-            </form>
+            <button wire:click="createProject"
+                    class="px-6 py-3 bg-gradient-to-r from-emerald-600 to-green-600 text-white font-semibold rounded-xl hover:from-emerald-500 hover:to-green-500 transition-all shadow-lg">
+                💼 Create Project from Decision
+            </button>
             <button onclick="window.print()" 
                     class="px-6 py-3 bg-slate-800 text-white font-semibold rounded-xl hover:bg-slate-700 transition-all border border-white/10">
                 Print Results
             </button>
-            <form action="{{ route('tasks.executive.delete', $sessionId) }}" method="POST" class="inline"
-                  onsubmit="return confirm('Are you sure you want to delete this board session? This cannot be undone.');">
-                @csrf
-                @method('DELETE')
-                <button type="submit"
-                        class="px-6 py-3 bg-red-600/20 text-red-400 font-semibold rounded-xl hover:bg-red-600/30 transition-all border border-red-500/30">
-                    🗑️ Delete
-                </button>
-            </form>
+            <button wire:click="deleteSession" 
+                    wire:confirm="Are you sure you want to delete this board session? This cannot be undone."
+                    class="px-6 py-3 bg-red-600/20 text-red-400 font-semibold rounded-xl hover:bg-red-600/30 transition-all border border-red-500/30">
+                🗑️ Delete
+            </button>
         </div>
         @endif
+        </div>
     </div>
 </div>
 

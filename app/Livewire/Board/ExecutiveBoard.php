@@ -122,8 +122,8 @@ class ExecutiveBoard extends Component
         $this->question = '';
         $this->context = '';
         
-        // Redirect to wait page immediately
-        $this->redirect(route('tasks.executive.wait', $sessionId), navigate: true);
+        // Redirect directly to result page (which polls for updates)
+        $this->redirect(route('tasks.executive.result', $sessionId));
     }
 
     protected function createFallbackResponse(BoardSession $session, string $error): void

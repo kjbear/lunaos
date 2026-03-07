@@ -159,4 +159,12 @@ class Agent extends Model
     {
         return $query->where('role', 'worker');
     }
+
+    /**
+     * Get project assignments for this agent.
+     */
+    public function projects()
+    {
+        return $this->hasMany(ProjectAssignment::class);
+    }
 }

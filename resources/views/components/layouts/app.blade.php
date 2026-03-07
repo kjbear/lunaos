@@ -458,6 +458,7 @@
             
             <!-- Page Content -->
             <div class="p-6">
+                {{ $slot ?? '' }}
                 @yield('content')
             </div>
         </main>
@@ -507,6 +508,15 @@
     
     <!-- Toast Container -->
     <livewire:toast-container />
+    
+    <!-- Explicit Livewire Start (ensures nested components work) -->
+    <script>
+        (function() {
+            if (typeof Livewire !== 'undefined') {
+                Livewire.start();
+            }
+        })();
+    </script>
     
     @stack('scripts')
 </body>

@@ -3,13 +3,17 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ProjectAssignment extends Model
 {
+    use SoftDeletes;
+    
     protected $fillable = [
         'project_id',
-        'persona_id',
+        'agent_id',
         'role',
+        'deleted_at',
     ];
 
     /**
@@ -21,10 +25,10 @@ class ProjectAssignment extends Model
     }
 
     /**
-     * Get the persona assigned.
+     * Get the agent assigned.
      */
-    public function persona()
+    public function agent()
     {
-        return $this->belongsTo(Persona::class, 'persona_id');
+        return $this->belongsTo(Agent::class, 'agent_id');
     }
 }

@@ -64,7 +64,7 @@ class BoardOrchestrator
                     'session_id' => $sessionId,
                     'member_id' => $member->id,
                     'member_name' => $member->name,
-                    'member_role' => $member->role ?? $member->title ?? 'Executive',
+                    'member_role' => $member->title ?? ($member->role === 'board_member' ? 'Executive' : $member->role),
                     'response' => $response,
                     'model_used' => $member->model,
                     'response_order' => $order,

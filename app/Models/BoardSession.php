@@ -3,11 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
 class BoardSession extends Model
 {
+    use SoftDeletes;
+    
     protected $keyType = 'string';
     public $incrementing = false;
 
@@ -23,6 +26,8 @@ class BoardSession extends Model
         'key_themes',
         'decided_at',
     ];
+
+    protected $dates = ['deleted_at'];
 
     protected $casts = [
         'rounds_planned' => 'integer',

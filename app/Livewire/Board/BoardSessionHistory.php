@@ -17,7 +17,8 @@ class BoardSessionHistory extends Component
     #[Computed]
     public function sessions()
     {
-        return BoardSession::orderBy($this->sortBy, $this->sortDirection)
+        return BoardSession::withTrashed()
+            ->orderBy($this->sortBy, $this->sortDirection)
             ->limit($this->limit)
             ->get();
     }

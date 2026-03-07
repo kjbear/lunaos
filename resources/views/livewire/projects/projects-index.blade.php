@@ -176,9 +176,13 @@
                        class="px-4 py-2 text-sm bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-500 hover:to-pink-500 transition-all font-medium shadow-lg shadow-purple-500/20">
                         View Details
                     </a>
+                    <button wire:click="editProject('{{ $project['id'] }}')"
+                            class="px-4 py-2 text-sm bg-white/5 text-slate-300 rounded-lg hover:bg-white/10 transition-all font-medium">
+                        Edit
+                    </button>
                     <a href="{{ route('projects.requirements', $project['id']) }}" 
                        class="px-4 py-2 text-sm bg-white/5 text-slate-300 rounded-lg hover:bg-white/10 transition-all font-medium">
-                        View Requirements
+                        Requirements
                     </a>
                     @if($project['status'] !== 'archived')
                     <button wire:click="archiveProject('{{ $project['id'] }}')" 
@@ -202,3 +206,157 @@
             @endforelse
         </div>
     </section>
+
+    {{-- New Project Modal --}}
+    @if($showNewProjectModal)	
+    <div class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div class="bg-gradient-to-br from-slate-900 to-slate-950 rounded-2xl border border-white/10 shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b border-white/10">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-xl font-bold text-white">Create New Project</h2>
+                        @if(session('board_decision'))
+                        <p class="text-sm text-emerald-400 mt-1">🎯 Pre-filled from Board Decision</p>
+                        @endif
+                    </div>
+                    <button wire:click="resetNewProjectForm" class="text-slate-400 hover:text-white transition-colors text-2xl">&times;</button>
+                </div>
+            </div>
+            
+            <form wire:submit="createProject" class="p-6 space-y-5">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-300 mb-2">Project Name *</label>
+                    <input type="text" wire:model="newProjectName" 
+                           class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:border-purple-400 focus:outline-none"
+                           placeholder="e.g., LunaOS Dashboard"
+                           {{ session('board_decision') ? 'autofocus' : '' }}>
+                    @error('newProjectName') <span class="text-red-400 text-xs mt-1">{{ $message }}</span> @enderror
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-slate-300 mb-2">Description</label>
+                    <textarea wire:model="newProjectDescription" rows="3"
+                              class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:border-purple-400 focus:outline-none"
+                              placeholder="Describe the project goals and scope..."></textarea>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-slate-300 mb-2">Repository URL</label>
+                    <input type="url" wire:model="newProjectRepo"
+                           class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:border-purple-400 focus:outline-none"
+                           placeholder="https://github.com/username/repo">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-slate-300 mb-2">Initial Status</label>
+                    <select wire:model="newProjectStatus"
+                            class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:border-purple-400 focus:outline-none">
+                        <option value="planning">📝 Planning</option>
+                        <option value="active">✅ Active</option>
+                        <option value="completed">🎉 Completed</option>
+                    </select>
+                </div>
+                
+                <div class="flex gap-3 pt-4 border-t border-white/10">
+                    <button type="button" wire:click="resetNewProjectForm"
+                            class="flex-1 px-4 py-2.5 bg-white/5 text-slate-300 rounded-lg hover:bg-white/10 transition-all font-medium">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                            class="flex-1 px-4 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-500 hover:to-pink-500 transition-all font-medium shadow-lg shadow-purple-500/20">
+                        Create Project
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    @endif
+
+    {{-- Edit Project Modal --}}
+    @if($showEditModal && $editingProject)
+    <div class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div class="bg-gradient-to-br from-slate-900 to-slate-950 rounded-2xl border border-white/10 shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b border-white/10">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-xl font-bold text-white">Edit Project</h2>
+                    <button wire:click="closeEditModal" class="text-slate-400 hover:text-white transition-colors text-2xl">&times;</button>
+                </div>
+            </div>
+            
+            <form wire:submit="updateProject" class="p-6 space-y-5">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-300 mb-2">Project Name</label>
+                        <input type="text" wire:model="editName"
+                               class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:border-purple-400 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-300 mb-2">Status</label>
+                        <select wire:model="editStatus"
+                                class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:border-purple-400 focus:outline-none">
+                            <option value="planning">📝 Planning</option>
+                            <option value="active">✅ Active</option>
+                            <option value="completed">🎉 Completed</option>
+                            <option value="archived">🗄️ Archived</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-slate-300 mb-2">Description</label>
+                    <textarea wire:model="editDescription" rows="3"
+                              class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:border-purple-400 focus:outline-none"></textarea>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-300 mb-2">Architecture Type</label>
+                        <select wire:model="editArchitectureType"
+                                class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:border-purple-400 focus:outline-none">
+                            <option value="">Select...</option>
+                            <option value="monolith">🏢 Monolith</option>
+                            <option value="microservices">🔗 Microservices</option>
+                            <option value="serverless">⚡ Serverless</option>
+                            <option value="hybrid">🔄 Hybrid</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-300 mb-2">Health</label>
+                        <select wire:model="editHealth"
+                                class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:border-purple-400 focus:outline-none">
+                            <option value="healthy">✅ Healthy</option>
+                            <option value="at_risk">⚠️ At Risk</option>
+                            <option value="blocked">🚫 Blocked</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-slate-300 mb-2">Technologies</label>
+                    <input type="text" wire:model="editTechnologiesStr"
+                           class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:border-purple-400 focus:outline-none"
+                           placeholder="Laravel, Vue, PostgreSQL (comma-separated)">
+                    <p class="text-xs text-slate-500 mt-1">Separate technologies with commas</p>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-slate-300 mb-2">Repository URL</label>
+                    <input type="url" wire:model="editRepoUrl"
+                           class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:border-purple-400 focus:outline-none">
+                </div>
+                
+                <div class="flex gap-3 pt-4 border-t border-white/10">
+                    <button type="button" wire:click="closeEditModal"
+                            class="flex-1 px-4 py-2.5 bg-white/5 text-slate-300 rounded-lg hover:bg-white/10 transition-all font-medium">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                            class="flex-1 px-4 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-500 hover:to-pink-500 transition-all font-medium shadow-lg shadow-purple-500/20">
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    @endif
+</div>

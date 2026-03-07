@@ -18,7 +18,20 @@ use App\Livewire\HR\PersonaWorkspaceViewer;
 use App\Livewire\Projects\ProjectsIndex;
 use App\Livewire\Projects\ProjectRequirements;
 use App\Livewire\Agents\AgentList;
+use App\Models\Project;
+use App\Models\ProjectAssignment;
+
+// Route model binding for UUID-based models
+Route::bind('project', function ($value) {
+    return Project::where('id', $value)->firstOrFail();
+});
+Route::bind('assignment', function ($value) {
+    return ProjectAssignment::where('id', $value)->firstOrFail();
+});
 use App\Livewire\Board\ExecutiveBoard;
+use App\Livewire\Board\ExecutiveBoardWait;
+use App\Http\Controllers\BoardSessionController;
+use App\Http\Controllers\ProjectController;
 use App\Livewire\TestStatus;
 
 // Web routes
@@ -92,24 +105,42 @@ Route::get('/agents/{id}/edit', function ($id) {
 })->name('agents.edit');
 
 // Projects Module
-Route::view('/projects', 'projects')->name('projects');
-Route::get('/projects/{id}', function ($id) {
-    return view('projects-detail', ['id' => $id]);
-})->name('projects.show');
+Route::get('/projects', function() {
+    return view('pages.projects');
+})->name('projects');
+Route::get('/projects/create', [ProjectController::class, 'create'])->name('projects.create');
+Route::post('/projects', [ProjectController::class, 'store'])->name('projects.store');
+Route::get('/projects/{project}', [ProjectController::class, 'show'])->name('projects.show');
 Route::get('/projects/{id}/requirements', function ($id) {
     return view('project-requirements', ['id' => $id]);
 })->name('projects.requirements');
 
 // Executive Board Module
-use App\Livewire\Board\ExecutiveBoardWait;
-
 Route::view('/board', 'board')->name('board');
 Route::get('/tasks/executive/board', ExecutiveBoard::class)->name('tasks.executive.board');
 Route::get('/tasks/executive/wait/{sessionId}', ExecutiveBoardWait::class)->name('tasks.executive.wait');
-Route::get('/tasks/executive/board/{sessionId}', function ($sessionId) {
-    $session = \App\Models\BoardSession::findOrFail($sessionId);
-    return view('pages.executive-board-result', ['session' => $session]);
-})->name('tasks.executive.result');
+Route::get('/tasks/executive/board/{sessionId}', [BoardSessionController::class, 'show'])->name('tasks.executive.result');
+Route::post('/tasks/executive/board/{sessionId}/create-project', [BoardSessionController::class, 'createProject'])->name('tasks.executive.create-project');
+Route::delete('/tasks/executive/board/{sessionId}', [BoardSessionController::class, 'delete'])->name('tasks.executive.delete');
+
+// Projects Module - Full CRUD + Actions
+Route::get('/projects', function() {
+    return view('pages.projects');
+})->name('projects');
+Route::get('/projects/create', [ProjectController::class, 'create'])->name('projects.create');
+Route::post('/projects', [ProjectController::class, 'store'])->name('projects.store');
+Route::get('/projects/{project}', [ProjectController::class, 'show'])->name('projects.show');
+Route::put('/projects/{project}', [ProjectController::class, 'update'])->name('projects.update');
+Route::delete('/projects/{project}', [ProjectController::class, 'destroy'])->name('projects.destroy');
+
+// Project Actions
+Route::post('/projects/{project}/repository', [ProjectController::class, 'createRepository'])->name('projects.repository.create');
+Route::post('/projects/{project}/assignments', [ProjectController::class, 'assignAgent'])->name('projects.assignments.store');
+Route::delete('/projects/{project}/assignments/{assignment}', [ProjectController::class, 'removeAgent'])->name('projects.assignments.destroy');
+Route::post('/projects/{project}/artifacts/{type}', [ProjectController::class, 'storeArtifact'])->name('projects.artifacts.store');
+Route::get('/projects/{id}/requirements', function ($id) {
+    return view('project-requirements', ['id' => $id]);
+})->name('projects.requirements');
 
 // Test Status Dashboard
 // Route::get('/tests', TestStatus::class)->name('tests');
