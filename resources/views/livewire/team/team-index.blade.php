@@ -10,7 +10,7 @@
                 </div>
                 <div>
                     <h1 class="text-2xl font-bold text-white tracking-tight">Team</h1>
-                    <p class="text-sm text-slate-400 font-medium mt-0.5">Manage workers, personas, and board members</p>
+                    <p class="text-sm text-slate-400 font-medium mt-0.5">Manage your team of agents, personas, and board members</p>
                 </div>
             </div>
             <a href="{{ route('team.create') }}" 
@@ -53,7 +53,7 @@
                 <div class="flex items-center gap-3">
                     <div class="w-11 h-11 rounded-xl bg-blue-500/20 border border-blue-500/30 flex items-center justify-center text-xl">🤖</div>
                     <div>
-                        <p class="text-xs text-blue-300 font-semibold uppercase tracking-wider mb-0.5">Workers</p>
+                        <p class="text-xs text-blue-300 font-semibold uppercase tracking-wider mb-0.5">Agents</p>
                         <p class="text-2xl font-bold text-white">{{ $stats['workers'] ?? 0 }}</p>
                     </div>
                 </div>
@@ -101,7 +101,7 @@
                     </button>
                     <button wire:click="switchTab('workers')"
                             class="px-4 py-2 rounded-lg text-sm font-semibold transition-all {{ $activeTab === 'workers' ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-lg' : 'bg-white/5 text-slate-400 hover:bg-white/10' }}">
-                        🤖 Workers
+                        🤖 Agents
                     </button>
                     <button wire:click="switchTab('personas')"
                             class="px-4 py-2 rounded-lg text-sm font-semibold transition-all {{ $activeTab === 'personas' ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg' : 'bg-white/5 text-slate-400 hover:bg-white/10' }}">
@@ -117,10 +117,10 @@
                 <div class="flex items-center gap-2 ml-auto">
                     <span class="text-xs text-slate-500">Status:</span>
                     <select wire:model.live="filter" class="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-slate-300 focus:border-purple-400 focus:outline-none">
-                        <option value="all">All</option>
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                        <option value="online">Online</option>
+                        <option value="all">All Status</option>
+                        <option value="active">Active Only</option>
+                        <option value="inactive">Not Active</option>
+                        <option value="online">Online Only</option>
                     </select>
                 </div>
             </div>
@@ -145,50 +145,118 @@
         <div class="flex items-center gap-3 mb-4">
             <div class="w-1 h-6 bg-gradient-to-b from-purple-400 to-pink-500 rounded-full"></div>
             <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider">
-                {{ $activeTab === 'all' ? 'All Members' : ucfirst(str_replace('-', ' ', $activeTab)) }}
+                {{ $activeTab === 'all' ? 'All Members' : ($activeTab === 'workers' ? 'Workers' : ($activeTab === 'personas' ? 'Personas' : 'Board Members')) }}
             </h2>
             <span class="px-2.5 py-0.5 rounded-full bg-white/5 border border-white/10 text-xs text-slate-400">{{ $members->total() }} members</span>
         </div>
         
-        {{-- Grid for Workers --}}
-        @if($activeTab === 'workers' || $activeTab === 'all')
+        {{-- Workers grid layout --}}
+        @if($activeTab === 'workers')
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             @forelse($members as $member)
-                @if($member->type === 'workers' || $activeTab === 'all')
-                    @include('livewire.team._member-card-worker', ['member' => $member])
-                @endif
+                @include('livewire.team._member-card-worker', ['member' => $member])
             @empty
             <div class="col-span-full flex flex-col items-center justify-center py-16 bg-slate-900/60 backdrop-blur-sm rounded-2xl border border-white/10">
                 <div class="text-5xl mb-4 opacity-50">👥</div>
-                <p class="text-slate-400 font-semibold">No team members found</p>
+                <p class="text-slate-400 font-semibold">No team members</p>
                 @if($search)
                 <p class="text-sm text-slate-500 mt-2">Try adjusting your search or filter.</p>
-                @else
-                <p class="text-sm text-slate-500 mt-2">Add your first team member to get started!</p>
                 @endif
             </div>
             @endforelse
         </div>
-        @else
-        {{-- List layout for Personas and Board Members --}}
+        
+        {{-- Personas list layout --}}
+        @elseif($activeTab === 'personas')
         <div class="space-y-4">
             @forelse($members as $member)
-                @if($member->type === 'personas')
-                    @include('livewire.team._member-card-persona', ['member' => $member])
-                @elseif($member->type === 'board-members')
-                    @include('livewire.team._member-card-board', ['member' => $member])
-                @endif
+                @include('livewire.team._member-card-persona', ['member' => $member])
             @empty
             <div class="flex flex-col items-center justify-center py-16 bg-slate-900/60 backdrop-blur-sm rounded-2xl border border-white/10">
                 <div class="text-5xl mb-4 opacity-50">👥</div>
-                <p class="text-slate-400 font-semibold">No team members found</p>
+                <p class="text-slate-400 font-semibold">No team members</p>
+                @if($search)
+                <p class="text-sm text-slate-500 mt-2">Try adjusting your search or filter.</p>
+                @endif
+            </div>
+            @endforelse
+        </div>
+        
+        {{-- Board members list layout --}}
+        @elseif($activeTab === 'board-members')
+        <div class="space-y-4">
+            @forelse($members as $member)
+                @include('livewire.team._member-card-board', ['member' => $member])
+            @empty
+            <div class="flex flex-col items-center justify-center py-16 bg-slate-900/60 backdrop-blur-sm rounded-2xl border border-white/10">
+                <div class="text-5xl mb-4 opacity-50">👥</div>
+                <p class="text-slate-400 font-semibold">No team members</p>
+                @if($search)
+                <p class="text-sm text-slate-500 mt-2">Try adjusting your search or filter.</p>
+                @endif
+            </div>
+            @endforelse
+        </div>
+        
+        {{-- All members - mixed layout --}}
+        @else
+        <div class="space-y-6">
+            @php
+                $workers = $members->where('type', 'workers');
+                $personas = $members->where('type', 'personas');
+                $boardMembers = $members->where('type', 'board-members');
+            @endphp
+            
+            @if($workers->count() > 0)
+            <div>
+                <h3 class="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+                    <span>🤖</span> Agents
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    @foreach($workers as $member)
+                        @include('livewire.team._member-card-worker', ['member' => $member])
+                    @endforeach
+                </div>
+            </div>
+            @endif
+            
+            @if($personas->count() > 0)
+            <div>
+                <h3 class="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+                    <span>🎭</span> Personas
+                </h3>
+                <div class="space-y-4">
+                    @foreach($personas as $member)
+                        @include('livewire.team._member-card-persona', ['member' => $member])
+                    @endforeach
+                </div>
+            </div>
+            @endif
+            
+            @if($boardMembers->count() > 0)
+            <div>
+                <h3 class="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+                    <span>👔</span> Board Members
+                </h3>
+                <div class="space-y-4">
+                    @foreach($boardMembers as $member)
+                        @include('livewire.team._member-card-board', ['member' => $member])
+                    @endforeach
+                </div>
+            </div>
+            @endif
+            
+            @if($workers->isEmpty() && $personas->isEmpty() && $boardMembers->isEmpty())
+            <div class="flex flex-col items-center justify-center py-16 bg-slate-900/60 backdrop-blur-sm rounded-2xl border border-white/10">
+                <div class="text-5xl mb-4 opacity-50">👥</div>
+                <p class="text-slate-400 font-semibold">No team members</p>
                 @if($search)
                 <p class="text-sm text-slate-500 mt-2">Try adjusting your search or filter.</p>
                 @else
                 <p class="text-sm text-slate-500 mt-2">Add your first team member to get started!</p>
                 @endif
             </div>
-            @endforelse
+            @endif
         </div>
         @endif
         
