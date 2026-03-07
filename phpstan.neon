@@ -1,0 +1,17 @@
+parameters:
+    level: 5
+
+    paths:
+        - app
+
+    ignoreErrors:
+        - '#Call to an undefined method Illuminate\\Foundation\\Application#'
+        - '#Call to an undefined method Illuminate\\Database\\Eloquent\\Builder#'
+
+    excludePaths:
+        - database/migrations/*
+        - database/factories/*
+        - database/seeders/*
+        - tests/*/fixtures/*
+
+    reportUnmatchedIgnoredErrors: false
