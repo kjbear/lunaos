@@ -45,7 +45,6 @@ class AgentFactory extends Factory
             'is_online' => $this->faker->boolean,
             'capabilities' => null,
             'settings' => null,
-            'title' => $this->faker->jobTitle,
         ];
     }
 }
