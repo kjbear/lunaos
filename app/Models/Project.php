@@ -204,6 +204,7 @@ class Project extends Model
 
     /**
      * Auto-update percent_complete when saving.
+     * Cascade soft delete related models.
      */
     protected static function boot()
     {
@@ -220,6 +221,13 @@ class Project extends Model
             if ($project->tasks()->exists()) {
                 $project->percent_complete = $project->calculatePercentComplete();
             }
+        });
+        
+        static::deleting(function ($project) {
+            // Cascade soft delete to related models
+            $project->tasks()->delete();
+            $project->agents()->delete();
+            $project->issues()->delete();
         });
     }
 }
