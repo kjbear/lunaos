@@ -147,37 +147,65 @@
                 </button>
             </div>
             
-            <!-- Mobile Nav Items -->
+            <!-- Mobile Nav Items (matches desktop grouped nav) -->
             <nav class="flex-1 p-3 space-y-1 overflow-y-auto">
+                {{-- 📋 WORK --}}
+                <div class="px-3 py-2 text-xs font-semibold text-[#6b6b80] uppercase tracking-wider">📋 Work</div>
                 <a href="{{ route('tasks') }}" 
-                   class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('tasks') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
-                    <span class="text-lg flex-shrink-0">📋</span>
+                   class="sidebar-item flex items-center gap-3 px-4 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('tasks') || request()->routeIs('tasks.*') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
+                    <span class="text-sm">✓</span>
                     <span class="font-medium">Tasks</span>
                 </a>
-                <a href="{{ route('org-chart') }}" 
-                   class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('org-chart') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
-                    <span class="text-lg flex-shrink-0">🏢</span>
-                    <span class="font-medium">Org Chart</span>
-                </a>
-                <a href="{{ route('team') }}" 
-                   class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('team*') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
-                    <span class="text-lg flex-shrink-0">👥</span>
-                    <span class="font-medium">Team</span>
-                </a>
-                <a href="{{ route('projects') }}" 
-                   class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('projects*') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
-                    <span class="text-lg flex-shrink-0">📊</span>
-                    <span class="font-medium">Projects</span>
+                <a href="{{ route('tasks.board') }}" 
+                   class="sidebar-item flex items-center gap-3 px-4 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('tasks.board') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
+                    <span class="text-sm">📊</span>
+                    <span class="font-medium">Board View</span>
                 </a>
                 <a href="{{ route('board') }}" 
-                   class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('board*') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
-                    <span class="text-lg flex-shrink-0">🎯</span>
+                   class="sidebar-item flex items-center gap-3 px-4 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('board*') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
+                    <span class="text-sm">🎯</span>
+                    <span class="font-medium">Executive Board</span>
+                </a>
+                
+                {{-- 👥 TEAM --}}
+                <div class="px-3 py-2 mt-4 text-xs font-semibold text-[#6b6b80] uppercase tracking-wider">👥 Team</div>
+                <a href="{{ route('team') }}" 
+                   class="sidebar-item flex items-center gap-3 px-4 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('team') && !request('tab') && !request('type') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
+                    <span class="text-sm">👥</span>
+                    <span class="font-medium">All Team</span>
+                </a>
+                <a href="{{ route('team', ['type' => 'workers']) }}" 
+                   class="sidebar-item flex items-center gap-3 px-4 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ (request('type') === 'workers' || request('tab') === 'workers') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
+                    <span class="text-sm">🤖</span>
+                    <span class="font-medium">Workers</span>
+                </a>
+                <a href="{{ route('team', ['type' => 'personas']) }}" 
+                   class="sidebar-item flex items-center gap-3 px-4 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ (request('type') === 'personas' || request('tab') === 'personas') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
+                    <span class="text-sm">🎭</span>
+                    <span class="font-medium">Personas</span>
+                </a>
+                <a href="{{ route('team', ['type' => 'board-members']) }}" 
+                   class="sidebar-item flex items-center gap-3 px-4 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ (request('type') === 'board-members' || request('tab') === 'board-members') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
+                    <span class="text-sm">👔</span>
                     <span class="font-medium">Board</span>
                 </a>
-                <a href="{{ route('kanban.index') }}" 
-                   class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('kanban*') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
-                    <span class="text-lg flex-shrink-0">📋</span>
-                    <span class="font-medium">Kanban</span>
+                <a href="{{ route('org-chart') }}" 
+                   class="sidebar-item flex items-center gap-3 px-4 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('org-chart') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
+                    <span class="text-sm">🏢</span>
+                    <span class="font-medium">Org Chart</span>
+                </a>
+                
+                {{-- 📊 PROJECTS --}}
+                <div class="px-3 py-2 mt-4 text-xs font-semibold text-[#6b6b80] uppercase tracking-wider">📊 Projects</div>
+                <a href="{{ route('projects') }}" 
+                   class="sidebar-item flex items-center gap-3 px-4 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('projects') && !request('status') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
+                    <span class="text-sm">📊</span>
+                    <span class="font-medium">All Projects</span>
+                </a>
+                <a href="{{ route('projects', ['status' => 'active']) }}" 
+                   class="sidebar-item flex items-center gap-3 px-4 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request('status') === 'active' ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
+                    <span class="text-sm">🟢</span>
+                    <span class="font-medium">Active</span>
                 </a>
             </nav>
             
@@ -230,7 +258,7 @@
                     <button 
                         @click="toggleGroup('work')"
                         class="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-[#6b6b80] uppercase tracking-wider hover:text-[#a0a0b8] focus:outline-none"
-                        :title="collapsed ? 'Work' : ''">
+                        :title="collapsed && isGroupExpanded('work') ? 'Work' : ''">
                         <span class="flex items-center gap-2">
                             <span>📋</span>
                             <span x-show="!collapsed">Work</span>
@@ -243,14 +271,29 @@
                          x-collapse
                          class="mt-1 space-y-1 pl-2">
                         <a href="{{ route('tasks') }}" 
-                           class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('tasks') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
+                           class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('tasks') && !request()->routeIs('tasks.*') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
                             <span class="text-sm">✓</span>
                             <span class="text-sm font-medium">Tasks</span>
                         </a>
+                        <a href="{{ route('tasks.board') }}" 
+                           class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('tasks.board') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
+                            <span class="text-sm">📊</span>
+                            <span class="text-sm font-medium">Board View</span>
+                        </a>
+                        <a href="{{ route('tasks.list') }}" 
+                           class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('tasks.list') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
+                            <span class="text-sm">📋</span>
+                            <span class="text-sm font-medium">List View</span>
+                        </a>
+                        <a href="{{ route('tasks.executive') }}" 
+                           class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('tasks.executive') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
+                            <span class="text-sm">🎯</span>
+                            <span class="text-sm font-medium">Executive</span>
+                        </a>
                         <a href="{{ route('board') }}" 
                            class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('board*') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
-                            <span class="text-sm">◆</span>
-                            <span class="text-sm font-medium">Board</span>
+                            <span class="text-sm">👔</span>
+                            <span class="text-sm font-medium">Executive Board</span>
                         </a>
                     </div>
                 </div>
@@ -272,6 +315,26 @@
                     <div x-show="!collapsed && isGroupExpanded('team')" 
                          x-collapse
                          class="mt-1 space-y-1 pl-2">
+                        <a href="{{ route('team') }}" 
+                           class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('team') && !request('tab') && !request('type') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
+                            <span class="text-sm">👥</span>
+                            <span class="text-sm font-medium">All Team</span>
+                        </a>
+                        <a href="{{ route('team', ['type' => 'workers']) }}" 
+                           class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ (request('type') === 'workers' || request('tab') === 'workers') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
+                            <span class="text-sm">🤖</span>
+                            <span class="text-sm font-medium">Workers</span>
+                        </a>
+                        <a href="{{ route('team', ['type' => 'personas']) }}" 
+                           class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ (request('type') === 'personas' || request('tab') === 'personas') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
+                            <span class="text-sm">🎭</span>
+                            <span class="text-sm font-medium">Personas</span>
+                        </a>
+                        <a href="{{ route('team', ['type' => 'board-members']) }}" 
+                           class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ (request('type') === 'board-members' || request('tab') === 'board-members') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
+                            <span class="text-sm">👔</span>
+                            <span class="text-sm font-medium">Board</span>
+                        </a>
                         <a href="{{ route('org-chart') }}" 
                            class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('org-chart') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
                             <span class="text-sm">🏢</span>
@@ -298,9 +361,24 @@
                          x-collapse
                          class="mt-1 space-y-1 pl-2">
                         <a href="{{ route('projects') }}" 
-                           class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('projects*') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
+                           class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('projects') && !request('status') && !request()->routeIs('projects.*') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
                             <span class="text-sm">📊</span>
-                            <span class="text-sm font-medium">Projects</span>
+                            <span class="text-sm font-medium">All Projects</span>
+                        </a>
+                        <a href="{{ route('projects', ['status' => 'active']) }}" 
+                           class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request('status') === 'active' ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
+                            <span class="text-sm">🟢</span>
+                            <span class="text-sm font-medium">Active</span>
+                        </a>
+                        <a href="{{ route('projects', ['status' => 'planning']) }}" 
+                           class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request('status') === 'planning' ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
+                            <span class="text-sm">📝</span>
+                            <span class="text-sm font-medium">Planning</span>
+                        </a>
+                        <a href="{{ route('projects.create') }}" 
+                           class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('projects.create') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
+                            <span class="text-sm">➕</span>
+                            <span class="text-sm font-medium">New Project</span>
                         </a>
                     </div>
                 </div>

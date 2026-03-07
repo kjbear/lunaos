@@ -87,22 +87,12 @@ Route::put('/team/{id}', [TeamController::class, 'update'])->name('team.update')
 Route::delete('/team/{id}', [TeamController::class, 'destroy'])->name('team.destroy');
 
 // Legacy Routes - Redirect old HR and Agents routes to /team
-Route::get('/hr', function () {
-    return redirect()->route('team', ['tab' => 'personas']);
-})->name('hr');
+Route::redirect('/hr', '/team?type=personas')->name('hr.redirect');
 Route::get('/hr/{id}/workspace', function ($id) {
     return redirect()->route('team.show', $id);
 })->name('hr.workspace');
 
-Route::get('/agents', function () {
-    return redirect()->route('team', ['tab' => 'workers']);
-})->name('agents.index');
-Route::get('/agents/create', function () {
-    return redirect()->route('team');
-})->name('agents.create');
-Route::get('/agents/{id}/edit', function ($id) {
-    return redirect()->route('team.show', $id);
-})->name('agents.edit');
+Route::redirect('/agents', '/team?type=workers')->name('agents.redirect');
 
 // Projects Module
 Route::get('/projects', function() {
