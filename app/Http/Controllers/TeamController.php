@@ -24,8 +24,23 @@ class TeamController extends Controller
      */
     public function index(Request $request): View
     {
-        $activeTab = $request->query('tab', 'workers');
-        $members = TeamMember::where('type', $activeTab)->orderBy('name')->get();
+        // Support both 'type' (new) and 'tab' (legacy) query parameters
+        $activeTab = $request->query('type') ?? $request->query('tab', 'workers');
+        
+        $query = TeamMember::query();
+        
+        // Filter by type if specified
+        if ($activeTab && $activeTab !== 'all') {
+            $query->where('type', $activeTab);
+        }
+        
+        // Optional availability filter
+        if ($request->filled('available')) {
+            $query->where('status', $request->boolean('available') ? 'active' : 'inactive');
+        }
+        
+        $members = $query->orderBy('name')->get();
+        
         return view('team.index', compact('activeTab', 'members'));
     }
 

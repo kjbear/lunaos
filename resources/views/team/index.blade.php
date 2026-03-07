@@ -6,9 +6,12 @@
     
     <div class="flex gap-2 mb-4">
         @foreach(['workers', 'personas', 'board-members'] as $tabName)
-            <a href="?tab={{ $tabName }}" 
+            @php
+                $label = $tabName === 'workers' ? 'Workers' : ($tabName === 'personas' ? 'Personas' : 'Board');
+            @endphp
+            <a href="?type={{ $tabName }}" 
                class="px-4 py-2 rounded {{ $activeTab === $tabName ? 'bg-blue-500 text-white' : 'bg-gray-200' }}">
-                {{ ucfirst(str_replace('-', ' ', $tabName)) }}
+                {{ $label }}
             </a>
         @endforeach
     </div>
