@@ -49,14 +49,14 @@ Route::view('/mission-control', 'pages.mission-control-original')->name('mission
 Route::view('/mission-control-polished', 'pages.mission-control-polished')->name('mission-control.polished');
 
 // Task routes
+// Note: Static routes MUST come before parameterized routes (/{task})
 Route::view('/tasks', 'pages.tasks')->name('tasks');
 Route::get('/tasks/board', TaskBoardUnified::class)->name('tasks.board');
 Route::get('/tasks/executive', TaskExecutive::class)->name('tasks.executive');
+Route::get('/tasks/list', TaskList::class)->name('tasks.list');
 Route::get('/tasks/create', TaskEdit::class)->name('tasks.create');
 Route::get('/tasks/{task}/edit', TaskEdit::class)->name('tasks.edit');
 Route::get('/tasks/{task}', [\App\Livewire\TaskDetail::class, 'show'])->name('tasks.show');
-// Legacy routes for backwards compatibility (use view routes above instead)
-Route::get('/tasks/list', TaskList::class)->name('tasks.list');
 
 Route::get('/org-chart', function () {
     return view('org-chart');
