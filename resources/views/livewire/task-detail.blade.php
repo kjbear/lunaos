@@ -122,7 +122,7 @@
                             🔗 View PR
                             <span class="text-xs">↗</span>
                         </a>
-                    @endif
+                    </div>
                     @endif
                     
                     {{-- Created --}}
