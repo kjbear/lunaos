@@ -1,0 +1,592 @@
+{
+  "info": {
+    "name": "LunaOS API",
+    "description": "LunaOS Project Management API - Comprehensive REST API for managing projects, tasks, agents, and more.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "auth": {
+    "type": "basic",
+    "basic": [
+      {
+        "key": "username",
+        "value": "kyle",
+        "type": "string"
+      },
+      {
+        "key": "password",
+        "value": "changeme",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://lunaos.test/api",
+      "type": "string"
+    },
+    {
+      "key": "project_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Projects",
+      "description": "Project management endpoints",
+      "item": [
+        {
+          "name": "List Projects",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/projects?per_page=15&page=1&sort=created_at&direction=desc",
+              "host": ["{{base_url}}"],
+              "path": ["projects"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "active",
+                  "disabled": true,
+                  "description": "Filter by status (planning,active,completed,archived)"
+                },
+                {
+                  "key": "health",
+                  "value": "healthy",
+                  "disabled": true,
+                  "description": "Filter by health (healthy,at_risk,blocked)"
+                },
+                {
+                  "key": "architecture_type",
+                  "value": "microservices",
+                  "disabled": true,
+                  "description": "Filter by architecture type"
+                },
+                {
+                  "key": "search",
+                  "value": "LunaOS",
+                  "disabled": true,
+                  "description": "Search by name or description"
+                },
+                {
+                  "key": "per_page",
+                  "value": "15",
+                  "description": "Items per page"
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number"
+                },
+                {
+                  "key": "sort",
+                  "value": "created_at",
+                  "description": "Sort field"
+                },
+                {
+                  "key": "direction",
+                  "value": "desc",
+                  "description": "Sort direction (asc, desc)"
+                },
+                {
+                  "key": "with_trashed",
+                  "value": "1",
+                  "disabled": true,
+                  "description": "Include soft-deleted projects"
+                }
+              ]
+            },
+            "description": "Get a paginated list of projects with optional filtering and sorting."
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"data\": [\n    {\n      \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n      \"name\": \"LunaOS Main\",\n      \"description\": \"Main project repository\",\n      \"status\": \"active\",\n      \"health\": \"healthy\",\n      \"progress\": 75,\n      \"technologies\": [\"Laravel\", \"Vue\", \"PostgreSQL\"],\n      \"created_at\": \"2026-03-01T10:00:00Z\",\n      \"updated_at\": \"2026-03-07T15:30:00Z\"\n    }\n  ],\n  \"meta\": {\n    \"current_page\": 1,\n    \"last_page\": 1,\n    \"per_page\": 15,\n    \"total\": 1\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Project Statistics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/projects/stats",
+              "host": ["{{base_url}}"],
+              "path": ["projects", "stats"]
+            },
+            "description": "Get project statistics grouped by status and health."
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"data\": {\n    \"total\": 10,\n    \"by_status\": {\n      \"planning\": 2,\n      \"active\": 5,\n      \"completed\": 2,\n      \"archived\": 1\n    },\n    \"by_health\": {\n      \"healthy\": 7,\n      \"at_risk\": 2,\n      \"blocked\": 1\n    },\n    \"trashed\": 3\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Filter Options",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/projects/filters",
+              "host": ["{{base_url}}"],
+              "path": ["projects", "filters"]
+            },
+            "description": "Get available filter options for projects."
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"data\": {\n    \"statuses\": [\"planning\", \"active\", \"completed\", \"archived\"],\n    \"health_states\": [\"healthy\", \"at_risk\", \"blocked\"],\n    \"architecture_types\": [\"monolith\", \"microservices\", \"serverless\", \"hybrid\"]\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Create Project",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Response has project data', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('id');",
+                  "    pm.environment.set('project_id', jsonData.data.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"New Project\",\n  \"description\": \"A new project for testing\",\n  \"status\": \"planning\",\n  \"health\": \"healthy\",\n  \"architecture_type\": \"microservices\",\n  \"technologies\": [\"Laravel\", \"Vue\", \"Redis\"]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/projects",
+              "host": ["{{base_url}}"],
+              "path": ["projects"]
+            },
+            "description": "Create a new project with the provided details."
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"data\": {\n    \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n    \"name\": \"New Project\",\n    \"description\": \"A new project for testing\",\n    \"status\": \"planning\",\n    \"health\": \"healthy\",\n    \"architecture_type\": \"microservices\",\n    \"technologies\": [\"Laravel\", \"Vue\", \"Redis\"],\n    \"progress\": 0,\n    \"created_at\": \"2026-03-07T10:00:00Z\",\n    \"updated_at\": \"2026-03-07T10:00:00Z\"\n  }\n}"
+            },
+            {
+              "name": "Validation Error",
+              "status": "Unprocessable Entity",
+              "code": 422,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"message\": \"The name field is required.\",\n  \"errors\": {\n    \"name\": [\"The name field is required.\"]\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Single Project",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.environment.set('project_id', pm.environment.get('project_id') || '550e8400-e29b-41d4-a716-446655440000');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/projects/{{project_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["projects", "{{project_id}}"]
+            },
+            "description": "Get a single project by ID with relationships."
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"data\": {\n    \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n    \"name\": \"LunaOS Main\",\n    \"description\": \"Main project repository\",\n    \"status\": \"active\",\n    \"health\": \"healthy\",\n    \"progress\": 75,\n    \"technologies\": [\"Laravel\", \"Vue\", \"PostgreSQL\"],\n    \"repository\": { ... },\n    \"project_manager\": { ... },\n    \"agents\": [ ... ],\n    \"tasks\": [ ... ],\n    \"issues\": [ ... ],\n    \"created_at\": \"2026-03-01T10:00:00Z\",\n    \"updated_at\": \"2026-03-07T15:30:00Z\"\n  }\n}"
+            },
+            {
+              "name": "Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"message\": \"No query results for model [App\\\\Models\\\\Project]\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update Project",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.environment.set('project_id', pm.environment.get('project_id') || '550e8400-e29b-41d4-a716-446655440000');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Project Name\",\n  \"status\": \"active\",\n  \"progress\": 50\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/projects/{{project_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["projects", "{{project_id}}"]
+            },
+            "description": "Update a project's details."
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"data\": {\n    \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n    \"name\": \"Updated Project Name\",\n    \"status\": \"active\",\n    \"progress\": 50,\n    ...\n  }\n}"
+            },
+            {
+              "name": "Validation Error",
+              "status": "Unprocessable Entity",
+              "code": 422,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"message\": \"The selected status is invalid.\",\n  \"errors\": {\n    \"status\": [\"The selected status is invalid.\"]\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Archive Project (Soft Delete)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.environment.set('project_id', pm.environment.get('project_id') || '550e8400-e29b-41d4-a716-446655440000');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/projects/{{project_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["projects", "{{project_id}}"]
+            },
+            "description": "Soft delete (archive) a project. Cascades to tasks and agent assignments."
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"message\": \"Project archived successfully\",\n  \"data\": {\n    \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n    \"deleted_at\": \"2026-03-07T16:00:00Z\"\n  }\n}"
+            },
+            {
+              "name": "Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"message\": \"No query results for model [App\\\\Models\\\\Project]\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Restore Project",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.environment.set('project_id', pm.environment.get('project_id') || '550e8400-e29b-41d4-a716-446655440000');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/projects/{{project_id}}/restore",
+              "host": ["{{base_url}}"],
+              "path": ["projects", "{{project_id}}", "restore"]
+            },
+            "description": "Restore a soft-deleted project."
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"message\": \"Project restored successfully\",\n  \"data\": { ... }\n}"
+            },
+            {
+              "name": "Not Deleted",
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"message\": \"Project is not deleted\",\n  \"data\": { ... }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Permanently Delete Project",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.environment.set('project_id', pm.environment.get('project_id') || '550e8400-e29b-41d4-a716-446655440000');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/projects/{{project_id}}/force",
+              "host": ["{{base_url}}"],
+              "path": ["projects", "{{project_id}}", "force"]
+            },
+            "description": "Permanently delete a project. Cannot be undone."
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "status": "No Content",
+              "code": 204,
+              "_postman_previewlanguage": "json",
+              "body": ""
+            }
+          ]
+        },
+        {
+          "name": "Assign Agent to Project",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.environment.set('project_id', pm.environment.get('project_id') || '550e8400-e29b-41d4-a716-446655440000');",
+                  "pm.environment.set('agent_id', pm.environment.get('agent_id') || 'agent-uuid-here');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"agent_id\": \"{{agent_id}}\",\n  \"role\": \"developer\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/projects/{{project_id}}/agents",
+              "host": ["{{base_url}}"],
+              "path": ["projects", "{{project_id}}", "agents"]
+            },
+            "description": "Assign an agent to a project with a specific role."
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"message\": \"Agent assigned successfully\",\n  \"data\": {\n    \"project_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n    \"agent_id\": \"agent-uuid\",\n    \"role\": \"developer\",\n    \"assigned_at\": \"2026-03-07T10:00:00Z\"\n  }\n}"
+            },
+            {
+              "name": "Already Assigned",
+              "status": "Conflict",
+              "code": 409,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"message\": \"Agent already assigned to this project\",\n  \"data\": { ... }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Remove Agent from Project",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.environment.set('project_id', pm.environment.get('project_id') || '550e8400-e29b-41d4-a716-446655440000');",
+                  "pm.environment.set('agent_id', pm.environment.get('agent_id') || 'agent-uuid-here');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/projects/{{project_id}}/agents/{{agent_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["projects", "{{project_id}}", "agents", "{{agent_id}}"]
+            },
+            "description": "Remove an agent from a project."
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "status": "No Content",
+              "code": 204,
+              "_postman_previewlanguage": "json",
+              "body": ""
+            },
+            {
+              "name": "Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"message\": \"No query results for model [App\\\\Models\\\\ProjectAssignment]\"\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
