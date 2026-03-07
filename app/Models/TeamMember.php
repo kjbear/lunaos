@@ -54,6 +54,7 @@ class TeamMember extends Model
         'title',
         'type',
         'role',
+        'category',
         'status',
         'model',
         'provider',
