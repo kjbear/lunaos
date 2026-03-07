@@ -15,14 +15,14 @@ class TeamIndex extends Component
 
     protected $paginationTheme = 'tailwind';
 
-    #[Url]
-    public string $activeTab = 'all'; // all | workers | personas | board-members
+    #[Url(as: 'type', keep: true)]
+    public string $activeTab = 'workers'; // workers | personas | board-members | all
     public string $search = '';
     public string $filter = 'all'; // all | active | inactive
     public string $statusFilter = 'all'; // alias for filter (test compatibility)
     public string $sortBy = 'name';
     public string $sortDirection = 'asc';
-    public int $perPage = 10;
+    public int $perPage = 3;
     public array $stats = [];
     public array $headers = [];
     
@@ -58,8 +58,12 @@ class TeamIndex extends Component
 
     public function mount(): void
     {
-        // Read tab from URL query param when #[Url] doesn't auto-populate
-        $this->activeTab = request('tab', 'all');
+        // Support both 'type' (preferred) and 'tab' (legacy) URL parameters
+        // The #[Url(as: 'type')] handles 'type' parameter automatically
+        // But we also need to support legacy 'tab' parameter
+        if (request()->has('tab') && !request()->has('type')) {
+            $this->activeTab = request('tab');
+        }
         
         // Initialize table headers for x-table component
         $this->headers = [
