@@ -27,23 +27,27 @@
             </h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <label class="block text-sm font-medium text-slate-300 mb-2">AI Model</label>
-                    <input type="text" wire:model="ai_model" 
-                           class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors">
-                    @error('ai_model')
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Model</label>
+                    <select wire:model="model" 
+                            class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors">
+                        @foreach($availableModels as $value => $label)
+                            <option value="{{ $value }}">{{ $label }}</option>
+                        @endforeach
+                    </select>
+                    @error('model')
                         <p class="text-red-400 text-sm mt-1">{{ $message }}</p>
                     @enderror
                 </div>
                 
                 <div>
                     <label class="block text-sm font-medium text-slate-300 mb-2">Response Style</label>
-                    <select wire:model="response_style" 
+                    <select wire:model="responseStyle" 
                             class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors">
                         @foreach($responseStyles as $value => $label)
                             <option value="{{ $value }}">{{ $label }}</option>
                         @endforeach
                     </select>
-                    @error('response_style')
+                    @error('responseStyle')
                         <p class="text-red-400 text-sm mt-1">{{ $message }}</p>
                     @enderror
                 </div>
@@ -76,9 +80,9 @@
                     <label class="block text-sm font-medium text-slate-300 mb-2">
                         Max Tokens
                     </label>
-                    <input type="number" wire:model="max_tokens" min="1" max="128000"
+                    <input type="number" wire:model="maxTokens" min="1" max="128000"
                            class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors">
-                    @error('max_tokens')
+                    @error('maxTokens')
                         <p class="text-red-400 text-sm mt-1">{{ $message }}</p>
                     @enderror
                 </div>
@@ -86,11 +90,11 @@
                 <div>
                     <label class="block text-sm font-medium text-slate-300 mb-2">
                         Top P
-                        <span class="text-slate-500 text-xs ml-2">({{ $top_p }})</span>
+                        <span class="text-slate-500 text-xs ml-2">({{ $topP }})</span>
                     </label>
-                    <input type="range" wire:model.live="top_p" min="0" max="1" step="0.05"
+                    <input type="range" wire:model.live="topP" min="0" max="1" step="0.05"
                            class="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-purple-500">
-                    @error('top_p')
+                    @error('topP')
                         <p class="text-red-400 text-sm mt-1">{{ $message }}</p>
                     @enderror
                 </div>
@@ -98,11 +102,11 @@
                 <div>
                     <label class="block text-sm font-medium text-slate-300 mb-2">
                         Frequency Penalty
-                        <span class="text-slate-500 text-xs ml-2">({{ $frequency_penalty }})</span>
+                        <span class="text-slate-500 text-xs ml-2">({{ $frequencyPenalty }})</span>
                     </label>
-                    <input type="range" wire:model.live="frequency_penalty" min="-2" max="2" step="0.1"
+                    <input type="range" wire:model.live="frequencyPenalty" min="-2" max="2" step="0.1"
                            class="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-purple-500">
-                    @error('frequency_penalty')
+                    @error('frequencyPenalty')
                         <p class="text-red-400 text-sm mt-1">{{ $message }}</p>
                     @enderror
                 </div>
@@ -110,11 +114,11 @@
                 <div>
                     <label class="block text-sm font-medium text-slate-300 mb-2">
                         Presence Penalty
-                        <span class="text-slate-500 text-xs ml-2">({{ $presence_penalty }})</span>
+                        <span class="text-slate-500 text-xs ml-2">({{ $presencePenalty }})</span>
                     </label>
-                    <input type="range" wire:model.live="presence_penalty" min="-2" max="2" step="0.1"
+                    <input type="range" wire:model.live="presencePenalty" min="-2" max="2" step="0.1"
                            class="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-purple-500">
-                    @error('presence_penalty')
+                    @error('presencePenalty')
                         <p class="text-red-400 text-sm mt-1">{{ $message }}</p>
                     @enderror
                 </div>
@@ -129,30 +133,30 @@
             <div class="space-y-6">
                 <div>
                     <label class="block text-sm font-medium text-slate-300 mb-2">System Prompt</label>
-                    <textarea wire:model="system_prompt" rows="4"
+                    <textarea wire:model="systemPrompt" rows="4"
                               class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors font-mono text-sm"
                               placeholder="Enter the base system prompt for this AI team member..."></textarea>
-                    @error('system_prompt')
+                    @error('systemPrompt')
                         <p class="text-red-400 text-sm mt-1">{{ $message }}</p>
                     @enderror
                 </div>
                 
                 <div>
                     <label class="block text-sm font-medium text-slate-300 mb-2">Persona Description</label>
-                    <textarea wire:model="persona_description" rows="3"
+                    <textarea wire:model="personaDescription" rows="3"
                               class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors text-sm"
                               placeholder="Describe the persona, character traits, and communication style..."></textarea>
-                    @error('persona_description')
+                    @error('personaDescription')
                         <p class="text-red-400 text-sm mt-1">{{ $message }}</p>
                     @enderror
                 </div>
                 
                 <div>
                     <label class="block text-sm font-medium text-slate-300 mb-2">Special Instructions</label>
-                    <textarea wire:model="special_instructions" rows="3"
+                    <textarea wire:model="specialInstructions" rows="3"
                               class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors text-sm"
                               placeholder="Any specific instructions or edge cases..."></textarea>
-                    @error('special_instructions')
+                    @error('specialInstructions')
                         <p class="text-red-400 text-sm mt-1">{{ $message }}</p>
                     @enderror
                 </div>
@@ -191,22 +195,22 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                     <label class="block text-sm font-medium text-slate-300 mb-2">Max Concurrent Tasks</label>
-                    <input type="number" wire:model="max_concurrent_tasks" min="1" max="10"
+                    <input type="number" wire:model="maxConcurrentTasks" min="1" max="10"
                            class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors">
-                    @error('max_concurrent_tasks')
+                    @error('maxConcurrentTasks')
                         <p class="text-red-400 text-sm mt-1">{{ $message }}</p>
                     @enderror
                 </div>
                 
                 <div>
                     <label class="block text-sm font-medium text-slate-300 mb-2">Priority Level</label>
-                    <select wire:model="priority_level" 
+                    <select wire:model="priorityLevel" 
                             class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors">
                         @foreach($priorityLevels as $value => $label)
                             <option value="{{ $value }}">{{ $label }}</option>
                         @endforeach
                     </select>
-                    @error('priority_level')
+                    @error('priorityLevel')
                         <p class="text-red-400 text-sm mt-1">{{ $message }}</p>
                     @enderror
                 </div>
@@ -214,18 +218,18 @@
                 <div>
                     <label class="block text-sm font-medium text-slate-300 mb-2">Auto-Assign</label>
                     <div class="flex items-center gap-3 mt-3">
-                        <button type="button" wire:click="$toggle('auto_assign_enabled')"
+                        <button type="button" wire:click="$toggle('autoAssign')"
                                 @class([
                                     'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
-                                    $auto_assign_enabled ? 'bg-purple-500' : 'bg-white/20'
+                                    $autoAssign ? 'bg-purple-500' : 'bg-white/20'
                                 ])>
                             <span @class([
                                 'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
-                                $auto_assign_enabled ? 'translate-x-6' : 'translate-x-1'
+                                $autoAssign ? 'translate-x-6' : 'translate-x-1'
                             ])></span>
                         </button>
                         <span class="text-slate-400 text-sm">
-                            {{ $auto_assign_enabled ? 'Enabled' : 'Disabled' }}
+                            {{ $autoAssign ? 'Enabled' : 'Disabled' }}
                         </span>
                     </div>
                 </div>
