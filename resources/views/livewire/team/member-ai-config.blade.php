@@ -1,4 +1,9 @@
 <div class="member-ai-config space-y-6">
+    @if(!$member)
+        <div class="bg-red-500/20 border border-red-500/30 rounded-lg p-4 text-red-400">
+            <p>⚠️ Unable to load member data. Please try refreshing the page.</p>
+        </div>
+    @else
     {{-- Back Link --}}
     <div class="mb-4">
         <a href="{{ route('team.show', $member->id) }}" class="inline-flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
@@ -18,7 +23,6 @@
             ↻ Reset to Defaults
         </button>
     </div>
-
     <form wire:submit="save" class="space-y-8">
         {{-- Model Settings --}}
         <div class="bg-gradient-to-br from-slate-900/60 to-slate-950/60 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
@@ -252,4 +256,5 @@
             </button>
         </div>
     </form>
+    @endif
 </div>

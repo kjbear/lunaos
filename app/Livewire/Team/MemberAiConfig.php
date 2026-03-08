@@ -19,6 +19,7 @@ class MemberAiConfig extends Component
     
     // Persona & Prompt
     public string $personaName = '';
+    public string $personaDescription = '';
     public string $systemPrompt = '';
     public string $responseStyle = 'balanced';
     public string $specialInstructions = '';
@@ -88,6 +89,7 @@ class MemberAiConfig extends Component
         'frequencyPenalty' => 'required|numeric|min:-2|max:2',
         'presencePenalty' => 'required|numeric|min:-2|max:2',
         'personaName' => 'nullable|string|max:255',
+        'personaDescription' => 'nullable|string',
         'systemPrompt' => 'nullable|string',
         'responseStyle' => 'required|string',
         'specialInstructions' => 'nullable|string',
@@ -125,7 +127,8 @@ class MemberAiConfig extends Component
         $this->presencePenalty = $config['presence_penalty'] ?? 0.0;
         
         // Persona & Prompt
-        $this->personaName = $config['persona_name'] ?? $this->member->title ?? '';
+        $this->personaName = $config['persona_name'] ?? $this->member?->title ?? '';
+        $this->personaDescription = $config['persona_description'] ?? '';
         $this->systemPrompt = $config['system_prompt'] ?? '';
         $this->responseStyle = $config['response_style'] ?? 'balanced';
         $this->specialInstructions = $config['special_instructions'] ?? '';
@@ -164,6 +167,7 @@ class MemberAiConfig extends Component
             'frequency_penalty' => (float) $this->frequencyPenalty,
             'presence_penalty' => (float) $this->presencePenalty,
             'persona_name' => $this->personaName,
+            'persona_description' => $this->personaDescription,
             'system_prompt' => $this->systemPrompt,
             'response_style' => $this->responseStyle,
             'special_instructions' => $this->specialInstructions,
@@ -196,6 +200,7 @@ class MemberAiConfig extends Component
         $this->frequencyPenalty = 0.0;
         $this->presencePenalty = 0.0;
         $this->personaName = $this->member?->title ?? '';
+        $this->personaDescription = '';
         $this->systemPrompt = '';
         $this->responseStyle = 'balanced';
         $this->specialInstructions = '';
@@ -210,6 +215,17 @@ class MemberAiConfig extends Component
         $this->customMetadata = '{}';
         
         $this->dispatch('toast-info', message: 'Form reset to defaults');
+    }
+    
+    public function toggleCapability(string $capability): void
+    {
+        $index = array_search($capability, $this->capabilities);
+        if ($index !== false) {
+            unset($this->capabilities[$index]);
+            $this->capabilities = array_values($this->capabilities);
+        } else {
+            $this->capabilities[] = $capability;
+        }
     }
     
     public function render()
