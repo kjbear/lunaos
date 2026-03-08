@@ -141,10 +141,8 @@ class TeamIndex extends Component
             $tab = 'agents';
         }
         $this->activeTab = $tab;
-        // Update URL query params
-        $this->js(<<<JS
-            window.history.pushState({tab: '{$tab}'}, '', '?' + new URLSearchParams({tab: '{$tab}'}))
-        JS);
+        // Note: #[Url(as: 'type')] automatically syncs activeTab to URL as ?type=
+        // No manual URL manipulation needed - Livewire handles it
         $this->dispatch('tabChanged', tab: $tab);
     }
 
