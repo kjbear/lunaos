@@ -95,7 +95,7 @@
     </div>
     
     {{-- Tab Content --}}
-    <div class="tab-content">
+    <div class="tabs-body">
         {{-- Overview Tab --}}
         <div x-show="activeTab === 'overview'" x-cloak>
             <div class="bg-gradient-to-br from-slate-900/60 to-slate-950/60 backdrop-blur-xl rounded-2xl border border-white/10">
