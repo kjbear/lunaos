@@ -30,6 +30,21 @@ class TeamIndexTest extends TestCase
     }
 
     /** @test */
+    public function team_index_defaults_to_all_tab_shows_all_members(): void
+    {
+        // Issue #21: Default tab should be 'all', not 'workers'
+        TeamMember::create(['name' => 'Worker', 'email' => 'w@test.com', 'type' => 'workers']);
+        TeamMember::create(['name' => 'Persona', 'email' => 'p@test.com', 'type' => 'personas']);
+        TeamMember::create(['name' => 'Board', 'email' => 'b@test.com', 'type' => 'board-members']);
+
+        Livewire::test(TeamIndex::class)
+            ->assertSet('activeTab', 'all')
+            ->assertSee('Worker')
+            ->assertSee('Persona')
+            ->assertSee('Board');
+    }
+
+    /** @test */
     public function team_index_shows_empty_state_when_no_members(): void
     {
         Livewire::test(TeamIndex::class)
@@ -169,7 +184,8 @@ class TeamIndexTest extends TestCase
     /** @test */
     public function team_index_pagination_displays_when_needed(): void
     {
-        TeamMember::factory()->count(20)->create();
+        // Need more than 20 members to trigger pagination (default per_page is 20)
+        TeamMember::factory()->count(25)->create();
 
         Livewire::test(TeamIndex::class)
             ->assertStatus(200)
