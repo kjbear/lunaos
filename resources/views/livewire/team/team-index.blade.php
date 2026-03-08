@@ -1,4 +1,4 @@
-<div class="team-index space-y-6" x-data="{ teamView: $wire.entangle('view') }" x-init="
+<div class="team-index space-y-6" x-data="{ view: $wire.entangle('view') }" x-init="
     // Restore view preference from localStorage
     const stored = localStorage.getItem('lunaos.team.view');
     if (stored && (stored === 'card' || stored === 'list')) {
