@@ -83,6 +83,7 @@ Route::get('/team/create', [TeamController::class, 'create'])->name('team.create
 Route::post('/team', [TeamController::class, 'store'])->name('team.store');
 Route::get('/team/{id}', [TeamController::class, 'show'])->name('team.show');
 Route::get('/team/{id}/edit', [TeamController::class, 'edit'])->name('team.edit');
+Route::get('/team/{id}/ai-config', \App\Livewire\Team\MemberAiConfig::class)->name('team.ai-config');
 Route::put('/team/{id}', [TeamController::class, 'update'])->name('team.update');
 Route::delete('/team/{id}', [TeamController::class, 'destroy'])->name('team.destroy');
 

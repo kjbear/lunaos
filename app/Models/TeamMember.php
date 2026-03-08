@@ -24,6 +24,20 @@ use Illuminate\Support\Str;
  * @property string $role (board_member, persona, worker)
  * @property string $status (active, inactive, online, offline, error, busy, archived)
  * @property string|null $model
+ * @property string $ai_model
+ * @property float $temperature
+ * @property int $max_tokens
+ * @property float $top_p
+ * @property float $frequency_penalty
+ * @property float $presence_penalty
+ * @property string $response_style
+ * @property string|null $persona_description
+ * @property string|null $special_instructions
+ * @property array|null $capabilities
+ * @property int $max_concurrent_tasks
+ * @property bool $auto_assign_enabled
+ * @property string $priority_level
+ * @property array|null $custom_metadata
  * @property string $provider
  * @property string|null $avatar
  * @property string $emoji
@@ -57,6 +71,20 @@ class TeamMember extends Model
         'category',
         'status',
         'model',
+        'ai_model',
+        'temperature',
+        'max_tokens',
+        'top_p',
+        'frequency_penalty',
+        'presence_penalty',
+        'response_style',
+        'persona_description',
+        'special_instructions',
+        'capabilities',
+        'max_concurrent_tasks',
+        'auto_assign_enabled',
+        'priority_level',
+        'custom_metadata',
         'provider',
         'avatar',
         'emoji',
@@ -73,6 +101,15 @@ class TeamMember extends Model
     protected $casts = [
         'settings' => 'array',
         'metadata_json' => 'array',
+        'capabilities' => 'array',
+        'custom_metadata' => 'array',
+        'temperature' => 'float',
+        'max_tokens' => 'integer',
+        'top_p' => 'float',
+        'frequency_penalty' => 'float',
+        'presence_penalty' => 'float',
+        'max_concurrent_tasks' => 'integer',
+        'auto_assign_enabled' => 'boolean',
         'deactivated_at' => 'datetime',
     ];
 
@@ -82,7 +119,49 @@ class TeamMember extends Model
         'type' => 'workers',
         'provider' => 'ollama',
         'emoji' => '🤖',
+        'ai_model' => 'glm-5',
+        'temperature' => 0.7,
+        'max_tokens' => 4096,
+        'top_p' => 1.0,
+        'frequency_penalty' => 0.0,
+        'presence_penalty' => 0.0,
+        'response_style' => 'technical',
+        'max_concurrent_tasks' => 3,
+        'auto_assign_enabled' => true,
+        'priority_level' => 'normal',
     ];
+
+    /**
+     * Validation rules for AI configuration fields.
+     */
+    public static function aiConfigRules(): array
+    {
+        return [
+            'ai_model' => ['required', 'string', 'max:255'],
+            'temperature' => ['required', 'numeric', 'min:0', 'max:2'],
+            'max_tokens' => ['required', 'integer', 'min:1', 'max:128000'],
+            'top_p' => ['required', 'numeric', 'min:0', 'max:1'],
+            'frequency_penalty' => ['required', 'numeric', 'min:-2', 'max:2'],
+            'presence_penalty' => ['required', 'numeric', 'min:-2', 'max:2'],
+            'response_style' => ['required', 'string', 'in:technical,casual,formal,creative,concise'],
+            'system_prompt' => ['nullable', 'string', 'max:16000'],
+            'persona_description' => ['nullable', 'string', 'max:2000'],
+            'special_instructions' => ['nullable', 'string', 'max:4000'],
+            'capabilities' => ['nullable', 'array'],
+            'max_concurrent_tasks' => ['required', 'integer', 'min:1', 'max:10'],
+            'auto_assign_enabled' => ['required', 'boolean'],
+            'priority_level' => ['required', 'string', 'in:low,normal,high,critical'],
+            'custom_metadata' => ['nullable', 'array'],
+        ];
+    }
+
+    /**
+     * Validate AI configuration data.
+     */
+    public function validateAiConfig(array $data): array
+    {
+        return validator($data, self::aiConfigRules())->validate();
+    }
 
     /**
      * Boot the model and generate UUIDs.
