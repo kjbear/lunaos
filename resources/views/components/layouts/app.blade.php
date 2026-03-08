@@ -148,7 +148,7 @@
             </div>
             
             <!-- Mobile Nav Items (matches desktop grouped nav) -->
-            <nav class="flex-1 p-3 space-y-1 overflow-y-auto">
+            <nav class="flex-1 min-h-0 p-3 space-y-1 overflow-y-auto overflow-x-hidden">
                 {{-- 📋 WORK --}}
                 <div class="px-3 py-2 text-xs font-semibold text-[#6b6b80] uppercase tracking-wider">📋 Work</div>
                 <a href="{{ route('tasks') }}" 
@@ -174,10 +174,10 @@
                     <span class="text-sm">👥</span>
                     <span class="font-medium">All Team</span>
                 </a>
-                <a href="{{ route('team', ['type' => 'workers']) }}" 
-                   class="sidebar-item flex items-center gap-3 px-4 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ (request('type') === 'workers' || request('tab') === 'workers') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
+                <a href="{{ route('team', ['type' => 'agents']) }}" 
+                   class="sidebar-item flex items-center gap-3 px-4 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ (request('type') === 'agents' || request('type') === 'workers' || request('tab') === 'agents' || request('tab') === 'workers') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
                     <span class="text-sm">🤖</span>
-                    <span class="font-medium">Workers</span>
+                    <span class="font-medium">Agents</span>
                 </a>
                 <a href="{{ route('team', ['type' => 'personas']) }}" 
                    class="sidebar-item flex items-center gap-3 px-4 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ (request('type') === 'personas' || request('tab') === 'personas') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
@@ -251,7 +251,7 @@
             </div>
             
             <!-- Navigation -->
-            <nav class="flex-1 p-3 space-y-4 overflow-y-auto">
+            <nav class="flex-1 min-h-0 p-3 space-y-4 overflow-y-auto overflow-x-hidden">
                 
                 {{-- 📋 WORK --}}
                 <div>
@@ -320,10 +320,10 @@
                             <span class="text-sm">👥</span>
                             <span class="text-sm font-medium">All Team</span>
                         </a>
-                        <a href="{{ route('team', ['type' => 'workers']) }}" 
-                           class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ (request('type') === 'workers' || request('tab') === 'workers') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
+                        <a href="{{ route('team', ['type' => 'agents']) }}" 
+                           class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ (request('type') === 'agents' || request('type') === 'workers' || request('tab') === 'agents' || request('tab') === 'workers') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
                             <span class="text-sm">🤖</span>
-                            <span class="text-sm font-medium">Workers</span>
+                            <span class="text-sm font-medium">Agents</span>
                         </a>
                         <a href="{{ route('team', ['type' => 'personas']) }}" 
                            class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ (request('type') === 'personas' || request('tab') === 'personas') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
