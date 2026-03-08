@@ -169,6 +169,38 @@ class TeamControllerTest extends TestCase
     }
 
     /** @test */
+    public function index_without_params_shows_all_members(): void
+    {
+        // Issue #21: '/team' should show all members, not filter to workers
+        TeamMember::create(['name' => 'Worker 1', 'email' => 'w1@test.com', 'type' => 'workers']);
+        TeamMember::create(['name' => 'Persona 1', 'email' => 'p1@test.com', 'type' => 'personas']);
+        TeamMember::create(['name' => 'Board 1', 'email' => 'b1@test.com', 'type' => 'board-members']);
+
+        $response = $this->actingAs($this->user)->get('/team');
+
+        $response->assertStatus(200);
+        $response->assertViewHas('members', function ($members) {
+            // Should contain all 3 members (workers, personas, board)
+            return $members->total() === 3;
+        });
+        $response->assertViewHas('activeTab', 'all');
+    }
+
+    /** @test */
+    public function index_with_type_all_shows_all_members(): void
+    {
+        TeamMember::create(['name' => 'Worker 1', 'email' => 'w1@test.com', 'type' => 'workers']);
+        TeamMember::create(['name' => 'Persona 1', 'email' => 'p1@test.com', 'type' => 'personas']);
+
+        $response = $this->actingAs($this->user)->get('/team?type=all');
+
+        $response->assertStatus(200);
+        $response->assertViewHas('members', function ($members) {
+            return $members->total() === 2;
+        });
+    }
+
+    /** @test */
     public function workers_tab_filters_by_workers(): void
     {
         TeamMember::create(['name' => 'Worker 1', 'email' => 'w1@test.com', 'type' => 'workers']);
@@ -210,6 +242,48 @@ class TeamControllerTest extends TestCase
         $response->assertStatus(200);
         $response->assertViewHas('members', function ($members) {
             return $members->every(fn($m) => $m->type === 'board-members');
+        });
+    }
+
+    /** @test */
+    public function index_supports_pagination_with_per_page_param(): void
+    {
+        // Issue #20: Pagination support
+        TeamMember::factory()->count(25)->create();
+
+        // Default pagination (20 per page)
+        $response = $this->actingAs($this->user)->get('/team');
+        $response->assertStatus(200);
+        $response->assertViewHas('members', function ($members) {
+            return $members->perPage() === 20 && $members->count() === 20;
+        });
+
+        // Custom per_page (10)
+        $response = $this->actingAs($this->user)->get('/team?per_page=10');
+        $response->assertStatus(200);
+        $response->assertViewHas('members', function ($members) {
+            return $members->perPage() === 10;
+        });
+
+        // Custom per_page (50)
+        $response = $this->actingAs($this->user)->get('/team?per_page=50');
+        $response->assertStatus(200);
+        $response->assertViewHas('members', function ($members) {
+            return $members->perPage() === 50;
+        });
+    }
+
+    /** @test */
+    public function pagination_preserves_query_params(): void
+    {
+        TeamMember::factory()->count(25)->create(['type' => 'workers']);
+        TeamMember::factory()->count(15)->create(['type' => 'personas']);
+
+        $response = $this->actingAs($this->user)->get('/team?type=workers&per_page=10');
+        $response->assertStatus(200);
+        $response->assertViewHas('members', function ($members) {
+            // Verify pagination preserves type filter
+            return $members->perPage() === 10 && $members->every(fn($m) => $m->type === 'workers');
         });
     }
 

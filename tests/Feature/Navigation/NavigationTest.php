@@ -40,6 +40,7 @@ class NavigationTest extends TestCase
 
     /**
      * Test team index shows all members when no filter
+     * Issue #21: Default should show ALL members, not just workers
      */
     public function test_team_index_shows_all_members_by_default(): void
     {
@@ -50,10 +51,10 @@ class NavigationTest extends TestCase
         $response = $this->get('/team');
 
         $response->assertStatus(200);
-        // Default shows workers tab
+        // Default shows ALL members (Issue #21 fix)
         $response->assertSee('Test Worker');
-        $response->assertDontSee('Test Persona');
-        $response->assertDontSee('Test Board Member');
+        $response->assertSee('Test Persona');
+        $response->assertSee('Test Board Member');
     }
 
     /**

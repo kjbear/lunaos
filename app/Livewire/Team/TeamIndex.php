@@ -16,15 +16,40 @@ class TeamIndex extends Component
     protected $paginationTheme = 'tailwind';
 
     #[Url(as: 'type', keep: true)]
-    public string $activeTab = 'workers'; // workers | personas | board-members | all
+    public string $activeTab = 'all'; // agents | personas | board-members | all
     public string $search = '';
     public string $filter = 'all'; // all | active | inactive
     public string $statusFilter = 'all'; // alias for filter (test compatibility)
     public string $sortBy = 'name';
     public string $sortDirection = 'asc';
-    public int $perPage = 3;
+    #[Url(as: 'per_page', keep: true)]
+    public int $perPage = 20;
+    public string $view = 'card'; // card | list
     public array $stats = [];
     public array $headers = [];
+    
+    /**
+     * Normalize type terminology: 'agents' -> 'workers' for DB compatibility
+     */
+    protected function normalizeType(string $type): string
+    {
+        // Map 'agents' to 'workers' for database queries
+        return match ($type) {
+            'agents' => 'workers',
+            default => $type,
+        };
+    }
+    
+    /**
+     * Get the display-friendly type name (for UI)
+     */
+    protected function getDisplayType(string $type): string
+    {
+        return match ($type) {
+            'workers' => 'agents',
+            default => $type,
+        };
+    }
     
     public function delete(string $id): void
     {
@@ -65,6 +90,14 @@ class TeamIndex extends Component
             $this->activeTab = request('tab');
         }
         
+        // Normalize old 'workers' URL param to 'agents'
+        if ($this->activeTab === 'workers') {
+            $this->activeTab = 'agents';
+        }
+        
+        // Restore view preference from localStorage (handled via Alpine on frontend)
+        // Default to 'card' if not set
+        
         // Initialize table headers for x-table component
         $this->headers = [
             ['key' => 'name', 'label' => 'Member', 'sortBy' => 'asc'],
@@ -103,12 +136,25 @@ class TeamIndex extends Component
 
     public function switchTab(string $tab): void
     {
+        // Normalize 'workers' to 'agents'
+        if ($tab === 'workers') {
+            $tab = 'agents';
+        }
         $this->activeTab = $tab;
         // Update URL query params
         $this->js(<<<JS
             window.history.pushState({tab: '{$tab}'}, '', '?' + new URLSearchParams({tab: '{$tab}'}))
         JS);
         $this->dispatch('tabChanged', tab: $tab);
+    }
+
+    public function setView(string $view): void
+    {
+        $this->view = $view;
+        // Persist to localStorage via JS
+        $this->js(<<<JS
+            localStorage.setItem('lunaos.team.view', '{$view}');
+        JS);
     }
 
     #[On('refresh')]
@@ -120,6 +166,10 @@ class TeamIndex extends Component
     #[On('tabChanged')]
     public function onTabChanged(string $tab): void
     {
+        // Normalize 'workers' to 'agents'
+        if ($tab === 'workers') {
+            $tab = 'agents';
+        }
         $this->activeTab = $tab;
     }
 
@@ -149,12 +199,13 @@ class TeamIndex extends Component
     {
         $query = TeamMember::query();
 
-        // Filter by active tab
-        if ($this->activeTab === 'workers') {
+        // Filter by active tab (normalize 'agents' to 'workers' for DB)
+        $dbType = $this->normalizeType($this->activeTab);
+        if ($dbType === 'workers') {
             $query->where('type', 'workers');
-        } elseif ($this->activeTab === 'personas') {
+        } elseif ($dbType === 'personas') {
             $query->where('type', 'personas');
-        } elseif ($this->activeTab === 'board-members') {
+        } elseif ($dbType === 'board-members') {
             $query->where('type', 'board-members');
         }
         // if 'all' or empty, show all members (no filter)

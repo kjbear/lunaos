@@ -25,11 +25,12 @@ class TeamController extends Controller
     public function index(Request $request): View
     {
         // Support both 'type' (new) and 'tab' (legacy) query parameters
-        $activeTab = $request->query('type') ?? $request->query('tab', 'workers');
+        // Default to 'all' to show all team members (no filter)
+        $activeTab = $request->query('type') ?? $request->query('tab', 'all');
         
         $query = TeamMember::query();
         
-        // Filter by type if specified
+        // Filter by type if specified (and not 'all')
         if ($activeTab && $activeTab !== 'all') {
             $query->where('type', $activeTab);
         }
@@ -39,7 +40,9 @@ class TeamController extends Controller
             $query->where('status', $request->boolean('available') ? 'active' : 'inactive');
         }
         
-        $members = $query->orderBy('name')->get();
+        // Pagination support with configurable per_page (default: 20)
+        $perPage = $request->get('per_page', 20);
+        $members = $query->orderBy('name')->paginate($perPage)->appends($request->query());
         
         return view('team.index', compact('activeTab', 'members'));
     }
