@@ -2,27 +2,28 @@
     $sessionId = $session['id'] ?? null;
 @endphp
 
-<div class="flex h-screen bg-slate-950" 
-     x-data="{ 
-         wsConnected: false, 
-         wsConnecting: true,
-         init() {
-             window.addEventListener('lunaos:websocket-connected', () => { 
-                 this.wsConnected = true; 
-                 this.wsConnecting = false; 
-             });
-             window.addEventListener('lunaos:websocket-disconnected', () => { 
-                 this.wsConnected = false; 
-                 this.wsConnecting = false; 
-             });
-             window.addEventListener('lunaos:websocket-connecting', () => { 
-                 this.wsConnecting = true; 
-             });
-         }
-     }">
-    
-    <!-- Sidebar -->
-    <aside class="w-72 bg-slate-900 border-r border-slate-800 flex flex-col">
+<div class="min-h-screen bg-slate-950">
+    <div class="flex h-screen"
+         x-data="{ 
+             wsConnected: false, 
+             wsConnecting: true,
+             init() {
+                 window.addEventListener('lunaos:websocket-connected', () => { 
+                     this.wsConnected = true; 
+                     this.wsConnecting = false; 
+                 });
+                 window.addEventListener('lunaos:websocket-disconnected', () => { 
+                     this.wsConnected = false; 
+                     this.wsConnecting = false; 
+                 });
+                 window.addEventListener('lunaos:websocket-connecting', () => { 
+                     this.wsConnecting = true; 
+                 });
+             }
+         }">
+        
+        <!-- Sidebar -->
+        <aside class="w-72 bg-slate-900 border-r border-slate-800 flex flex-col" wire:key="sidebar">
         <!-- Header -->
         <div class="p-4 border-b border-slate-800">
             <h2 class="text-lg font-semibold text-white flex items-center gap-2">
@@ -123,34 +124,36 @@
             <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Recent</h3>
             <div class="space-y-1">
                 @forelse ($recentSessions as $sess)
-                    <button
-                        wire:click="loadSession('{{ $sess['id'] }}')"
-                        class="w-full text-left px-3 py-2 rounded-lg hover:bg-slate-800 transition-colors group {{ $sessionId === $sess['id'] ? 'bg-slate-800' : '' }}"
-                    >
-                        <div class="flex items-center gap-2">
-                            <span class="text-lg">{{ $sess['emoji'] }}</span>
-                            @if ($sess['is_archived'])
-                                <span class="text-xs" title="Archived">📦</span>
-                            @endif
-                            <div class="flex-1 min-w-0">
-                                <p class="text-sm text-white truncate {{ $sess['is_archived'] ? 'opacity-60' : '' }}">{{ $sess['title'] }}</p>
-                                <p class="text-xs text-slate-400">{{ $sess['member'] }} • {{ $sess['updated'] }}</p>
-                            </div>
-                            <!-- Archive/Unarchive Button -->
-                            <button
-                                wire:click.prevent="stopPropagation(); {{ $sess['is_archived'] ? 'unarchiveSession' : 'archiveSession' }}('{{ $sess['id'] }}')"
-                                class="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-slate-700 rounded"
-                                onclick="event.stopPropagation()"
-                                title="{{ $sess['is_archived'] ? 'Unarchive' : 'Archive' }} conversation"
-                            >
+                    <div class="relative w-full group/item">
+                        <div
+                            wire:click="loadSession('{{ $sess['id'] }}')"
+                            class="text-left px-3 py-2 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer {{ $sessionId === $sess['id'] ? 'bg-slate-800' : '' }}"
+                            role="button"
+                            tabindex="0"
+                        >
+                            <div class="flex items-center gap-2">
+                                <span class="text-lg">{{ $sess['emoji'] }}</span>
                                 @if ($sess['is_archived'])
-                                    <span class="text-xs text-green-400 hover:text-green-300">↩️</span>
-                                @else
-                                    <span class="text-xs text-slate-400 hover:text-slate-300">📦</span>
+                                    <span class="text-xs" title="Archived">📦</span>
                                 @endif
-                            </button>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm text-white truncate {{ $sess['is_archived'] ? 'opacity-60' : '' }}">{{ $sess['title'] }}</p>
+                                    <p class="text-xs text-slate-400">{{ $sess['member'] }} • {{ $sess['updated'] }}</p>
+                                </div>
+                            </div>
                         </div>
-                    </button>
+                        <button
+                            wire:click.stop="{{ $sess['is_archived'] ? 'unarchiveSession' : 'archiveSession' }}('{{ $sess['id'] }}')"
+                            class="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover/item:opacity-100 transition-opacity p-1 hover:bg-slate-700 rounded"
+                            title="{{ $sess['is_archived'] ? 'Unarchive' : 'Archive' }} conversation"
+                        >
+                            @if ($sess['is_archived'])
+                                <span class="text-xs text-green-400 hover:text-green-300">↩️</span>
+                            @else
+                                <span class="text-xs text-slate-400 hover:text-slate-300">📦</span>
+                            @endif
+                        </button>
+                    </div>
                 @empty
                     <div class="text-xs text-slate-500 text-center py-4">
                         @if ($filterArchive === 'archived')
@@ -320,6 +323,7 @@
             </div>
         @endif
     </main>
+    </div>
 </div>
 
 @script

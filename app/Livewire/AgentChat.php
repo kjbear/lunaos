@@ -8,7 +8,9 @@ use App\Services\ChatService;
 use Livewire\Component;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Locked;
+use Livewire\Attributes\Layout;
 
+#[Layout('components.layouts.chat')]
 class AgentChat extends Component
 {
     /**
