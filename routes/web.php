@@ -21,6 +21,9 @@ use App\Livewire\Agents\AgentList;
 use App\Models\Project;
 use App\Models\ProjectAssignment;
 
+// WebSocket test page
+Route::view('/test-websocket', 'test-websocket');
+
 // Route model binding for UUID-based models
 Route::bind('project', function ($value) {
     return Project::where('id', $value)->firstOrFail();

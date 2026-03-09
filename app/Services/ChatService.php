@@ -8,6 +8,9 @@ use App\Models\TeamMember;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use App\Events\UserMessageSent;
+use App\Events\AiTokenReceived;
+use App\Events\AiResponseComplete;
 
 /**
  * ChatService
@@ -282,6 +285,149 @@ class ChatService
                 'prompt_tokens' => $promptTokens,
                 'completion_tokens' => $completionTokens,
             ],
+        ];
+    }
+
+    /**
+     * Stream a message with WebSocket broadcasting for real-time updates.
+     * Broadcasts events for each token and final completion.
+     * 
+     * @param ChatSession $session
+     * @param string $userMessage
+     * @return array Returns user message and assistant message models
+     */
+    public function streamMessageWithBroadcast(ChatSession $session, string $userMessage): array
+    {
+        $teamMember = $session->teamMember;
+
+        // Save user message
+        $userMsg = ChatMessage::create([
+            'chat_session_id' => $session->id,
+            'role' => 'user',
+            'content' => $userMessage,
+            'tokens' => $this->estimateTokens($userMessage),
+            'metadata' => [
+                'timestamp' => now()->toIso8601String(),
+            ],
+        ]);
+
+        // Broadcast user message immediately
+        broadcast(new UserMessageSent(
+            $session->id,
+            $userMessage,
+            $userMsg->id
+        ));
+
+        // Update title from first message if not set
+        if (!$session->title) {
+            $session->generateTitle();
+        }
+
+        // Build prompt context
+        $prompt = $this->buildPrompt($session, $teamMember, $userMessage);
+
+        // Get correct Ollama model name
+        $model = $this->getOllamaModel($teamMember->ai_model);
+
+        // Stream from Ollama and broadcast tokens
+        $url = "{$this->ollamaUrl}/api/chat";
+        $startTime = microtime(true);
+        
+        $fullContent = '';
+        $promptTokens = 0;
+        $completionTokens = 0;
+        $tokenSequence = 0;
+
+        $ch = curl_init();
+        curl_setopt_array($ch, [
+            CURLOPT_URL => $url,
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => json_encode([
+                'model' => $model,
+                'messages' => $prompt,
+                'stream' => true,
+            ]),
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => $this->requestTimeout,
+            CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+        ]);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+        if ($httpCode !== 200) {
+            Log::error('Ollama streaming error', ['code' => $httpCode, 'response' => $response]);
+            $fullContent = 'Sorry, I encountered an error. Please try again.';
+        } else {
+            // Process streaming response line by line
+            $lines = explode("\n", $response);
+            foreach ($lines as $line) {
+                $line = trim($line);
+                if (empty($line)) continue;
+
+                $data = json_decode($line, true);
+                if (!$data) continue;
+
+                // Broadcast each token
+                if (isset($data['message']['content']) && !empty($data['message']['content'])) {
+                    $token = $data['message']['content'];
+                    $fullContent .= $token;
+                    
+                    // Broadcast token for real-time display
+                    broadcast(new AiTokenReceived(
+                        $session->id,
+                        $token,
+                        $tokenSequence++
+                    ));
+                }
+
+                // Capture stats from final response
+                if (isset($data['done']) && $data['done'] === true) {
+                    $promptTokens = $data['prompt_eval_count'] ?? 0;
+                    $completionTokens = $data['eval_count'] ?? 0;
+                }
+            }
+        }
+
+        $latency = round((microtime(true) - $startTime) * 1000);
+
+        // Fallback token estimation if not provided
+        if ($completionTokens === 0) {
+            $completionTokens = $this->estimateTokens($fullContent);
+        }
+
+        // Save assistant message
+        $assistantMsg = ChatMessage::create([
+            'chat_session_id' => $session->id,
+            'role' => 'assistant',
+            'content' => $fullContent,
+            'tokens' => $completionTokens,
+            'metadata' => [
+                'model' => $model,
+                'latency_ms' => $latency,
+                'prompt_tokens' => $promptTokens,
+                'completion_tokens' => $completionTokens,
+                'timestamp' => now()->toIso8601String(),
+            ],
+        ]);
+
+        // Update context
+        $session->updateContext($this->maxContextTokens, $this->maxContextMessages);
+
+        // Broadcast completion event with stats
+        broadcast(new AiResponseComplete(
+            $session->id,
+            $fullContent,
+            $assistantMsg->id,
+            $model,
+            (int) $latency,
+            $promptTokens,
+            $completionTokens
+        ));
+
+        return [
+            'user_message' => $userMsg,
+            'assistant_message' => $assistantMsg,
         ];
     }
 

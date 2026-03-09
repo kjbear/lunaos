@@ -197,6 +197,12 @@ Route::name('api.')->group(function () {
     // Body: content (required), stream (optional)
     Route::post('/chat/{sessionId}/message', [ChatController::class, 'message'])->name('chat.message');
     
+    // Send message and broadcast via WebSockets (real-time)
+    // POST /api/chat/{sessionId}/broadcast
+    // Body: content (required)
+    // Returns immediately, broadcasts: user.message, ai.token, ai.complete events
+    Route::post('/chat/{sessionId}/broadcast', [ChatController::class, 'broadcast'])->name('chat.broadcast');
+    
     // Stream response (SSE for Livewire)
     // GET /api/chat/{sessionId}/stream
     // Query params: content (required)

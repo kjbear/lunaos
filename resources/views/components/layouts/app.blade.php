@@ -597,6 +597,56 @@
     <!-- Toast Container -->
     <livewire:toast-container />
     
+    <!-- WebSocket Connection Status Indicator -->
+    <div 
+        x-data="{ 
+            connected: false,
+            connecting: false,
+            disconnected: true
+        }"
+        x-init="
+            window.addEventListener('lunaos:websocket-connected', () => { connected = true; connecting = false; disconnected = false; });
+            window.addEventListener('lunaos:websocket-connecting', () => { connecting = true; connected = false; disconnected = false; });
+            window.addEventListener('lunaos:websocket-disconnected', () => { disconnected = true; connected = false; connecting = false; });
+            window.addEventListener('lunaos:websocket-error', () => { disconnected = true; connected = false; connecting = false; });
+        "
+        class="fixed bottom-4 right-4 z-50 flex items-center gap-2"
+        x-cloak
+    >
+        <div 
+            x-show="connecting"
+            class="flex items-center gap-2 bg-[#1f1f35]/90 backdrop-blur-sm border border-[#7c3aed] text-[#a0a0b8] px-3 py-2 rounded-full text-xs font-medium shadow-lg animate-pulse"
+            x-transition:enter="transition-all duration-300"
+            x-transition:enter-start="opacity-0 translate-y-4"
+            x-transition:enter-end="opacity-100 translate-y-0"
+        >
+            <div class="w-2 h-2 rounded-full bg-[#7c3aed] animate-ping"></div>
+            <span>Connecting…</span>
+        </div>
+        
+        <div 
+            x-show="connected"
+            class="flex items-center gap-2 bg-[#1f1f35]/90 backdrop-blur-sm border border-green-500/50 text-green-400 px-3 py-2 rounded-full text-xs font-medium shadow-lg"
+            x-transition:enter="transition-all duration-300"
+            x-transition:enter-start="opacity-0 translate-y-4"
+            x-transition:enter-end="opacity-100 translate-y-0"
+        >
+            <div class="w-2 h-2 rounded-full bg-green-500"></div>
+            <span>Connected</span>
+        </div>
+        
+        <div 
+            x-show="disconnected && !connecting"
+            class="flex items-center gap-2 bg-[#1f1f35]/90 backdrop-blur-sm border border-red-500/50 text-red-400 px-3 py-2 rounded-full text-xs font-medium shadow-lg"
+            x-transition:enter="transition-all duration-300"
+            x-transition:enter-start="opacity-0 translate-y-4"
+            x-transition:enter-end="opacity-100 translate-y-0"
+        >
+            <div class="w-2 h-2 rounded-full bg-red-500"></div>
+            <span>Disconnected</span>
+        </div>
+    </div>
+    
     <!-- Explicit Livewire Start (ensures nested components work) -->
     <script>
         (function() {

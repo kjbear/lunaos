@@ -313,4 +313,75 @@ class ChatController
 
         return $response;
     }
+
+    /**
+     * Send a message and broadcast response via WebSockets.
+     * 
+     * POST /api/chat/{session}/broadcast
+     * 
+     * This endpoint uses the streamMessageWithBroadcast method to send
+     * real-time updates via Laravel Reverb WebSockets.
+     * 
+     * Body:
+     * - content: Required - Message content
+     * 
+     * Response is immediate, but WebSockets broadcast:
+     * - UserMessageSent event immediately
+     * - AiTokenReceived events for each token
+     * - AiResponseComplete event when done
+     */
+    public function broadcast(Request $request, string $sessionId): JsonResponse
+    {
+        $request->validate([
+            'content' => 'required|string|max:32000',
+        ]);
+
+        $session = $this->chatService->getSession($sessionId);
+
+        if (!$session) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Session not found',
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        $content = $request->input('content');
+
+        // Process the message and broadcast via WebSockets
+        // This runs synchronously but broadcasts events as it progresses
+        try {
+            $result = $this->chatService->streamMessageWithBroadcast($session, $content);
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'user_message' => [
+                        'id' => $result['user_message']->id,
+                        'role' => $result['user_message']->role,
+                        'content' => $result['user_message']->content,
+                        'tokens' => $result['user_message']->tokens,
+                        'created_at' => $result['user_message']->created_at?->toIso8601String(),
+                    ],
+                    'assistant_message' => [
+                        'id' => $result['assistant_message']->id,
+                        'role' => $result['assistant_message']->role,
+                        'content' => $result['assistant_message']->content,
+                        'tokens' => $result['assistant_message']->tokens,
+                        'metadata' => $result['assistant_message']->metadata,
+                        'created_at' => $result['assistant_message']->created_at?->toIso8601String(),
+                    ],
+                    'broadcast_channel' => "presence-chat.{$sessionId}",
+                    'session' => [
+                        'id' => $session->id,
+                        'title' => $session->title,
+                    ],
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Failed to process message: ' . $e->getMessage(),
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
 }

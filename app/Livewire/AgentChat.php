@@ -7,6 +7,7 @@ use App\Models\ChatSession;
 use App\Services\ChatService;
 use Livewire\Component;
 use Livewire\Attributes\On;
+use Livewire\Attributes\Locked;
 
 class AgentChat extends Component
 {
@@ -16,14 +17,19 @@ class AgentChat extends Component
     public ?string $selectedMemberId = null;
 
     /**
-     * Selected team member details
+     * Selected team member details (for display)
      */
-    public ?TeamMember $selectedMember = null;
+    public array $selectedMemberData = [];
 
     /**
      * Current chat session
      */
     public ?ChatSession $session = null;
+
+    /**
+     * Session ID (for Livewire binding)
+     */
+    public ?string $sessionId = null;
 
     /**
      * Messages in current session
@@ -41,17 +47,6 @@ class AgentChat extends Component
     public bool $isTyping = false;
 
     /**
-     * Currently streaming response (for token-by-token display)
-     */
-    public string $streamingResponse = '';
-
-    /**
-     * Pending user message (shown immediately in UI)
-     */
-    #[\Livewire\Attributes\Url]
-    public string $pendingUserMessage = '';
-
-    /**
      * Available team members for chat
      */
     public array $teamMembers = [];
@@ -62,8 +57,10 @@ class AgentChat extends Component
     public array $recentSessions = [];
 
     /**
-     * ChatService instance
+     * WebSocket connection status
      */
+    public string $wsStatus = 'connecting'; // connecting, connected, disconnected
+
     protected ChatService $chatService;
 
     public function mount(?string $memberId = null): void
@@ -95,7 +92,17 @@ class AgentChat extends Component
     public function selectMember(string $memberId): void
     {
         $this->selectedMemberId = $memberId;
-        $this->selectedMember = TeamMember::find($memberId);
+        $member = TeamMember::find($memberId);
+        
+        if ($member) {
+            $this->selectedMemberData = [
+                'id' => $member->id,
+                'name' => $member->name,
+                'title' => $member->title,
+                'emoji' => $member->emoji ?? '🤖',
+                'role' => $member->role,
+            ];
+        }
 
         // Create or get existing session
         $existingSession = ChatSession::where('team_member_id', $memberId)
@@ -106,7 +113,18 @@ class AgentChat extends Component
             $this->loadSession($existingSession->id);
         } else {
             $this->session = null;
+            $this->sessionId = null;
             $this->messages = [];
+        }
+    }
+
+    /**
+     * Livewire lifecycle hook - called when selectedMemberId changes
+     */
+    public function updatedSelectedMemberId($value): void
+    {
+        if ($value) {
+            $this->selectMember($value);
         }
     }
 
@@ -117,8 +135,20 @@ class AgentChat extends Component
         }])->find($sessionId);
 
         if ($this->session) {
+            $this->sessionId = $this->session->id;
             $this->selectedMemberId = $this->session->team_member_id;
-            $this->selectedMember = $this->session->teamMember;
+            $member = $this->session->teamMember;
+            
+            if ($member) {
+                $this->selectedMemberData = [
+                    'id' => $member->id,
+                    'name' => $member->name,
+                    'title' => $member->title,
+                    'emoji' => $member->emoji ?? '🤖',
+                    'role' => $member->role,
+                ];
+            }
+            
             $this->messages = $this->session->messages->map(fn($m) => [
                 'id' => $m->id,
                 'role' => $m->role,
@@ -127,6 +157,14 @@ class AgentChat extends Component
                 'metadata' => $m->metadata ?? [],
             ])->toArray();
         }
+        
+        $this->loadRecentSessions();
+    }
+
+    public function createSession(string $memberId): void
+    {
+        $this->selectMember($memberId);
+        $this->newChat();
     }
 
     public function newChat(): void
@@ -136,6 +174,7 @@ class AgentChat extends Component
         }
 
         $this->session = app(ChatService::class)->createSession($this->selectedMemberId);
+        $this->sessionId = $this->session->id;
         $this->messages = [];
         $this->loadRecentSessions();
     }
@@ -149,15 +188,16 @@ class AgentChat extends Component
         // Create session if not exists
         if (!$this->session) {
             $this->session = app(ChatService::class)->createSession($this->selectedMemberId);
+            $this->sessionId = $this->session->id;
         }
 
         $userMessage = $this->newMessage;
         $this->newMessage = '';
         
-        // Add user message to UI immediately
-        $tempUserId = 'temp-user-' . time();
+        // Add user message immediately
+        $userMsgId = 'user-' . time();
         $this->messages[] = [
-            'id' => $tempUserId,
+            'id' => $userMsgId,
             'role' => 'user',
             'content' => $userMessage,
             'timestamp' => 'Just now',
@@ -166,19 +206,17 @@ class AgentChat extends Component
 
         // Start streaming
         $this->isTyping = true;
-        $this->streamingResponse = '';
         
         // Store for stats
         $messageStats = null;
         $fullContent = '';
 
-        // Stream the response token by token
+        // Stream the response
         try {
             foreach (app(ChatService::class)->streamMessage($this->session, $userMessage) as $chunk) {
                 if (isset($chunk['token'])) {
                     $fullContent .= $chunk['token'];
-                    // Stream each token to the frontend
-                    $this->stream(to: 'stream-response', content: $chunk['token']);
+                    // For now, just collect - we'll show it all at once
                 }
                 
                 if (isset($chunk['done']) && $chunk['done'] === true) {
@@ -186,16 +224,15 @@ class AgentChat extends Component
                 }
             }
             
-            // Add final assistant message to messages array
+            // Add assistant message
             $this->messages[] = [
-                'id' => 'final-' . time(),
+                'id' => 'assistant-' . time(),
                 'role' => 'assistant',
                 'content' => $fullContent,
                 'timestamp' => 'Just now',
                 'metadata' => $messageStats ?? [],
             ];
         } catch (\Exception $e) {
-            // Add error message
             $this->messages[] = [
                 'id' => 'error-' . time(),
                 'role' => 'assistant',
@@ -205,38 +242,29 @@ class AgentChat extends Component
             ];
         } finally {
             $this->isTyping = false;
-            $this->streamingResponse = '';
         }
 
-        // Refresh recent sessions
         $this->loadRecentSessions();
     }
 
-    #[On('receive-message')]
-    public function receiveMessage(string $sessionId, string $content): void
+    /**
+     * Update WebSocket status from frontend
+     */
+    #[On('ws-status')]
+    public function updateWsStatus(string $status): void
     {
-        if ($this->session && $this->session->id === $sessionId) {
-            $this->messages[] = [
-                'id' => 'temp-assistant-' . time(),
-                'role' => 'assistant',
-                'content' => $content,
-                'timestamp' => 'Just now',
-                'metadata' => [],
-            ];
-        }
-        
-        $this->isTyping = false;
+        $this->wsStatus = $status;
     }
 
-    public function loadRecentSessions(): void
+    private function loadRecentSessions(): void
     {
         $this->recentSessions = ChatSession::with('teamMember')
             ->orderBy('updated_at', 'desc')
-            ->take(10)
+            ->limit(10)
             ->get()
             ->map(fn($s) => [
                 'id' => $s->id,
-                'title' => $s->title ?? 'New conversation',
+                'title' => $s->title ?? 'New Chat',
                 'member' => $s->teamMember?->name ?? 'Unknown',
                 'emoji' => $s->teamMember?->emoji ?? '🤖',
                 'updated' => $s->updated_at->diffForHumans(),
