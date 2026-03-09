@@ -236,7 +236,11 @@
                         @endif
                         
                         <div class="max-w-2xl {{ $msg['role'] === 'user' ? 'bg-purple-600' : 'bg-slate-800' }} rounded-2xl px-4 py-3">
-                            <p class="text-white text-sm whitespace-pre-wrap">{{ $msg['content'] }}</p>
+                            @if ($msg['role'] === 'assistant')
+                                <div class="markdown-content text-white text-sm prose prose-invert prose-sm max-w-none" data-raw="{{ $msg['content'] }}">{{ $msg['content'] }}</div>
+                            @else
+                                <p class="text-white text-sm whitespace-pre-wrap">{{ $msg['content'] }}</p>
+                            @endif
                             <div class="flex items-center justify-between mt-1">
                                 <p class="text-xs {{ $msg['role'] === 'user' ? 'text-purple-200' : 'text-slate-500' }}">
                                     {{ $msg['timestamp'] }}
@@ -327,19 +331,144 @@
 </div>
 
 @script
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script>
+    // Configure marked for safe rendering
+    marked.setOptions({
+        breaks: true,
+        gfm: true
+    });
+    
+    // Markdown rendering function with XSS protection
+    window.renderMarkdown = function(text) {
+        if (!text) return '';
+        // Basic XSS protection
+        const escaped = text
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+        return marked.parse(escaped);
+    };
+    
+    // Render markdown in all assistant messages
+    window.renderAllMarkdown = function() {
+        document.querySelectorAll('.markdown-content[data-raw]').forEach(el => {
+            const raw = el.getAttribute('data-raw');
+            try {
+                el.innerHTML = window.renderMarkdown(raw);
+            } catch (e) {
+                el.textContent = raw;
+            }
+        });
+    };
+    
     // Auto-scroll to bottom when messages update
+    function scrollToBottom() {
+        const container = document.getElementById('messages-container');
+        if (container) {
+            container.scrollTo({
+                top: container.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+    }
+    
     document.addEventListener('livewire:init', () => {
+        // Scroll on commit (general updates)
         Livewire.hook('commit', ({ succeed }) => {
             succeed(() => {
                 queueMicrotask(() => {
-                    const container = document.getElementById('messages-container');
-                    if (container) {
-                        container.scrollTop = container.scrollHeight;
-                    }
+                    renderAllMarkdown();
+                    scrollToBottom();
                 });
             });
         });
     });
+    
+    // Initial render on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        renderAllMarkdown();
+    });
 </script>
+<style>
+    /* Markdown content styles for agent messages */
+    .markdown-content {
+        line-height: 1.6;
+    }
+    .markdown-content p {
+        margin-bottom: 0.75rem;
+    }
+    .markdown-content p:last-child {
+        margin-bottom: 0;
+    }
+    .markdown-content strong {
+        font-weight: 600;
+        color: #e2e8f0;
+    }
+    .markdown-content em {
+        font-style: italic;
+        color: #cbd5e1;
+    }
+    .markdown-content a {
+        color: #a78bfa;
+        text-decoration: underline;
+        transition: color 0.15s;
+    }
+    .markdown-content a:hover {
+        color: #c4b5fd;
+    }
+    .markdown-content ul, .markdown-content ol {
+        margin-left: 1.5rem;
+        margin-bottom: 0.75rem;
+    }
+    .markdown-content ul {
+        list-style-type: disc;
+    }
+    .markdown-content ol {
+        list-style-type: decimal;
+    }
+    .markdown-content li {
+        margin-bottom: 0.25rem;
+    }
+    .markdown-content code {
+        background: #1e293b;
+        padding: 0.125rem 0.375rem;
+        border-radius: 0.25rem;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 0.875em;
+        color: #f472b6;
+    }
+    .markdown-content pre {
+        background: #1e293b;
+        padding: 0.75rem 1rem;
+        border-radius: 0.5rem;
+        overflow-x: auto;
+        margin-bottom: 0.75rem;
+    }
+    .markdown-content pre code {
+        background: transparent;
+        padding: 0;
+        color: #e2e8f0;
+    }
+    .markdown-content blockquote {
+        border-left: 3px solid #a78bfa;
+        padding-left: 1rem;
+        margin-left: 0;
+        margin-bottom: 0.75rem;
+        color: #94a3b8;
+        font-style: italic;
+    }
+    .markdown-content h1, .markdown-content h2, .markdown-content h3, 
+    .markdown-content h4, .markdown-content h5, .markdown-content h6 {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #f1f5f9;
+    }
+    .markdown-content h1 { font-size: 1.25rem; }
+    .markdown-content h2 { font-size: 1.125rem; }
+    .markdown-content h3 { font-size: 1rem; }
+    .markdown-content hr {
+        border-color: #475569;
+        margin: 0.75rem 0;
+    }
+</style>
 @endscript
