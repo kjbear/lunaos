@@ -194,6 +194,11 @@
                     <span class="text-sm">🏢</span>
                     <span class="font-medium">Org Chart</span>
                 </a>
+                <a href="{{ route('chat') }}" 
+                   class="sidebar-item flex items-center gap-3 px-4 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('chat') || request()->routeIs('chat.with') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
+                    <span class="text-sm">💬</span>
+                    <span class="font-medium">Chat</span>
+                </a>
                 
                 {{-- 📊 PROJECTS --}}
                 <div class="px-3 py-2 mt-4 text-xs font-semibold text-[#6b6b80] uppercase tracking-wider">📊 Projects</div>
@@ -339,6 +344,11 @@
                            class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('org-chart') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
                             <span class="text-sm">🏢</span>
                             <span class="text-sm font-medium">Org Chart</span>
+                        </a>
+                        <a href="{{ route('chat') }}" 
+                           class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-lg text-[#a0a0b8] hover:text-[#e4e4f0] hover:bg-[#1f1f35] {{ request()->routeIs('chat') || request()->routeIs('chat.with') ? 'bg-[#1f1f35] text-[#e4e4f0]' : '' }}">
+                            <span class="text-sm">💬</span>
+                            <span class="text-sm font-medium">Chat</span>
                         </a>
                     </div>
                 </div>
