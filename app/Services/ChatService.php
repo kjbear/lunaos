@@ -11,6 +11,7 @@ use Illuminate\Support\Str;
 use App\Events\UserMessageSent;
 use App\Events\AiTokenReceived;
 use App\Events\AiResponseComplete;
+use App\Services\ContextService;
 
 /**
  * ChatService
@@ -45,6 +46,11 @@ class ChatService
      */
     protected int $requestTimeout;
 
+    /**
+     * Context service for project auto-injection
+     */
+    protected ContextService $contextService;
+
     public function __construct()
     {
         // Use services.ollama.host for the base URL (Ollama native API)
@@ -53,6 +59,7 @@ class ChatService
         $this->maxContextTokens = config('chat.max_context_tokens', 8000);
         $this->maxContextMessages = config('chat.max_context_messages', 20);
         $this->requestTimeout = config('chat.request_timeout', 120);
+        $this->contextService = new ContextService();
     }
 
     /**
@@ -449,7 +456,13 @@ class ChatService
             $messages[] = ['role' => 'system', 'content' => "## Relevant Skills:\n\n" . $skillsContent];
         }
 
-        // 3. Add conversation history (context sliding window)
+        // 3. Inject project context (auto-detect from message)
+        $projectContext = $this->contextService->buildContext($newMessage);
+        if ($projectContext) {
+            $messages[] = ['role' => 'system', 'content' => $projectContext];
+        }
+
+        // 4. Add conversation history (context sliding window)
         $context = $session->context ?? [];
         foreach ($context as $contextMsg) {
             // Skip system messages from context (they're regenerated above)
@@ -461,7 +474,7 @@ class ChatService
             }
         }
 
-        // 4. Add the new message
+        // 5. Add the new message
         $messages[] = ['role' => 'user', 'content' => $newMessage];
 
         return $messages;
