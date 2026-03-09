@@ -71,6 +71,26 @@ class ChatService
     }
 
     /**
+     * Get the correct Ollama model name for a team member.
+     * Maps short names to full model names with :cloud suffix.
+     */
+    protected function getOllamaModel(?string $model): string
+    {
+        if (!$model) {
+            return $this->defaultModel;
+        }
+
+        // Map short names to full Ollama model names
+        $modelMap = [
+            'glm-5' => 'glm-5:cloud',
+            'haiku' => 'haiku:cloud',
+            'dolphin' => 'dolphin:cloud',
+        ];
+
+        return $modelMap[$model] ?? $model;
+    }
+
+    /**
      * Send a message and get AI response.
      * 
      * @param ChatSession $session
@@ -101,9 +121,12 @@ class ChatService
         // Build prompt context
         $prompt = $this->buildPrompt($session, $teamMember, $userMessage);
 
+        // Get correct Ollama model name
+        $model = $this->getOllamaModel($teamMember->ai_model);
+
         // Get AI response
         $startTime = microtime(true);
-        $assistantContent = $this->callOllama($prompt, $teamMember->ai_model ?? $this->defaultModel, $stream);
+        $assistantContent = $this->callOllama($prompt, $model, $stream);
         $latency = round((microtime(true) - $startTime) * 1000);
 
         // Token count estimation
@@ -116,7 +139,7 @@ class ChatService
             'content' => $assistantContent,
             'tokens' => $tokenCount,
             'metadata' => [
-                'model' => $teamMember->ai_model ?? $this->defaultModel,
+                'model' => $model,
                 'latency_ms' => $latency,
                 'timestamp' => now()->toIso8601String(),
             ],
@@ -274,6 +297,12 @@ class ChatService
         // Livewire will handle the UI streaming via dispatch
         $url = "{$this->ollamaUrl}/api/chat";
 
+        Log::info('Calling Ollama', [
+            'url' => $url,
+            'model' => $model,
+            'messages_count' => count($messages),
+        ]);
+
         try {
             $response = Http::timeout($this->requestTimeout)
                 ->post($url, [
@@ -281,6 +310,11 @@ class ChatService
                     'messages' => $messages,
                     'stream' => false,
                 ]);
+
+            Log::info('Ollama response', [
+                'status' => $response->status(),
+                'body_length' => strlen($response->body()),
+            ]);
 
             if (!$response->successful()) {
                 Log::error('Ollama API error', [
@@ -291,6 +325,12 @@ class ChatService
             }
 
             $data = $response->json();
+            
+            Log::info('Ollama response data', [
+                'has_message' => isset($data['message']),
+                'has_content' => isset($data['message']['content']),
+            ]);
+
             return $data['message']['content'] ?? '';
 
         } catch (\Exception $e) {

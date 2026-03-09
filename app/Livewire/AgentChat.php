@@ -151,8 +151,37 @@ class AgentChat extends Component
             'timestamp' => 'Just now',
         ];
 
-        // Dispatch job to get AI response
-        $this->dispatch('send-message', sessionId: $this->session->id, message: $userMessage);
+        // Call ChatService to get AI response
+        try {
+            $result = app(ChatService::class)->sendMessage($this->session, $userMessage);
+            
+            // Add assistant response to UI
+            $this->messages[] = [
+                'id' => $result['assistant_message']->id,
+                'role' => 'assistant',
+                'content' => $result['assistant_message']->content,
+                'timestamp' => 'Just now',
+            ];
+
+            // Update user message ID
+            $userMsgIndex = count($this->messages) - 2;
+            if (isset($this->messages[$userMsgIndex])) {
+                $this->messages[$userMsgIndex]['id'] = $result['user_message']->id;
+            }
+        } catch (\Exception $e) {
+            // Add error message
+            $this->messages[] = [
+                'id' => 'error-' . time(),
+                'role' => 'assistant',
+                'content' => 'Sorry, I encountered an error: ' . $e->getMessage(),
+                'timestamp' => 'Just now',
+            ];
+        } finally {
+            $this->isTyping = false;
+        }
+
+        // Refresh recent sessions
+        $this->loadRecentSessions();
     }
 
     #[On('receive-message')]
