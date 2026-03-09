@@ -215,7 +215,7 @@ class ChatService
 
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
+        // curl_close() has no effect since PHP 8.0, removed
 
         if ($httpCode !== 200) {
             Log::error('Ollama streaming error', ['code' => $httpCode, 'response' => $response]);
