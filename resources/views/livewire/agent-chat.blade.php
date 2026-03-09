@@ -112,9 +112,8 @@
             </header>
 
             <!-- Messages -->
-            <div class="flex-1 overflow-y-auto px-6 py-4 space-y-4" id="messages-container" 
-                x-init="$nextTick(() => { $el.scrollTop = $el.scrollHeight; })"
-                wire:ignore>
+            <div class="flex-1 overflow-y-auto px-6 py-4 space-y-4" id="messages-container"
+                x-init="$el.scrollTop = $el.scrollHeight">
                 
                 @forelse ($messages as $msg)
                     <div class="flex gap-3 {{ $msg['role'] === 'user' ? 'justify-end' : 'justify-start' }}">
@@ -220,12 +219,12 @@
     document.addEventListener('livewire:init', () => {
         Livewire.hook('commit', ({ succeed }) => {
             succeed(() => {
-                setTimeout(() => {
+                queueMicrotask(() => {
                     const container = document.getElementById('messages-container');
                     if (container) {
                         container.scrollTop = container.scrollHeight;
                     }
-                }, 50);
+                });
             });
         });
     });
