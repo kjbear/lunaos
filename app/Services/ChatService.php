@@ -124,23 +124,26 @@ class ChatService
         // Get correct Ollama model name
         $model = $this->getOllamaModel($teamMember->ai_model);
 
-        // Get AI response
+        // Get AI response with stats
         $startTime = microtime(true);
-        $assistantContent = $this->callOllama($prompt, $model, $stream);
+        $result = $this->callOllama($prompt, $model);
         $latency = round((microtime(true) - $startTime) * 1000);
 
-        // Token count estimation
-        $tokenCount = $this->estimateTokens($assistantContent);
+        $assistantContent = $result['content'];
+        $promptTokens = $result['prompt_eval_count'] ?? $this->estimateTokens($userMessage);
+        $completionTokens = $result['eval_count'] ?? $this->estimateTokens($assistantContent);
 
-        // Save assistant message
+        // Save assistant message with actual token counts
         $assistantMsg = ChatMessage::create([
             'chat_session_id' => $session->id,
             'role' => 'assistant',
             'content' => $assistantContent,
-            'tokens' => $tokenCount,
+            'tokens' => $completionTokens,
             'metadata' => [
                 'model' => $model,
                 'latency_ms' => $latency,
+                'prompt_tokens' => $promptTokens,
+                'completion_tokens' => $completionTokens,
                 'timestamp' => now()->toIso8601String(),
             ],
         ]);
@@ -151,6 +154,134 @@ class ChatService
         return [
             'user_message' => $userMsg,
             'assistant_message' => $assistantMsg,
+        ];
+    }
+
+    /**
+     * Stream a message and get AI response token-by-token.
+     * Returns a generator that yields each token and final stats.
+     * 
+     * @param ChatSession $session
+     * @param string $userMessage
+     * @return \Generator Yields ['token' => string] or final ['done' => true, 'stats' => array]
+     */
+    public function streamMessage(ChatSession $session, string $userMessage): \Generator
+    {
+        $teamMember = $session->teamMember;
+
+        // Save user message first
+        $userMsg = ChatMessage::create([
+            'chat_session_id' => $session->id,
+            'role' => 'user',
+            'content' => $userMessage,
+            'tokens' => $this->estimateTokens($userMessage),
+            'metadata' => [
+                'timestamp' => now()->toIso8601String(),
+            ],
+        ]);
+
+        // Update title from first message if not set
+        if (!$session->title) {
+            $session->generateTitle();
+        }
+
+        // Build prompt context
+        $prompt = $this->buildPrompt($session, $teamMember, $userMessage);
+
+        // Get correct Ollama model name
+        $model = $this->getOllamaModel($teamMember->ai_model);
+
+        // Stream from Ollama
+        $url = "{$this->ollamaUrl}/api/chat";
+        $startTime = microtime(true);
+        
+        $fullContent = '';
+        $promptTokens = 0;
+        $completionTokens = 0;
+
+        $ch = curl_init();
+        curl_setopt_array($ch, [
+            CURLOPT_URL => $url,
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => json_encode([
+                'model' => $model,
+                'messages' => $prompt,
+                'stream' => true,
+            ]),
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => $this->requestTimeout,
+            CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+        ]);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($httpCode !== 200) {
+            Log::error('Ollama streaming error', ['code' => $httpCode, 'response' => $response]);
+            yield ['token' => 'Sorry, I encountered an error. Please try again.'];
+            yield ['done' => true, 'error' => true];
+            return;
+        }
+
+        // Process streaming response line by line
+        $lines = explode("\n", $response);
+        foreach ($lines as $line) {
+            $line = trim($line);
+            if (empty($line)) continue;
+
+            $data = json_decode($line, true);
+            if (!$data) continue;
+
+            // Yield token content
+            if (isset($data['message']['content']) && !empty($data['message']['content'])) {
+                $fullContent .= $data['message']['content'];
+                yield ['token' => $data['message']['content']];
+            }
+
+            // Capture stats from final response
+            if (isset($data['done']) && $data['done'] === true) {
+                $promptTokens = $data['prompt_eval_count'] ?? 0;
+                $completionTokens = $data['eval_count'] ?? 0;
+            }
+        }
+
+        $latency = round((microtime(true) - $startTime) * 1000);
+
+        // Fallback token estimation if not provided
+        if ($completionTokens === 0) {
+            $completionTokens = $this->estimateTokens($fullContent);
+        }
+
+        // Save assistant message
+        $assistantMsg = ChatMessage::create([
+            'chat_session_id' => $session->id,
+            'role' => 'assistant',
+            'content' => $fullContent,
+            'tokens' => $completionTokens,
+            'metadata' => [
+                'model' => $model,
+                'latency_ms' => $latency,
+                'prompt_tokens' => $promptTokens,
+                'completion_tokens' => $completionTokens,
+                'timestamp' => now()->toIso8601String(),
+            ],
+        ]);
+
+        // Update context
+        $session->updateContext($this->maxContextTokens, $this->maxContextMessages);
+
+        // Yield final stats
+        yield [
+            'done' => true,
+            'user_message' => $userMsg,
+            'assistant_message' => $assistantMsg,
+            'stats' => [
+                'model' => $model,
+                'latency_ms' => $latency,
+                'prompt_tokens' => $promptTokens,
+                'completion_tokens' => $completionTokens,
+            ],
         ];
     }
 
@@ -290,11 +421,10 @@ class ChatService
 
     /**
      * Call Ollama API for chat completion.
+     * Returns content and token stats.
      */
-    protected function callOllama(array $messages, string $model, bool $stream = false): string
+    protected function callOllama(array $messages, string $model): array
     {
-        // If streaming is requested, we still get full response for now
-        // Livewire will handle the UI streaming via dispatch
         $url = "{$this->ollamaUrl}/api/chat";
 
         Log::info('Calling Ollama', [
@@ -321,7 +451,11 @@ class ChatService
                     'status' => $response->status(),
                     'body' => $response->body(),
                 ]);
-                return "I apologize, but I encountered an error processing your request. Please try again.";
+                return [
+                    'content' => "I apologize, but I encountered an error processing your request. Please try again.",
+                    'prompt_eval_count' => 0,
+                    'eval_count' => 0,
+                ];
             }
 
             $data = $response->json();
@@ -329,61 +463,27 @@ class ChatService
             Log::info('Ollama response data', [
                 'has_message' => isset($data['message']),
                 'has_content' => isset($data['message']['content']),
+                'prompt_eval_count' => $data['prompt_eval_count'] ?? 'not set',
+                'eval_count' => $data['eval_count'] ?? 'not set',
             ]);
 
-            return $data['message']['content'] ?? '';
+            return [
+                'content' => $data['message']['content'] ?? '',
+                'prompt_eval_count' => $data['prompt_eval_count'] ?? 0,
+                'eval_count' => $data['eval_count'] ?? 0,
+            ];
 
         } catch (\Exception $e) {
             Log::error('Ollama API exception', [
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
-            return "I apologize, but I'm currently unavailable. Please try again in a moment.";
+            return [
+                'content' => "I apologize, but I'm currently unavailable. Please try again in a moment.",
+                'prompt_eval_count' => 0,
+                'eval_count' => 0,
+            ];
         }
-    }
-
-    /**
-     * Stream response from Ollama.
-     * Returns generator for token-by-token streaming.
-     */
-    public function streamResponse(ChatSession $session, string $userMessage): \Generator
-    {
-        $teamMember = $session->teamMember;
-        $prompt = $this->buildPrompt($session, $teamMember, $userMessage);
-        $model = $teamMember->ai_model ?? $this->defaultModel;
-
-        $url = "{$this->ollamaUrl}/api/chat";
-
-        // Initialize cURL for streaming
-        $ch = curl_init();
-        curl_setopt_array($ch, [
-            CURLOPT_URL => $url,
-            CURLOPT_POST => true,
-            CURLOPT_POSTFIELDS => json_encode([
-                'model' => $model,
-                'messages' => $prompt,
-                'stream' => true,
-            ]),
-            CURLOPT_RETURNTRANSFER => false,
-            CURLOPT_TIMEOUT => $this->requestTimeout,
-            CURLOPT_WRITEFUNCTION => function ($curl, $data) {
-                // Each line is a JSON object
-                $lines = explode("\n", $data);
-                foreach ($lines as $line) {
-                    $line = trim($line);
-                    if (empty($line)) continue;
-                    
-                    $json = json_decode($line, true);
-                    if (isset($json['message']['content'])) {
-                        yield $json['message']['content'];
-                    }
-                }
-                return strlen($data);
-            },
-        ]);
-
-        curl_exec($ch);
-        curl_close($ch);
     }
 
     /**

@@ -41,6 +41,11 @@ class AgentChat extends Component
     public bool $isTyping = false;
 
     /**
+     * Currently streaming response (for token-by-token display)
+     */
+    public string $streamingResponse = '';
+
+    /**
      * Available team members for chat
      */
     public array $teamMembers = [];
@@ -113,6 +118,7 @@ class AgentChat extends Component
                 'role' => $m->role,
                 'content' => $m->content,
                 'timestamp' => $m->created_at->diffForHumans(),
+                'metadata' => $m->metadata ?? [],
             ])->toArray();
         }
     }
@@ -141,32 +147,54 @@ class AgentChat extends Component
 
         $userMessage = $this->newMessage;
         $this->newMessage = '';
-        $this->isTyping = true;
-
+        
         // Add user message to UI immediately
+        $tempUserId = 'temp-user-' . time();
         $this->messages[] = [
-            'id' => 'temp-user-' . time(),
+            'id' => $tempUserId,
             'role' => 'user',
             'content' => $userMessage,
             'timestamp' => 'Just now',
+            'metadata' => [],
         ];
 
-        // Call ChatService to get AI response
-        try {
-            $result = app(ChatService::class)->sendMessage($this->session, $userMessage);
-            
-            // Add assistant response to UI
-            $this->messages[] = [
-                'id' => $result['assistant_message']->id,
-                'role' => 'assistant',
-                'content' => $result['assistant_message']->content,
-                'timestamp' => 'Just now',
-            ];
+        // Start streaming
+        $this->isTyping = true;
+        $this->streamingResponse = '';
+        
+        // Store for stats
+        $messageStats = null;
+        $fullContent = '';
 
-            // Update user message ID
-            $userMsgIndex = count($this->messages) - 2;
-            if (isset($this->messages[$userMsgIndex])) {
-                $this->messages[$userMsgIndex]['id'] = $result['user_message']->id;
+        // Stream the response token by token
+        try {
+            foreach (app(ChatService::class)->streamMessage($this->session, $userMessage) as $chunk) {
+                if (isset($chunk['token'])) {
+                    $fullContent .= $chunk['token'];
+                    // Stream each token to the frontend
+                    $this->stream('stream-response', $chunk['token']);
+                }
+                
+                if (isset($chunk['done']) && $chunk['done'] === true) {
+                    $messageStats = $chunk['stats'] ?? [];
+                }
+            }
+            
+            // Add final assistant message to messages array
+            $this->messages[] = [
+                'id' => 'final-' . time(),
+                'role' => 'assistant',
+                'content' => $fullContent,
+                'timestamp' => 'Just now',
+                'metadata' => $messageStats ?? [],
+            ];
+            
+            // Update the temporary user message ID if we got a real one
+            if (isset($chunk['user_message'])) {
+                $userMsgIndex = count($this->messages) - 2;
+                if (isset($this->messages[$userMsgIndex])) {
+                    $this->messages[$userMsgIndex]['id'] = $chunk['user_message']->id;
+                }
             }
         } catch (\Exception $e) {
             // Add error message
@@ -175,9 +203,11 @@ class AgentChat extends Component
                 'role' => 'assistant',
                 'content' => 'Sorry, I encountered an error: ' . $e->getMessage(),
                 'timestamp' => 'Just now',
+                'metadata' => [],
             ];
         } finally {
             $this->isTyping = false;
+            $this->streamingResponse = '';
         }
 
         // Refresh recent sessions
@@ -193,6 +223,7 @@ class AgentChat extends Component
                 'role' => 'assistant',
                 'content' => $content,
                 'timestamp' => 'Just now',
+                'metadata' => [],
             ];
         }
         

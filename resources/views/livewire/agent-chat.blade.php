@@ -88,7 +88,7 @@
             </header>
 
             <!-- Messages -->
-            <div class="flex-1 overflow-y-auto px-6 py-4 space-y-4" id="messages-container">
+            <div class="flex-1 overflow-y-auto px-6 py-4 space-y-4" id="messages-container" x-data x-ref="container" x-init="$nextTick(() => $refs.container.scrollTop = $refs.container.scrollHeight)">
                 @forelse ($messages as $message)
                     <div class="flex gap-3 {{ $message['role'] === 'user' ? 'justify-end' : 'justify-start' }}">
                         @if ($message['role'] === 'assistant')
@@ -100,6 +100,24 @@
                         <div class="max-w-2xl {{ $message['role'] === 'user' ? 'bg-purple-600' : 'bg-slate-800' }} rounded-2xl px-4 py-3">
                             <p class="text-white text-sm whitespace-pre-wrap">{{ $message['content'] }}</p>
                             <p class="text-xs {{ $message['role'] === 'user' ? 'text-purple-200' : 'text-slate-500' }} mt-1">{{ $message['timestamp'] }}</p>
+                            
+                            @if ($message['role'] === 'assistant' && !empty($message['metadata']))
+                                @php
+                                    $meta = $message['metadata'];
+                                    $model = $meta['model'] ?? 'unknown';
+                                    $promptTokens = $meta['prompt_tokens'] ?? 0;
+                                    $completionTokens = $meta['completion_tokens'] ?? 0;
+                                    $latencyMs = $meta['latency_ms'] ?? 0;
+                                    $latencySec = $latencyMs > 0 ? number_format($latencyMs / 1000, 1) : '0.0';
+                                @endphp
+                                <div class="text-xs text-slate-500 mt-1 border-t border-slate-700 pt-1 mt-2">
+                                    <span class="text-purple-400">{{ $model }}</span>
+                                    <span class="mx-1">•</span>
+                                    <span>{{ $promptTokens }} in / {{ $completionTokens }} out</span>
+                                    <span class="mx-1">•</span>
+                                    <span>{{ $latencySec }}s</span>
+                                </div>
+                            @endif
                         </div>
 
                         @if ($message['role'] === 'user')
@@ -119,16 +137,15 @@
                 @endforelse
 
                 @if ($isTyping)
-                    <div class="flex gap-3 justify-start">
+                    {{-- Streaming response container --}}
+                    <div class="flex gap-3 justify-start" id="streaming-container" x-data x-intersect="$el.scrollIntoView({ behavior: 'smooth', block: 'end' })">
                         <div class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-sm flex-shrink-0">
                             {{ $selectedMember->emoji ?? '🤖' }}
                         </div>
-                        <div class="bg-slate-800 rounded-2xl px-4 py-3">
-                            <div class="flex gap-1">
-                                <div class="w-2 h-2 bg-slate-500 rounded-full animate-bounce" style="animation-delay: 0ms;"></div>
-                                <div class="w-2 h-2 bg-slate-500 rounded-full animate-bounce" style="animation-delay: 150ms;"></div>
-                                <div class="w-2 h-2 bg-slate-500 rounded-full animate-bounce" style="animation-delay: 300ms;"></div>
-                            </div>
+                        <div class="max-w-2xl bg-slate-800 rounded-2xl px-4 py-3">
+                            <p class="text-white text-sm whitespace-pre-wrap">
+                                <span wire:stream="stream-response"></span>
+                            </p>
                         </div>
                     </div>
                 @endif
