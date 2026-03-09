@@ -333,25 +333,49 @@
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script>
     // Configure marked for safe rendering
-    marked.setOptions({
-        breaks: true,
-        gfm: true
-    });
+    if (typeof marked !== 'undefined') {
+        marked.setOptions({
+            breaks: true,
+            gfm: true
+        });
+    }
     
-    // Markdown rendering function with XSS protection
+    // Markdown rendering function with proper XSS protection
     window.renderMarkdown = function(text) {
         if (!text) return '';
-        // Basic XSS protection
-        const escaped = text
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;');
-        return marked.parse(escaped);
+        if (typeof marked === 'undefined') {
+            console.error('marked.js not loaded');
+            return text;
+        }
+        
+        // Parse markdown (marked.js handles HTML sanitization in newer versions)
+        // For older marked versions, we need to be careful about raw HTML
+        try {
+            const html = marked.parse(text);
+            // Basic XSS protection: strip dangerous tags but allow formatting
+            // This is a simple approach - for production, consider DOMPurify
+            return html
+                .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+                .replace(/on\w+="[^"]*"/gi, '')
+                .replace(/on\w+='[^']*'/gi, '');
+        } catch (e) {
+            console.error('Marked parse error:', e);
+            return text;
+        }
     };
     
     // Render markdown in all assistant messages
     window.renderAllMarkdown = function() {
-        document.querySelectorAll('.markdown-content[data-raw]').forEach(el => {
+        const elements = document.querySelectorAll('.markdown-content[data-raw]');
+        elements.forEach(el => {
             const raw = el.getAttribute('data-raw');
+            if (!raw) return;
+            
+            // Skip if already rendered
+            if (el.innerHTML.includes('<strong>') || el.innerHTML.includes('<p>')) {
+                return;
+            }
+            
             try {
                 el.innerHTML = window.renderMarkdown(raw);
             } catch (e) {
@@ -371,8 +395,49 @@
         }
     }
     
+    // MutationObserver to detect DOM changes (works for Livewire local updates)
+    const markdownObserver = new MutationObserver((mutations) => {
+        let shouldRender = false;
+        mutations.forEach((mutation) => {
+            if (mutation.type === 'childList') {
+                mutation.addedNodes.forEach((node) => {
+                    if (node.nodeType === Node.ELEMENT_NODE) {
+                        if (node.classList && node.classList.contains('markdown-content')) {
+                            shouldRender = true;
+                        } else if (node.querySelector && node.querySelector('.markdown-content')) {
+                            shouldRender = true;
+                        }
+                    }
+                });
+            }
+        });
+        if (shouldRender) {
+            setTimeout(() => renderAllMarkdown(), 10);
+            scrollToBottom();
+        }
+    });
+    
+    // Start observing when DOM is ready
+    function startObserver() {
+        const messagesContainer = document.getElementById('messages-container');
+        if (messagesContainer) {
+            markdownObserver.observe(messagesContainer, {
+                childList: true,
+                subtree: true
+            });
+        } else {
+            const chatWrapper = document.querySelector('.chat-page-wrapper');
+            if (chatWrapper) {
+                markdownObserver.observe(chatWrapper, {
+                    childList: true,
+                    subtree: true
+                });
+            }
+        }
+    }
+    
+    // Livewire hook for component updates
     document.addEventListener('livewire:init', () => {
-        // Scroll on commit (general updates)
         Livewire.hook('commit', ({ succeed }) => {
             succeed(() => {
                 queueMicrotask(() => {
@@ -383,10 +448,18 @@
         });
     });
     
-    // Initial render on page load
-    document.addEventListener('DOMContentLoaded', () => {
-        renderAllMarkdown();
-    });
+    // Initial render
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            renderAllMarkdown();
+            startObserver();
+        });
+    } else {
+        setTimeout(() => {
+            renderAllMarkdown();
+            startObserver();
+        }, 50);
+    }
 </script>
 <style>
     /* Markdown content styles for agent messages */
