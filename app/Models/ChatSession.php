@@ -18,6 +18,8 @@ use Illuminate\Support\Str;
  * @property string|null $title
  * @property array|null $context
  * @property array|null $metadata
+ * @property bool $is_archived
+ * @property \Carbon\Carbon|null $archived_at
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  */
@@ -33,11 +35,15 @@ class ChatSession extends Model
         'title',
         'context',
         'metadata',
+        'is_archived',
+        'archived_at',
     ];
 
     protected $casts = [
         'context' => 'array',
         'metadata' => 'array',
+        'is_archived' => 'boolean',
+        'archived_at' => 'datetime',
     ];
 
     protected $attributes = [
@@ -73,6 +79,22 @@ class ChatSession extends Model
     public function messages(): HasMany
     {
         return $this->hasMany(ChatMessage::class)->orderBy('created_at', 'asc');
+    }
+
+    /**
+     * Scope for archived sessions.
+     */
+    public function scopeArchived($query)
+    {
+        return $query->where('is_archived', true);
+    }
+
+    /**
+     * Scope for active (non-archived) sessions.
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_archived', false);
     }
 
     /**

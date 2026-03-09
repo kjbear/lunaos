@@ -53,23 +53,114 @@
 
         <!-- Recent Conversations -->
         <div class="flex-1 overflow-y-auto p-3">
+            <!-- Search and Filters -->
+            <div class="mb-3 space-y-2">
+                <!-- Search -->
+                <input
+                    type="text"
+                    wire:model.live.debounce.300ms="searchQuery"
+                    placeholder="Search conversations..."
+                    class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                
+                <!-- Filter Row -->
+                <div class="flex gap-2">
+                    <!-- Agent Filter -->
+                    <select
+                        wire:model.live="filterAgent"
+                        class="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    >
+                        <option value="">All Agents</option>
+                        @foreach ($teamMembers as $member)
+                            <option value="{{ $member['id'] }}">{{ $member['emoji'] }} {{ $member['name'] }}</option>
+                        @endforeach
+                    </select>
+                    
+                    <!-- Sort -->
+                    <select
+                        wire:model.live="sortBy"
+                        class="bg-slate-800 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    >
+                        <option value="recent">Recent</option>
+                        <option value="oldest">Oldest</option>
+                        <option value="alpha">A-Z</option>
+                    </select>
+                </div>
+                
+                <!-- Archive Filter Toggle -->
+                <div class="flex gap-2">
+                    <button
+                        wire:click="$set('filterArchive', 'active')"
+                        class="flex-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors {{ $filterArchive === 'active' ? 'bg-purple-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700' }}"
+                    >
+                        Active
+                    </button>
+                    <button
+                        wire:click="$set('filterArchive', 'archived')"
+                        class="flex-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors {{ $filterArchive === 'archived' ? 'bg-purple-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700' }}"
+                    >
+                        Archived
+                    </button>
+                    <button
+                        wire:click="$set('filterArchive', 'all')"
+                        class="flex-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors {{ $filterArchive === 'all' ? 'bg-purple-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700' }}"
+                    >
+                        All
+                    </button>
+                </div>
+                
+                <!-- Reset Filters -->
+                @if ($searchQuery || $filterAgent || $filterArchive !== 'active' || $sortBy !== 'recent')
+                    <button
+                        wire:click="resetFilters"
+                        class="w-full text-xs text-purple-400 hover:text-purple-300 transition-colors"
+                    >
+                        Reset Filters
+                    </button>
+                @endif
+            </div>
+            
             <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Recent</h3>
             <div class="space-y-1">
                 @forelse ($recentSessions as $sess)
                     <button
                         wire:click="loadSession('{{ $sess['id'] }}')"
-                        class="w-full text-left px-3 py-2 rounded-lg hover:bg-slate-800 transition-colors {{ $sessionId === $sess['id'] ? 'bg-slate-800' : '' }}"
+                        class="w-full text-left px-3 py-2 rounded-lg hover:bg-slate-800 transition-colors group {{ $sessionId === $sess['id'] ? 'bg-slate-800' : '' }}"
                     >
                         <div class="flex items-center gap-2">
                             <span class="text-lg">{{ $sess['emoji'] }}</span>
+                            @if ($sess['is_archived'])
+                                <span class="text-xs" title="Archived">📦</span>
+                            @endif
                             <div class="flex-1 min-w-0">
-                                <p class="text-sm text-white truncate">{{ $sess['title'] }}</p>
+                                <p class="text-sm text-white truncate {{ $sess['is_archived'] ? 'opacity-60' : '' }}">{{ $sess['title'] }}</p>
                                 <p class="text-xs text-slate-400">{{ $sess['member'] }} • {{ $sess['updated'] }}</p>
                             </div>
+                            <!-- Archive/Unarchive Button -->
+                            <button
+                                wire:click.prevent="stopPropagation(); {{ $sess['is_archived'] ? 'unarchiveSession' : 'archiveSession' }}('{{ $sess['id'] }}')"
+                                class="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-slate-700 rounded"
+                                onclick="event.stopPropagation()"
+                                title="{{ $sess['is_archived'] ? 'Unarchive' : 'Archive' }} conversation"
+                            >
+                                @if ($sess['is_archived'])
+                                    <span class="text-xs text-green-400 hover:text-green-300">↩️</span>
+                                @else
+                                    <span class="text-xs text-slate-400 hover:text-slate-300">📦</span>
+                                @endif
+                            </button>
                         </div>
                     </button>
                 @empty
-                    <p class="text-xs text-slate-500 text-center py-4">No conversations yet</p>
+                    <div class="text-xs text-slate-500 text-center py-4">
+                        @if ($filterArchive === 'archived')
+                            No archived conversations
+                        @elseif ($searchQuery || $filterAgent)
+                            No matching conversations
+                        @else
+                            No conversations yet
+                        @endif
+                    </div>
                 @endforelse
             </div>
         </div>
@@ -95,8 +186,13 @@
                     <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-xl">
                         {{ $selectedMemberData['emoji'] ?? '🤖' }}
                     </div>
-                    <div>
-                        <h1 class="text-lg font-semibold text-white">{{ $selectedMemberData['name'] ?? 'Select Agent' }}</h1>
+                    <div class="flex-1">
+                        <h1 class="text-lg font-semibold text-white">
+                            {{ $selectedMemberData['name'] ?? 'Select Agent' }}
+                            @if ($session && $session->is_archived)
+                                <span class="text-xs text-slate-400 ml-2">📦 Archived</span>
+                            @endif
+                        </h1>
                         <p class="text-sm text-slate-400">{{ $selectedMemberData['title'] ?? '' }}</p>
                     </div>
                     @if (!empty($selectedMemberData['role']))
@@ -107,6 +203,19 @@
                         }}">
                             {{ ucfirst(str_replace('_', ' ', $selectedMemberData['role'])) }}
                         </span>
+                    @endif
+                    @if ($session)
+                        <button
+                            wire:click="{{ $session->is_archived ? 'unarchiveSession' : 'archiveSession' }}('{{ $session->id }}')"
+                            class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors {{ $session->is_archived ? 'bg-green-600 hover:bg-green-500 text-white' : 'bg-slate-800 hover:bg-slate-700 text-slate-300' }}"
+                            title="{{ $session->is_archived ? 'Unarchive' : 'Archive' }} this conversation"
+                        >
+                            @if ($session->is_archived)
+                                ↩️ Unarchive
+                            @else
+                                📦 Archive
+                            @endif
+                        </button>
                     @endif
                 </div>
             </header>

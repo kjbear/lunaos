@@ -57,6 +57,26 @@ class AgentChat extends Component
     public array $recentSessions = [];
 
     /**
+     * Search query for filtering sessions
+     */
+    public string $searchQuery = '';
+
+    /**
+     * Filter by agent (empty = all)
+     */
+    public string $filterAgent = '';
+
+    /**
+     * Archive filter: 'active', 'archived', 'all'
+     */
+    public string $filterArchive = 'active';
+
+    /**
+     * Sort order: 'recent', 'oldest', 'alpha'
+     */
+    public string $sortBy = 'recent';
+
+    /**
      * WebSocket connection status
      */
     public string $wsStatus = 'connecting'; // connecting, connected, disconnected
@@ -258,9 +278,42 @@ class AgentChat extends Component
 
     private function loadRecentSessions(): void
     {
-        $this->recentSessions = ChatSession::with('teamMember')
-            ->orderBy('updated_at', 'desc')
-            ->limit(10)
+        $query = ChatSession::with('teamMember');
+
+        // Filter by archived status
+        if ($this->filterArchive === 'active') {
+            $query->active();
+        } elseif ($this->filterArchive === 'archived') {
+            $query->archived();
+        }
+        // 'all' shows everything
+
+        // Filter by agent
+        if ($this->filterAgent) {
+            $query->where('team_member_id', $this->filterAgent);
+        }
+
+        // Search by title
+        if ($this->searchQuery) {
+            $query->where('title', 'LIKE', "%{$this->searchQuery}%");
+        }
+
+        // Apply sorting
+        switch ($this->sortBy) {
+            case 'oldest':
+                $query->orderBy('updated_at', 'asc');
+                break;
+            case 'alpha':
+                $query->orderBy('title', 'asc');
+                break;
+            case 'recent':
+            default:
+                $query->orderBy('updated_at', 'desc');
+                break;
+        }
+
+        $this->recentSessions = $query
+            ->limit(50)
             ->get()
             ->map(fn($s) => [
                 'id' => $s->id,
@@ -268,8 +321,74 @@ class AgentChat extends Component
                 'member' => $s->teamMember?->name ?? 'Unknown',
                 'emoji' => $s->teamMember?->emoji ?? '🤖',
                 'updated' => $s->updated_at->diffForHumans(),
+                'is_archived' => $s->is_archived,
             ])
             ->toArray();
+    }
+
+    /**
+     * Archive a chat session
+     */
+    public function archiveSession(string $sessionId): void
+    {
+        $session = ChatSession::find($sessionId);
+        if ($session) {
+            $session->update([
+                'is_archived' => true,
+                'archived_at' => now(),
+            ]);
+            $this->loadRecentSessions();
+        }
+    }
+
+    /**
+     * Unarchive a chat session
+     */
+    public function unarchiveSession(string $sessionId): void
+    {
+        $session = ChatSession::find($sessionId);
+        if ($session) {
+            $session->update([
+                'is_archived' => false,
+                'archived_at' => null,
+            ]);
+            $this->loadRecentSessions();
+        }
+    }
+
+    /**
+     * Reset all filters to defaults
+     */
+    public function resetFilters(): void
+    {
+        $this->searchQuery = '';
+        $this->filterAgent = '';
+        $this->filterArchive = 'active';
+        $this->sortBy = 'recent';
+        $this->loadRecentSessions();
+    }
+
+    /**
+     * Livewire lifecycle hook - reactive filter updates
+     */
+    public function updatedSearchQuery(): void
+    {
+        $this->loadRecentSessions();
+    }
+
+    public function updatedFilterAgent(): void
+    {
+        $this->loadRecentSessions();
+    }
+
+    public function updatedFilterArchive(): void
+    {
+        $this->loadRecentSessions();
+    }
+
+    public function updatedSortBy(): void
+    {
+        $this->loadRecentSessions();
     }
 
     public function render()
