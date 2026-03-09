@@ -339,6 +339,15 @@ class AgentChat extends Component
                 'is_archived' => true,
                 'archived_at' => now(),
             ]);
+            
+            // If archiving the currently viewed session, reset to empty state
+            if ($this->sessionId === $sessionId) {
+                $this->session = null;
+                $this->sessionId = null;
+                $this->messages = [];
+                // Keep selectedMemberId so user stays in context of same agent
+            }
+            
             $this->loadRecentSessions();
         }
     }
@@ -354,6 +363,16 @@ class AgentChat extends Component
                 'is_archived' => false,
                 'archived_at' => null,
             ]);
+            
+            // If unarchiving the currently viewed session AND filter is 'archived' only,
+            // reset to empty state since the session will disappear from the list
+            if ($this->sessionId === $sessionId && $this->filterArchive === 'archived') {
+                $this->session = null;
+                $this->sessionId = null;
+                $this->messages = [];
+                // Keep selectedMemberId so user stays in context of same agent
+            }
+            
             $this->loadRecentSessions();
         }
     }
