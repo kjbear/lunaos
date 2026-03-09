@@ -10,7 +10,7 @@ use Livewire\Attributes\On;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\Layout;
 
-#[Layout('components.layouts.chat')]
+#[Layout('components.layouts.app')]
 class AgentChat extends Component
 {
     /**

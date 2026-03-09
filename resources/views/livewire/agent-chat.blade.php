@@ -2,12 +2,11 @@
     $sessionId = $session['id'] ?? null;
 @endphp
 
-<div class="min-h-screen bg-slate-950">
-    <div class="flex h-screen"
-         x-data="{ 
-             wsConnected: false, 
-             wsConnecting: true,
-             init() {
+<div class="chat-page flex h-screen bg-slate-950"
+     x-data="{ 
+         wsConnected: false, 
+         wsConnecting: true,
+         init() {
                  window.addEventListener('lunaos:websocket-connected', () => { 
                      this.wsConnected = true; 
                      this.wsConnecting = false; 
