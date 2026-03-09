@@ -2,6 +2,7 @@
     $sessionId = $session['id'] ?? null;
 @endphp
 
+<div class="chat-page-wrapper">
 <div class="chat-page flex h-screen bg-slate-950"
      x-data="{ 
          wsConnected: false, 
@@ -469,3 +470,4 @@
         margin: 0.75rem 0;
     }
 </style>
+</div><!-- /.chat-page-wrapper -->
