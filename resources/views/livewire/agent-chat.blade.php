@@ -143,7 +143,8 @@
                         </div>
                         <button
                             wire:click.stop="{{ $sess['is_archived'] ? 'unarchiveSession' : 'archiveSession' }}('{{ $sess['id'] }}')"
-                            class="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover/item:opacity-100 transition-opacity p-1 hover:bg-slate-700 rounded"
+                            onclick="event.stopPropagation()"
+                            class="absolute right-2 top-1/2 -translate-y-1/2 z-10 opacity-0 group-hover/item:opacity-100 transition-opacity p-1.5 hover:bg-slate-700 rounded cursor-pointer"
                             title="{{ $sess['is_archived'] ? 'Unarchive' : 'Archive' }} conversation"
                         >
                             @if ($sess['is_archived'])
