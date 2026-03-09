@@ -3,110 +3,46 @@
 namespace App\Livewire;
 
 use Livewire\Component;
+use App\Services\OrgChartDataService;
 
 class OrgChart extends Component
 {
-    public array $team = [];
+    public array $graphData = [];
     public ?array $selectedAgent = null;
+    public bool $showModal = false;
+    public int $teamCount = 0;
+
+    protected $listeners = [
+        'selectAgent' => 'selectAgent',
+        'closeModal' => 'closeModal',
+    ];
 
     public function mount(): void
     {
-        $this->loadTeam();
+        $this->loadGraphData();
     }
 
-    public function loadTeam(): void
+    public function loadGraphData(): void
     {
-        $this->team = [
-            // Depth 0: Luna (Main Assistant)
-            [
-                'id' => 'main',
-                'name' => 'Luna',
-                'role' => 'Main Assistant',
-                'model' => 'GLM-5',
-                'avatar' => '🌙',
-                'depth' => 0,
-                'children' => [
-                    // Depth 1: Project Manager
-                    [
-                        'id' => 'pm',
-                        'name' => 'Jordan',
-                        'role' => 'Project Manager',
-                        'model' => 'Dolphin 3.0',
-                        'avatar' => '📋',
-                        'depth' => 1,
-                        'children' => [
-                            // Depth 2: Specialists
-                            [
-                                'id' => 'dave',
-                                'name' => 'Dave',
-                                'role' => 'PHP Coder',
-                                'model' => 'Dolphin 3.0',
-                                'avatar' => '💻',
-                                'depth' => 2,
-                                'children' => [],
-                            ],
-                            [
-                                'id' => 'maya',
-                                'name' => 'Maya',
-                                'role' => 'Frontend',
-                                'model' => 'Dolphin 3.0',
-                                'avatar' => '🎨',
-                                'depth' => 2,
-                                'children' => [],
-                            ],
-                            [
-                                'id' => 'chen',
-                                'name' => 'Chen',
-                                'role' => 'DevOps',
-                                'model' => 'Dolphin 3.0',
-                                'avatar' => '🔧',
-                                'depth' => 2,
-                                'children' => [],
-                            ],
-                            [
-                                'id' => 'sam',
-                                'name' => 'Sam',
-                                'role' => 'Test Engineer',
-                                'model' => 'Dolphin 3.0',
-                                'avatar' => '✅',
-                                'depth' => 2,
-                                'children' => [],
-                            ],
-                            [
-                                'id' => 'alex',
-                                'name' => 'Alex',
-                                'role' => 'API Architect',
-                                'model' => 'Dolphin 3.0',
-                                'avatar' => '🔌',
-                                'depth' => 2,
-                                'children' => [],
-                            ],
-                        ],
-                    ],
-                ],
-            ],
-        ];
+        $service = new OrgChartDataService();
+        $this->graphData = $service->getGraphData();
+        $this->teamCount = count($this->graphData['nodes']);
     }
 
     public function selectAgent(string $agentId): void
     {
-        $this->selectedAgent = $this->findAgent($agentId, $this->team);
+        $service = new OrgChartDataService();
+        $nodes = $service->getNodes();
+        
+        $this->selectedAgent = $nodes->firstWhere('id', (string) $agentId) 
+            ?? $nodes->firstWhere('id', (int) $agentId);
+        $this->showModal = true;
     }
 
-    protected function findAgent(string $id, array $agents): ?array
+    public function closeModal(): void
     {
-        foreach ($agents as $agent) {
-            if ($agent['id'] === $id) {
-                return $agent;
-            }
-            if (!empty($agent['children'])) {
-                $found = $this->findAgent($id, $agent['children']);
-                if ($found) {
-                    return $found;
-                }
-            }
-        }
-        return null;
+        $this->showModal = false;
+        $this->selectedAgent = null;
     }
 
     public function render()

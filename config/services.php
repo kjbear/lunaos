@@ -37,6 +37,13 @@ return [
 
     'openrouter' => [
         'key' => env('OPENROUTER_API_KEY'),
+        'base_url' => env('OPENROUTER_BASE_URL', 'https://openrouter.ai/api/v1'),
+    ],
+
+    'ollama' => [
+        'host' => env('OLLAMA_HOST', 'http://192.168.2.2:11434'),
+        'base_url' => env('OLLAMA_BASE_URL', 'http://192.168.2.2:11434/v1'),
+        'api_key' => env('OLLAMA_API_KEY', 'local'),
     ],
 
 ];
