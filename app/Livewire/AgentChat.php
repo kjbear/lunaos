@@ -46,6 +46,12 @@ class AgentChat extends Component
     public string $streamingResponse = '';
 
     /**
+     * Pending user message (shown immediately in UI)
+     */
+    #[\Livewire\Attributes\Url]
+    public string $pendingUserMessage = '';
+
+    /**
      * Available team members for chat
      */
     public array $teamMembers = [];
@@ -172,7 +178,7 @@ class AgentChat extends Component
                 if (isset($chunk['token'])) {
                     $fullContent .= $chunk['token'];
                     // Stream each token to the frontend
-                    $this->stream('stream-response', $chunk['token']);
+                    $this->stream(to: 'stream-response', content: $chunk['token']);
                 }
                 
                 if (isset($chunk['done']) && $chunk['done'] === true) {
@@ -188,14 +194,6 @@ class AgentChat extends Component
                 'timestamp' => 'Just now',
                 'metadata' => $messageStats ?? [],
             ];
-            
-            // Update the temporary user message ID if we got a real one
-            if (isset($chunk['user_message'])) {
-                $userMsgIndex = count($this->messages) - 2;
-                if (isset($this->messages[$userMsgIndex])) {
-                    $this->messages[$userMsgIndex]['id'] = $chunk['user_message']->id;
-                }
-            }
         } catch (\Exception $e) {
             // Add error message
             $this->messages[] = [
