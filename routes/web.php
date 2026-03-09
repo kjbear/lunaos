@@ -142,3 +142,7 @@ Route::view('/kanban', 'pages.kanban')->name('kanban.index');
 
 // Auth routes (Breeze)
 require __DIR__.'/auth.php';
+
+// Agent Chat
+Route::get('/chat', \App\Livewire\AgentChat::class)->name('chat');
+Route::get('/chat/{memberId}', \App\Livewire\AgentChat::class)->name('chat.with');

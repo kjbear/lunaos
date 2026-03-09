@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\StatusController;
 use App\Http\Controllers\Api\TaskController;
 use App\Http\Controllers\Api\BoardController;
 use App\Http\Controllers\Api\ProjectController;
+use App\Http\Controllers\Api\ChatController;
 use App\Http\Controllers\OrgChartController;
 use App\Http\Controllers\WorkspaceController;
 use App\Http\Controllers\TeamController;
@@ -172,4 +173,36 @@ Route::name('api.')->group(function () {
         Route::delete('/{team}', [TeamController::class, 'apiDestroy'])->name('api.destroy');
         Route::get('/{team}/members', [TeamController::class, 'members'])->name('api.members');
     });
+
+    // ==========================================
+    // CHAT API (Individual Agent Chat)
+    // ==========================================
+    
+    // List user's chat sessions
+    // GET /api/chat
+    // Query params: team_member_id, limit
+    Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
+    
+    // Create a new chat session
+    // POST /api/chat
+    // Body: team_member_id (required), title (optional)
+    Route::post('/chat', [ChatController::class, 'store'])->name('chat.store');
+    
+    // Get a specific chat session with messages
+    // GET /api/chat/{sessionId}
+    Route::get('/chat/{sessionId}', [ChatController::class, 'show'])->name('chat.show');
+    
+    // Send a message to a session and get AI response
+    // POST /api/chat/{sessionId}/message
+    // Body: content (required), stream (optional)
+    Route::post('/chat/{sessionId}/message', [ChatController::class, 'message'])->name('chat.message');
+    
+    // Stream response (SSE for Livewire)
+    // GET /api/chat/{sessionId}/stream
+    // Query params: content (required)
+    Route::get('/chat/{sessionId}/stream', [ChatController::class, 'stream'])->name('chat.stream');
+    
+    // Delete a chat session
+    // DELETE /api/chat/{sessionId}
+    Route::delete('/chat/{sessionId}', [ChatController::class, 'destroy'])->name('chat.destroy');
 });
