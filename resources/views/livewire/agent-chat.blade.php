@@ -327,10 +327,8 @@
             </div>
         @endif
     </main>
-    </div>
 </div>
 
-@script
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script>
     // Configure marked for safe rendering
@@ -471,4 +469,3 @@
         margin: 0.75rem 0;
     }
 </style>
-@endscript
