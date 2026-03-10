@@ -535,8 +535,12 @@ abstract class AgentWorker
     {
         $task->update([
             'status' => 'complete',
-            'current_step' => $nextStep,
+            'step' => $nextStep,
             'assigned_to' => $nextAssignee,
+            'branch_name' => $artifacts['branch'] ?? $task->branch_name,
+            'pr_url' => $artifacts['pr_url'] ?? $task->pr_url,
+            'artifacts_json' => $artifacts,
+            'completed_at' => now(),
             'updated_at' => now(),
         ]);
         
