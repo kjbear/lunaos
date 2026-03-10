@@ -49,10 +49,22 @@ class Agent extends Model
      */
     public function getSettingsWithDefaults(): array
     {
+        $settings = $this->model_settings;
+        if (is_string($settings)) {
+            $settings = json_decode($settings, true) ?? [];
+        }
         return array_merge([
             'temperature' => 0.7,
             'max_tokens' => 4096,
-        ], $this->model_settings ?? []);
+        ], $settings ?? []);
+    }
+    
+    /**
+     * Get settings with defaults as attribute accessor.
+     */
+    public function getSettingsWithDefaultsAttribute(): array
+    {
+        return $this->getSettingsWithDefaults();
     }
 
     protected $attributes = [

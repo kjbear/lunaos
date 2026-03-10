@@ -140,12 +140,13 @@ class DaveAgentWorker extends AgentWorker
         $prompt = $this->buildCodeGenerationPrompt($task);
         
         // Call the AI agent with database-configured model
+        // Note: Laravel AI's prompt() doesn't support options parameter
+        // Settings like temperature are configured via the provider config
         $response = $agent->prompt(
             $prompt,
             provider: $provider,
             model: $model,
             timeout: 300,  // 5 minutes for code generation
-            options: $settings,
         );
         
         // Extract structured output from response
