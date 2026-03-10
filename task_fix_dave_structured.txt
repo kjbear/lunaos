@@ -1,0 +1,31 @@
+Title: Fix Dave to Use Structured Output Schema
+Description: DaveCoder agent defines a structured output schema (summary, files, tests_created, requires_migration) but DaveAgentWorker::generateCodeWithAI() is calling ->prompt() which does NOT use structured output.
+
+Problem:
+DaveCoder::schema() defines expected JSON structure, but generateCodeWithAI() calls prompt() instead of structured(). This returns free-form text requiring manual JSON parsing, which is failing.
+
+Solution:
+Use Laravel AI's structured() method instead of prompt() to enforce the schema.
+
+Files to modify:
+- app/Agents/DaveAgentWorker.php (generateCodeWithAI method)
+
+Changes needed:
+1. Replace $agent->prompt() with $agent->structured()
+2. Remove manual JSON parsing (preg_replace, json_decode)
+3. Remove boolean coercion (structured output handles types)
+4. Update error handling for structured call
+5. Add logging to show when structured vs unstructured is used
+
+Benefits:
+- Model is constrained to return valid schema
+- No JSON parsing errors
+- Type-safe boolean fields
+- Better error messages from AI SDK
+
+Test:
+Re-run Task #3 or #5 to verify structured output works
+
+Priority: critical
+Assigned to: dave
+Step: develop

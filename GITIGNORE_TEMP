@@ -1,0 +1,6 @@
+# These are the new infrastructure files for Worker Execution POC
+app/Services/WorkerExecutor.php
+app/Console/Commands/AgentRunCommand.php
+app/Console/Commands/AgentTaskCreateCommand.php
+docs/WORKER-EXECUTION-POC.md
+database/migrations/2026_03_09_203000_add_failure_reason_to_tasks.php
