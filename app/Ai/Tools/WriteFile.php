@@ -29,9 +29,17 @@ class WriteFile implements Tool
      */
     public function handle(Request $request): Stringable|string
     {
-        $path = $request->input('path');
-        $content = $request->input('content');
-        $action = $request->input('action', 'create'); // 'create' or 'modify'
+        // Use array access instead of input() method
+        $path = $request['path'] ?? null;
+        $content = $request['content'] ?? null;
+        $action = $request['action'] ?? 'create'; // 'create' or 'modify'
+        
+        if (!$path || !$content) {
+            return json_encode([
+                'success' => false,
+                'error' => "Missing required parameters: path and content",
+            ]);
+        }
         
         // Ensure path is safe (prevent directory traversal)
         $normalizedPath = str_replace('..', '', $path);

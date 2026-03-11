@@ -28,9 +28,17 @@ class ReadFile implements Tool
      */
     public function handle(Request $request): Stringable|string
     {
-        $path = $request->input('path');
-        $offset = $request->input('offset', 0);
-        $limit = $request->input('limit', 100);
+        // Use array access instead of input() method
+        $path = $request['path'] ?? null;
+        $offset = $request['offset'] ?? 0;
+        $limit = $request['limit'] ?? 100;
+        
+        if (!$path) {
+            return json_encode([
+                'success' => false,
+                'error' => "Missing required parameter: path",
+            ]);
+        }
         
         // Ensure path is safe (prevent directory traversal)
         $normalizedPath = str_replace('..', '', $path);

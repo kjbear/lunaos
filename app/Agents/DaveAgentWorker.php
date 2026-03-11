@@ -4,8 +4,8 @@ namespace App\Agents;
 
 use App\Ai\Agents\DaveCoder;
 use App\Models\Task;
-use Laravel\Ai\Facades\Ai;
-use Laravel\Ai\Enums\Lab;
+use App\Models\Agent;
+use Illuminate\Support\Str;
 
 /**
  * Dave - PHP Development Agent Worker
@@ -150,6 +150,14 @@ class DaveAgentWorker extends AgentWorker
         
         // Parse JSON from text response
         $text = (string) $response;
+        
+        // Debug: Log raw response length
+        \Illuminate\Support\Facades\Log::debug("Dave raw response", [
+            'length' => strlen($text),
+            'preview' => substr($text, 0, 500),
+        ]);
+        
+        echo "📦 Response length: " . strlen($text) . " characters\n";
         
         // Remove markdown code blocks if present (model might wrap JSON)
         $text = preg_replace('/^```(?:json)?\s*/m', '', $text);

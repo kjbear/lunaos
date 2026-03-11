@@ -6,7 +6,7 @@ use App\Models\Task;
 use App\Models\Agent;
 use App\Models\Repository;
 use App\Services\GitService;
-use Laravel\Ai\Facades\Ai;
+use Laravel\Ai\Ai;
 use Laravel\Ai\Enums\Lab;
 use Illuminate\Support\Facades\Log;
 
@@ -27,16 +27,24 @@ trait HasWorkerCapabilities
         // Enhance prompt with skill doc if configured
         $enhancedPrompt = $this->buildEnhancedPrompt($agent, $prompt);
         
-        $provider = $this->mapProvider($agent->provider);
+        // Use the provider name from config (string), not the Lab enum
+        $configProviders = config('ai.providers');
+        $providerName = $agent->provider; // 'ollama', 'openrouter', etc.
         
-        $response = Ai::agent()
-            ->withLab($provider)
-            ->withModel($agent->model)
-            ->withSystemPrompt($enhancedPrompt)
-            ->withMaxTokens($maxTokens)
-            ->run('');
+        $textProvider = Ai::textProvider($providerName);
         
-        return (string) $response;
+        $response = $textProvider->textGateway()->generateText(
+            $textProvider,
+            $agent->model,
+            $enhancedPrompt,
+            [],
+            [],
+            null,
+            null,
+            $maxTokens
+        );
+        
+        return $response->text;
     }
     
     /**
@@ -99,7 +107,17 @@ trait HasWorkerCapabilities
     {
         $content = $this->callAI($agent, $prompt, $maxTokens);
         
-        // Remove markdown code blocks
+        // Try to extract JSON from response (handle markdown, extra text, etc.)
+        // First, look for JSON between ```json and ``` markers
+        if (preg_match('/```(?:json)?\s*(\{.*?\})\s*```/s', $content, $matches)) {
+            $content = $matches[1];
+        } 
+        // Or find first { to last }
+        elseif (preg_match('/\{.*\}/s', $content, $matches)) {
+            $content = $matches[0];
+        }
+        
+        // Remove markdown code block markers and whitespace
         $content = preg_replace('/^```(?:json)?\s*/m', '', $content);
         $content = preg_replace('/```\s*$/', '', $content);
         $content = trim($content);
@@ -107,6 +125,10 @@ trait HasWorkerCapabilities
         $result = json_decode($content, true);
         
         if (json_last_error() !== JSON_ERROR_NONE) {
+            \Illuminate\Support\Facades\Log::error("JSON parse failed", [
+                'error' => json_last_error_msg(),
+                'content_preview' => substr($content, 0, 500),
+            ]);
             throw new \Exception("Failed to parse AI JSON: " . json_last_error_msg());
         }
         

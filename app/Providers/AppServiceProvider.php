@@ -13,7 +13,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Register Laravel AI facade alias
+        $loader = \Illuminate\Foundation\AliasLoader::getInstance();
+        $loader->alias('Ai', \Laravel\Ai\Facades\Ai::class);
     }
 
     /**

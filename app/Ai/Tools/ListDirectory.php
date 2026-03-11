@@ -28,8 +28,9 @@ class ListDirectory implements Tool
      */
     public function handle(Request $request): Stringable|string
     {
-        $path = $request->input('path', '.');
-        $recursive = $request->input('recursive', false);
+        // Use array access instead of input() method
+        $path = $request['path'] ?? '.';
+        $recursive = $request['recursive'] ?? false;
         
         // Ensure path is safe (prevent directory traversal)
         $normalizedPath = str_replace('..', '', $path);
@@ -52,7 +53,8 @@ class ListDirectory implements Tool
             : new \DirectoryIterator($fullPath);
         
         foreach ($iterator as $item) {
-            if ($recursive && $item->isDot()) {
+            // Skip dot files/dirs (already skipped by SKIP_DOTS in recursive mode)
+            if (!$recursive && $item->isDot()) {
                 continue;
             }
             
