@@ -2,10 +2,8 @@
 
 namespace App\Services;
 
-use App\Agents\AgentWorker;
-use App\Agents\DaveAgentWorker;
-use App\Agents\SamAgentWorker;
-use App\Agents\ChenAgentWorker;
+use App\Agents\Strategies\StrategyRegistry;
+use App\Agents\Strategies\WorkerStrategy;
 use App\Models\Agent;
 use App\Models\Task;
 use App\Models\AgentActivity;
@@ -17,7 +15,7 @@ use RuntimeException;
  * Worker Executor Service
  * 
  * The execution engine for AI worker agents.
- * Handles polling, task execution, status updates, and observability.
+ * Uses Strategy Pattern to load strategies from database.
  * 
  * Usage:
  *   php artisan agent:run dave --once
@@ -31,9 +29,9 @@ class WorkerExecutor
     protected string $agentName;
     
     /**
-     * Agent worker instance
+     * Strategy instance for this agent
      */
-    protected AgentWorker $worker;
+    protected WorkerStrategy $strategy;
     
     /**
      * Agent configuration from database
@@ -56,15 +54,6 @@ class WorkerExecutor
     protected bool $running = false;
     
     /**
-     * Agent class mapping
-     */
-    protected static array $agentClasses = [
-        'dave' => DaveAgentWorker::class,
-        'sam' => SamAgentWorker::class,
-        'chen' => ChenAgentWorker::class,
-    ];
-    
-    /**
      * Create a new WorkerExecutor instance
      */
     public function __construct(string $agentName)
@@ -76,14 +65,10 @@ class WorkerExecutor
     }
     
     /**
-     * Initialize the agent worker instance
+     * Initialize the agent worker using strategy from database
      */
     protected function initializeWorker(): void
     {
-        if (!isset(static::$agentClasses[$this->agentName])) {
-            throw new RuntimeException("Unknown agent: {$this->agentName}. Available: " . implode(', ', array_keys(static::$agentClasses)));
-        }
-        
         // Load agent configuration from database
         $this->agentConfig = Agent::where('name', $this->agentName)->first();
         
@@ -91,11 +76,21 @@ class WorkerExecutor
             throw new RuntimeException("Agent '{$this->agentName}' not found in database. Run seeders first.");
         }
         
-        // Create worker instance
-        $workerClass = static::$agentClasses[$this->agentName];
-        $this->worker = new $workerClass();
+        // Get strategy class from database
+        $strategyClass = $this->agentConfig->strategy_class;
+        
+        if (empty($strategyClass)) {
+            throw new RuntimeException(
+                "Agent '{$this->agentName}' has no strategy_class configured. " .
+                "Update the agents table to set strategy_class (e.g., 'develop', 'qa', 'deploy')."
+            );
+        }
+        
+        // Load strategy from registry
+        $this->strategy = StrategyRegistry::get($strategyClass);
         
         $this->log("Initialized {$this->agentName} worker", [
+            'strategy' => $strategyClass,
             'model' => $this->agentConfig->model,
             'provider' => $this->agentConfig->provider,
             'type' => $this->agentConfig->type ?? 'worker',
@@ -119,15 +114,19 @@ class WorkerExecutor
         $this->running = true;
         $tasksProcessed = 0;
         
+        $pollInterval = 30; // Default poll interval in seconds
+        
         $this->log("Worker started", [
             'mode' => $this->runOnce ? 'once' : 'daemon',
-            'poll_interval' => $this->worker->pollInterval,
+            'poll_interval' => $pollInterval,
+            'strategy' => $this->agentConfig->strategy_class,
         ]);
         
         echo "\n";
         echo "╔══════════════════════════════════════════════════════════════╗\n";
         echo "║  🤖 {$this->agentName} Worker Started                              \n";
         echo "║  Model: {$this->agentConfig->model}                              \n";
+        echo "║  Strategy: {$this->agentConfig->strategy_class}                          \n";
         echo "║  Mode: " . ($this->runOnce ? 'Single Poll' : 'Daemon') . "                                    \n";
         echo "╚══════════════════════════════════════════════════════════════╝\n\n";
         
@@ -152,8 +151,8 @@ class WorkerExecutor
             }
             
             // Sleep before next poll
-            $this->log("Sleeping for {$this->worker->pollInterval}s", []);
-            sleep($this->worker->pollInterval);
+            $this->log("Sleeping for {$pollInterval}s", []);
+            sleep($pollInterval);
         }
         
         $this->log("Worker stopped", ['tasks_processed' => $tasksProcessed]);
@@ -162,17 +161,17 @@ class WorkerExecutor
     }
     
     /**
-     * Poll for pending tasks
+     * Poll for pending tasks using strategy
      */
     public function poll(): ?Task
     {
-        $this->log("Polling for tasks", ['agent' => $this->agentName]);
+        $this->log("Polling for tasks", [
+            'agent' => $this->agentName,
+            'strategy' => $this->agentConfig->strategy_class,
+        ]);
         
-        $task = Task::where('assigned_to', $this->agentName)
-            ->where('status', 'pending')
-            ->orderBy('priority', 'desc')
-            ->orderBy('created_at', 'asc')
-            ->first();
+        // Use strategy to poll for work
+        $task = $this->strategy->pollForWork($this->agentConfig);
         
         if ($task) {
             $this->log("Task found", [
@@ -192,7 +191,7 @@ class WorkerExecutor
     }
     
     /**
-     * Execute a task using the worker agent
+     * Execute a task using the strategy
      */
     public function execute(Task $task): void
     {
@@ -220,11 +219,8 @@ class WorkerExecutor
         echo "🚀 Starting execution at " . now()->format('H:i:s') . "\n";
         
         try {
-            // Use reflection to call protected processTask method
-            $reflection = new \ReflectionClass($this->worker);
-            $method = $reflection->getMethod('processTask');
-            $method->setAccessible(true);
-            $method->invoke($this->worker, $task);
+            // Execute task using strategy
+            $this->strategy->processTask($task, $this->agentConfig);
             
             $duration = round((microtime(true) - $startTime) * 1000);
             
@@ -358,18 +354,22 @@ class WorkerExecutor
     }
     
     /**
-     * Get available agents
+     * Get available agents from database
      */
     public static function getAvailableAgents(): array
     {
-        return array_keys(static::$agentClasses);
+        return Agent::whereNotNull('strategy_class')
+            ->pluck('name')
+            ->toArray();
     }
     
     /**
-     * Check if agent exists
+     * Check if agent exists and has strategy configured
      */
     public static function agentExists(string $name): bool
     {
-        return isset(static::$agentClasses[strtolower($name)]);
+        return Agent::where('name', strtolower($name))
+            ->whereNotNull('strategy_class')
+            ->exists();
     }
 }
