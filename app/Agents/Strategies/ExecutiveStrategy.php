@@ -6,67 +6,49 @@ namespace App\Agents\Strategies;
 
 use App\Models\Agent;
 use App\Models\Task;
-use App\Services\AgentContext;
 
-/**
- * ExecutiveStrategy handles executive-level operational tasks.
- * 
- * This strategy is designed for executive agents who need to manage
- * operations, coordinate teams, and make tactical decisions.
- */
 class ExecutiveStrategy extends Strategy
 {
     /**
-     * Process executive-level operational tasks.
-     * 
-     * @param AgentContext $context The agent execution context
+     * Execute executive-level operational tasks.
+     *
+     * @param  \App\Models\Agent  $agent
+     * @param  \App\Models\Task  $task
      * @return array<string, mixed>
      */
-    public function execute(AgentContext $context): array
+    public function execute(Agent $agent, Task $task): array
     {
-        $task = $context->getTask();
-        $agent = $context->getAgent();
-        
-        // Executive tasks involve operational management and coordination
-        return $this->processOperationalTask($task, $agent);
-    }
-    
-    /**
-     * Process operational tasks for executive management.
-     * 
-     * @param Task $task The task to process
-     * @param Agent $agent The agent executing the task
-     * @return array<string, mixed>
-     */
-    private function processOperationalTask(Task $task, Agent $agent): array
-    {
-        // Executive strategies often involve:
-        // - Managing operational workflows
-        // - Coordinating cross-functional teams
-        // - Making tactical decisions
-        // - Overseeing department performance
-        
         return [
-            'status' => 'success',
-            'message' => 'Executive-level operational task completed',
-            'data' => [
-                'task_id' => $task->id,
-                'agent' => $agent->name,
-                'strategy' => 'executive',
-                'action' => 'operational_management',
-                'timestamp' => now()->toISOString(),
-            ],
+            'agent_id' => $agent->id,
+            'task_id' => $task->id,
+            'strategy' => 'executive',
+            'action' => 'executing_executive_operations',
+            'details' => "Executive strategy execution for task: {$task->name}",
+            'timestamp' => now()->toIso8601String(),
         ];
     }
-    
+
     /**
      * Get the priority level for this strategy.
-     * Executive strategies have medium-high priority.
-     * 
+     *
      * @return int
      */
     public function getPriority(): int
     {
-        return 3; // Medium-high priority
+        return 50; // Medium priority
+    }
+
+    /**
+     * Get supported skill paths.
+     *
+     * @return array<string>
+     */
+    public function getSupportedSkills(): array
+    {
+        return [
+            'executive/operations',
+            'executive/management',
+            'executive/coordination',
+        ];
     }
 }

@@ -4,102 +4,157 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Agents\Strategies\WorkerStrategy;
 use App\Models\Agent;
 use App\Models\Task;
-use App\Models\Strategy;
-use App\Exceptions\StrategyNotFoundException;
 use Illuminate\Support\Facades\Log;
 
 /**
- * WorkerExecutor executes tasks using strategies loaded from database.
+ * WorkerExecutor handles task execution using dynamic strategy pattern.
  * 
- * This class implements the Strategy Pattern by dynamically loading
- * agent strategies from the database based on the agent's strategy_class.
- * It supports backward compatibility with hardcoded agent mappings.
+ * Loads strategies from StrategyRegistry based on agent strategy_class field.
+ * Supports multiple agent tiers including board, executive, and worker levels.
  */
 class WorkerExecutor
 {
     /**
-     * Map of legacy agent names to their strategy classes for backward compatibility.
-     * 
-     * @var array<string, class-string>
+     * The strategy registry instance.
+     *
+     * @var StrategyRegistry
      */
-    private const BACKWARD_COMPATIBILITY_MAP = [
-        'dave' => DevelopStrategy::class,
-        'sam' => WorkerStrategy::class,
-        'chen' => WorkerStrategy::class,
-    ];
-    
+    protected StrategyRegistry $strategyRegistry;
+
     /**
-     * Load and execute the appropriate strategy for an agent.
-     * 
-     * @param Agent $agent The agent to execute tasks for
-     * @param Task $task The task to execute
+     * Create a new WorkerExecutor instance.
+     *
+     * @param  \App\Services\StrategyRegistry  $strategyRegistry
+     * @return void
+     */
+    public function __construct(StrategyRegistry $strategyRegistry)
+    {
+        $this->strategyRegistry = $strategyRegistry;
+    }
+
+    /**
+     * Execute a task using the appropriate strategy for the given agent.
+     *
+     * @param  \App\Models\Agent  $agent
+     * @param  \App\Models\Task  $task
      * @return array<string, mixed>
-     * @throws StrategyNotFoundException If no strategy can be found for the agent
      */
     public function execute(Agent $agent, Task $task): array
     {
-        $strategy = $this->loadStrategy($agent);
-        
-        $context = new AgentContext($agent, $task);
-        
-        return $strategy->execute($context);
+        try {
+            // Get strategy class from agent configuration
+            $strategyClass = $agent->strategy_class;
+
+            if (empty($strategyClass)) {
+                throw new \RuntimeException(
+                    "Agent {$agent->name} does not have a strategy_class configured."
+                );
+            }
+
+            // Validate strategy class exists and implements WorkerStrategy
+            if (!class_exists($strategyClass)) {
+                throw new \RuntimeException(
+                    "Strategy class {$strategyClass} does not exist for agent {$agent->name}."
+                );
+            }
+
+            /** @var class-string<WorkerStrategy> $strategyClass */
+            if (!is_a($strategyClass, WorkerStrategy::class, true)) {
+                throw new \RuntimeException(
+                    "Strategy class {$strategyClass} must implement WorkerStrategy interface."
+                );
+            }
+
+            // Get strategy from registry
+            $strategy = $this->strategyRegistry->getStrategy($strategyClass);
+
+            // Validate agent has required skill
+            if (!$this->hasMatchingSkill($agent, $strategy)) {
+                throw new \RuntimeException(
+                    "Agent {$agent->name} does not have skill matching strategy {$strategyClass}."
+                );
+            }
+
+            Log::info("Executing task with strategy", [
+                'agent' => $agent->name,
+                'task' => $task->name,
+                'strategy' => $strategyClass,
+            ]);
+
+            // Execute the strategy
+            return $strategy->execute($agent, $task);
+
+        } catch (\Throwable $e) {
+            Log::error("Task execution failed", [
+                'agent' => $agent->name ?? 'unknown',
+                'task' => $task->name ?? 'unknown',
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return [
+                'success' => false,
+                'error' => $e->getMessage(),
+                'agent_id' => $agent->id ?? null,
+                'task_id' => $task->id ?? null,
+            ];
+        }
     }
-    
+
     /**
-     * Load the appropriate strategy class for an agent.
-     * 
-     * @param Agent $agent The agent to load strategy for
-     * @return Strategy The strategy instance
-     * @throws StrategyNotFoundException If no strategy can be found
+     * Check if the agent has a matching skill for the strategy.
+     *
+     * @param  \App\Models\Agent  $agent
+     * @param  \App\Agents\Strategies\WorkerStrategy  $strategy
+     * @return bool
      */
-    private function loadStrategy(Agent $agent): Strategy
+    private function hasMatchingSkill(Agent $agent, WorkerStrategy $strategy): bool
     {
-        // Try to get strategy class from database
-        $strategyClass = $this->getStrategyClassFromAgent($agent);
-        
-        if ($strategyClass === null) {
-            throw new StrategyNotFoundException(
-                sprintf('No strategy found for agent: %s', $agent->name)
-            );
+        $agentSkillPaths = explode(',', $agent->skill_doc_path ?? '');
+        $strategySkills = $strategy->getSupportedSkills();
+
+        foreach ($strategySkills as $strategySkill) {
+            if (in_array(trim($strategySkill), $agentSkillPaths)) {
+                return true;
+            }
         }
-        
-        // Create instance of the strategy class
-        $instance = new $strategyClass();
-        
-        if (!$instance instanceof Strategy) {
-            throw new StrategyNotFoundException(
-                sprintf('Strategy class %s does not implement Strategy interface', $strategyClass)
-            );
-        }
-        
-        Log::info('Strategy loaded for agent', [
-            'agent' => $agent->name,
-            'strategy' => get_class($instance),
-        ]);
-        
-        return $instance;
+
+        // Support backward compatibility with legacy agents
+        return $this->hasLegacySkillMatch($agent, $strategy);
     }
-    
+
     /**
-     * Get strategy class from agent, with fallback to backward compatibility.
-     * 
-     * @param Agent $agent The agent to get strategy class for
-     * @return class-string|null The strategy class name or null if not found
+     * Check for legacy skill matches for backward compatibility.
+     *
+     * @param  \App\Models\Agent  $agent
+     * @param  \App\Agents\Strategies\WorkerStrategy  $strategy
+     * @return bool
      */
-    private function getStrategyClassFromAgent(Agent $agent): ?string
+    private function hasLegacySkillMatch(Agent $agent, WorkerStrategy $strategy): bool
     {
-        // First check if strategy_class is directly stored on agent
-        if (!empty($agent->strategy_class)) {
-            return $agent->strategy_class;
+        $legacySkillMap = [
+            'dave' => ['develop', 'code', 'backend'],
+            'sam' => ['security', 'audit', 'compliance'],
+            'chen' => ['devops', 'infrastructure', 'deployment'],
+        ];
+
+        $agentName = strtolower($agent->name ?? '');
+        if (isset($legacySkillMap[$agentName])) {
+            $agentSkills = explode(',', $agent->skill_doc_path ?? '');
+            $legacySkills = $legacySkillMap[$agentName];
+
+            foreach ($legacySkills as $legacySkill) {
+                foreach ($agentSkills as $agentSkill) {
+                    if (str_contains(strtolower(trim($agentSkill)), $legacySkill)) {
+                        return true;
+                    }
+                }
+            }
         }
-        
-        // Fall back to legacy mapping for backward compatibility
-        if (isset(self::BACKWARD_COMPATIBILITY_MAP[$agent->name])) {
-            return self::BACKWARD_COMPATIBILITY_MAP[$agent->name];
-        }
-        
-        return null;
+
+        return false;
     }
 }
