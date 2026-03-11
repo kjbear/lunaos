@@ -266,17 +266,19 @@ trait HasWorkerCapabilities
         string $backToStep,
         string $backToAgent
     ): void {
+        // Log activity FIRST (before any task modifications that might affect FK)
+        $this->logActivity($task, $agent, 'failed', [
+            'reason' => $reason,
+            'back_to_step' => $backToStep,
+            'back_to_agent' => $backToAgent,
+        ]);
+        
+        // Then update task
         $task->update([
             'status' => 'failed',
             'step' => $backToStep,
             'assigned_to' => $backToAgent,
             'updated_at' => now(),
-        ]);
-        
-        $this->logActivity($task, $agent, 'failed', [
-            'reason' => $reason,
-            'back_to_step' => $backToStep,
-            'back_to_agent' => $backToAgent,
         ]);
         
         Log::warning("Task #{$task->id} failed: {$reason}", [
