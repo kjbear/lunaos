@@ -1,144 +1,159 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Console\Commands;
 
-use App\Models\Agent;
-use App\Models\Task;
 use App\Services\WorkerExecutor;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Log;
+use RuntimeException;
 
 /**
- * AgentRunCommand executes tasks for agents.
+ * Agent Run Command
  * 
- * Supports running tasks for any agent from the database with proper
- * strategy resolution. Maintains backward compatibility with legacy agents.
+ * Run an AI agent worker to poll for and execute tasks.
+ * 
+ * Usage:
+ *   php artisan agent:run dave          # Run Dave continuously
+ *   php artisan agent:run dave --once   # Single poll and exit
+ *   php artisan agent:run sam --once    # Run Sam once
+ *   php artisan agent:run chen          # Run Chen continuously
+ * 
+ * Examples:
+ *   # Test Dave with a single task
+ *   php artisan agent:run dave --once
+ *   
+ *   # Run Dave as a daemon (polls every 30s)
+ *   php artisan agent:run dave
+ *   
+ *   # List available agents
+ *   php artisan agent:run --list
  */
 class AgentRunCommand extends Command
 {
     /**
-     * The name and signature of the command.
-     *
+     * The name and signature of the console command.
+     * 
      * @var string
      */
-    protected $signature = 'agent:run
-                            {agent : The name or ID of the agent to execute}
-                            {task? : The name or ID of the task to execute}
-                            {--F|force : Force execution without validation}';
-
+    protected $signature = 'agent:run {agent? : The agent name (dave, sam, chen)}
+                            {--once : Run a single poll and exit}
+                            {--list : List available agents}';
+    
     /**
-     * The description of the command.
-     *
+     * The console command description.
+     * 
      * @var string
      */
-    protected $description = 'Execute a task for a specific agent';
-
+    protected $description = 'Run an AI agent worker to poll for and execute tasks';
+    
     /**
      * Execute the console command.
-     *
-     * @param  \App\Services\WorkerExecutor  $executor
-     * @return int
      */
-    public function handle(WorkerExecutor $executor): int
+    public function handle(): int
     {
-        $agentIdentifier = $this->argument('agent');
-        $taskIdentifier = $this->argument('task');
-
+        // List available agents
+        if ($this->option('list')) {
+            return $this->listAgents();
+        }
+        
+        // Validate agent argument
+        $agentName = $this->argument('agent');
+        
+        if (!$agentName) {
+            $agentName = $this->chooseAgent();
+            
+            if (!$agentName) {
+                $this->error('No agent specified. Use --list to see available agents.');
+                return 1;
+            }
+        }
+        
+        // Check if agent exists
+        if (!WorkerExecutor::agentExists($agentName)) {
+            $this->error("Unknown agent: {$agentName}");
+            $this->line('');
+            $this->line('Available agents: ' . implode(', ', WorkerExecutor::getAvailableAgents()));
+            return 1;
+        }
+        
+        // Create and run the executor
+        $runOnce = $this->option('once');
+        
         try {
-            // Find agent by name or ID
-            $agent = $this->findAgent($agentIdentifier);
-
-            if (!$agent) {
-                $this->error("Agent not found: {$agentIdentifier}");
-                return self::FAILURE;
+            $executor = new WorkerExecutor($agentName);
+            $executor->setRunOnce($runOnce);
+            
+            // Handle graceful shutdown in daemon mode
+            if (!$runOnce && function_exists('pcntl_signal')) {
+                pcntl_async_signals(true);
+                pcntl_signal(SIGINT, function () use ($executor) {
+                    $this->info("\n\nReceived interrupt signal, stopping worker...");
+                    $executor->stop();
+                });
+                pcntl_signal(SIGTERM, function () use ($executor) {
+                    $this->info("\n\nReceived termination signal, stopping worker...");
+                    $executor->stop();
+                });
             }
-
-            $this->info("Found agent: {$agent->name} ({$agent->strategy_class})");
-
-            // Find task by name or ID if provided
-            $task = null;
-            if ($taskIdentifier) {
-                $task = $this->findTask($taskIdentifier);
-
-                if (!$task) {
-                    $this->error("Task not found: {$taskIdentifier}");
-                    return self::FAILURE;
-                }
-
-                $this->info("Found task: {$task->name}");
-            } else {
-                // Get first pending task if no specific task provided
-                $task = Task::where('status', 'pending')
-                    ->orderBy('created_at', 'asc')
-                    ->first();
-
-                if ($task) {
-                    $this->info("Using pending task: {$task->name}");
-                } else {
-                    $this->warn('No pending tasks found. Would execute dummy task in production.');
-                    return self::SUCCESS;
-                }
-            }
-
-            // Execute task
-            $this->info("Executing task...");
-            $result = $executor->execute($agent, $task);
-
-            // Display result
-            if ($result['success'] ?? true) {
-                $this->info('Task completed successfully!');
-                $this->line(json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-                return self::SUCCESS;
-            } else {
-                $this->error('Task failed!');
-                $this->line(json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-                return self::FAILURE;
-            }
-
+            
+            return $executor->run();
+            
+        } catch (RuntimeException $e) {
+            $this->error("Failed to initialize agent: {$e->getMessage()}");
+            $this->line('');
+            $this->line('Make sure the agent exists in the database.');
+            $this->line('Run: php artisan db:seed --class=SeedTeamAgents');
+            return 1;
         } catch (\Throwable $e) {
-            Log::error('Agent execution failed', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-
-            $this->error('Fatal error: ' . $e->getMessage());
-            return self::FAILURE;
+            $this->error("Unexpected error: {$e->getMessage()}");
+            $this->line('');
+            $this->line('Stack trace:');
+            $this->line($e->getTraceAsString());
+            return 1;
         }
     }
-
+    
     /**
-     * Find an agent by name or ID.
-     *
-     * @param  string  $identifier
-     * @return \App\Models\Agent|null
+     * List available agents
      */
-    private function findAgent(string $identifier): ?Agent
+    protected function listAgents(): int
     {
-        // Try by ID first
-        if (is_numeric($identifier)) {
-            return Agent::find((int) $identifier);
-        }
-
-        // Try by name
-        return Agent::where('name', $identifier)->first();
+        $this->info('Available AI Agent Workers:');
+        $this->line('');
+        
+        $agents = [
+            ['dave', 'Dave', 'Backend Developer', 'Writes PHP/Laravel code, creates migrations'],
+            ['sam', 'Sam', 'QA Engineer', 'Runs PHPUnit/Dusk tests, validates code'],
+            ['chen', 'Chen', 'DevOps Engineer', 'Deploys to staging/production, health checks'],
+        ];
+        
+        $this->table(
+            ['Name', 'Alias', 'Role', 'Description'],
+            $agents
+        );
+        
+        $this->line('');
+        $this->line('Usage: php artisan agent:run <name> [--once]');
+        
+        return 0;
     }
-
+    
     /**
-     * Find a task by name or ID.
-     *
-     * @param  string  $identifier
-     * @return \App\Models\Task|null
+     * Interactively choose an agent
      */
-    private function findTask(string $identifier): ?Task
+    protected function chooseAgent(): ?string
     {
-        // Try by ID first
-        if (is_numeric($identifier)) {
-            return Task::find((int) $identifier);
+        $agents = WorkerExecutor::getAvailableAgents();
+        
+        if (empty($agents)) {
+            return null;
         }
-
-        // Try by name
-        return Task::where('name', $identifier)->first();
+        
+        if (count($agents) === 1) {
+            return $agents[0];
+        }
+        
+        $choice = $this->choice('Which agent would you like to run?', $agents, 0);
+        
+        return $choice;
     }
 }
