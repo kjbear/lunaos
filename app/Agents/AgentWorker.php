@@ -145,13 +145,26 @@ abstract class AgentWorker
     /**
      * Get the AI provider (ollama, openrouter, anthropic, etc.)
      */
+    /**
+     * Get the AI provider name (string) for Laravel AI resolution.
+     * Returns the provider name string for proper config resolution.
+     */
+    protected function getProviderName(): string
+    {
+        return $this->getAgentConfig()->provider;
+    }
+
+    /**
+     * Get the AI provider enum for display purposes.
+     */
     protected function getProvider(): Lab
     {
         $provider = $this->getAgentConfig()->provider;
         return match($provider) {
             'openrouter' => Lab::OpenRouter,
             'anthropic' => Lab::Anthropic,
-            'openai' => Lab::OpenAi,
+            'openai' => Lab::OpenAI,
+            'ollama-cloud' => Lab::OpenAI,  // OpenAI-compatible, displays as OpenAI
             default => Lab::Ollama,
         };
     }

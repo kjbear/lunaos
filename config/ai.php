@@ -106,6 +106,13 @@ return [
             'url' => env('OLLAMA_CLOUD_BASE_URL', 'https://ollama.com'),
         ],
 
+        // Ollama Cloud via OpenAI-compatible API (supports structured output properly)
+        'ollama-cloud' => [
+            'driver' => 'openai',
+            'key' => env('OLLAMA_CLOUD_API_KEY'),
+            'url' => 'https://ollama.com/v1',
+        ],
+
         'openai' => [
             'driver' => 'openai',
             'key' => env('OPENAI_API_KEY'),

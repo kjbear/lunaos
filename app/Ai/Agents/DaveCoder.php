@@ -5,9 +5,7 @@ namespace App\Ai\Agents;
 use App\Ai\Tools\WriteFile;
 use App\Ai\Tools\ReadFile;
 use App\Ai\Tools\ListDirectory;
-use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Ai\Contracts\Agent;
-use Laravel\Ai\Contracts\HasStructuredOutput;
 use Laravel\Ai\Contracts\HasTools;
 use Laravel\Ai\Promptable;
 use Stringable;
@@ -17,8 +15,11 @@ use Stringable;
  * 
  * PHP/Laravel development specialist using Qwen3-Coder via Ollama Cloud.
  * Generates code, creates files, and implements features based on task requirements.
+ * 
+ * Note: Does NOT implement HasStructuredOutput because Ollama provider doesn't
+ * properly support structured output. Uses JSON-in-text response with manual parsing.
  */
-class DaveCoder implements Agent, HasTools, HasStructuredOutput
+class DaveCoder implements Agent, HasTools
 {
     use Promptable;
 
@@ -52,11 +53,28 @@ Generate complete, working code based on the task description provided.
 6. Use modern PHP features (constructor property promotion, match expressions, etc.)
 7. Include error handling and validation
 
+**CRITICAL: Output Format**
+You MUST return a valid JSON object with this exact structure:
+```json
+{
+  "summary": "Brief explanation of what was implemented",
+  "files": [
+    {
+      "path": "app/Path/To/File.php",
+      "content": "<?php\n\n... complete file content ...",
+      "action": "created"
+    }
+  ],
+  "tests_created": false,
+  "requires_migration": false
+}
+```
+
 **Output Requirements:**
-- Return ONLY valid JSON with the file structure
+- Return ONLY the JSON object (no markdown code blocks, no extra text)
 - Include COMPLETE file contents (no placeholders like "// ... rest of code")
 - All files must be ready to commit and run
-- Explain your implementation approach in the summary
+- Use "action": "created" for new files, "action": "modified" for existing files
 
 **When Creating Files:**
 - Use appropriate namespaces
@@ -77,30 +95,6 @@ INSTRUCTIONS;
             new WriteFile,
             new ReadFile,
             new ListDirectory,
-        ];
-    }
-
-    /**
-     * Get the agent's structured output schema definition.
-     */
-    public function schema(JsonSchema $schema): array
-    {
-        return [
-            'summary' => $schema->string()
-                ->required()
-                ->description('Brief explanation of what was implemented'),
-            
-            'files' => $schema->array()
-                ->required()
-                ->description('Array of file objects created or modified'),
-            
-            'tests_created' => $schema->boolean()
-                ->default(false)
-                ->description('Whether test files were created'),
-            
-            'requires_migration' => $schema->boolean()
-                ->default(false)
-                ->description('Whether database migrations are needed'),
         ];
     }
 

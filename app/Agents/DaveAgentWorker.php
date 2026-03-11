@@ -1,87 +1,247 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Agents;
 
-use App\Agents\Tasks\Task;
-use App\Agents\Tasks\TaskStatus;
-use App\Agents\Jobs\ProcessTaskJob;
-use Illuminate\Support\Facades\Log;
-use Throwable;
+use App\Ai\Agents\DaveCoder;
+use App\Models\Task;
+use Laravel\Ai\Facades\Ai;
+use Laravel\Ai\Enums\Lab;
 
 /**
- * DaveAgentWorker handles task processing for the Dave agent.
+ * Dave - PHP Development Agent Worker
  * 
- * Extends the base AgentWorker class to inherit common functionality
- * while implementing agent-specific task polling and processing logic.
+ * Worker-tier agent responsible for:
+ * - Writing PHP/Laravel code
+ * - Creating Livewire components
+ * - Building API endpoints
+ * - Refactoring existing code
+ * - Fixing bugs
+ * 
+ * Uses Qwen3-Coder via Ollama Cloud for code generation
+ * Polls every 30 seconds for development tasks
  */
 class DaveAgentWorker extends AgentWorker
 {
+    public string $name = 'dave';
+    
+    public AgentType $type = AgentType::WORKER;
+    
+    public int $pollInterval = 30; // 30 seconds (fast polling for execution)
+    
+    public array $capabilities = ['php', 'laravel', 'livewire', 'blade', 'api', 'refactor', 'bugfix'];
+    
+    protected string $model = 'qwen3-coder:latest'; // Ollama Cloud model
+    
     /**
-     * Poll for available work items.
-     * 
-     * @return array<int, array<string, mixed>>
+     * Poll for development tasks
      */
-    public function pollForWork(): array
+    protected function pollForWork(): ?Task
+    {
+        $task = Task::where('assigned_to', 'dave')
+            ->whereIn('status', ['pending', 'in_progress'])
+            ->where('step', 'develop')
+            ->orderBy('created_at', 'asc')
+            ->first();
+        
+        return $task;
+    }
+    
+    /**
+     * Process a development task using DaveCoder AI agent
+     */
+    protected function processTask(Task $task): void
     {
         try {
-            // Check for pending tasks in the database
-            return Task::where('status', TaskStatus::PENDING)
-                ->where('agent', 'dave')
-                ->orderBy('created_at', 'asc')
-                ->limit(10)
-                ->get()
-                ->map(fn ($task) => [
-                    'id' => $task->id,
-                    'payload' => $task->payload,
-                    'agent' => $task->agent,
-                    'created_at' => $task->created_at->toIso8601String(),
-                ])
-                ->toArray();
-        } catch (Throwable $e) {
-            Log::error('DaveAgentWorker pollForWork failed', [
-                'exception' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
+            echo "🔍 Dave analyzing task #{$task->id}: {$task->title}\n";
+            $this->logActivity($task, 'started', ['action' => 'analysis']);
+            
+            // Step 1: Use DaveCoder AI agent to generate code
+            $codeGeneration = $this->generateCodeWithAI($task);
+            
+            // Step 2: Validate the response
+            if (!isset($codeGeneration['files']) || empty($codeGeneration['files'])) {
+                throw new \Exception("AI returned no files");
+            }
+            
+            // Step 3: Write the files to disk
+            echo "📝 Writing " . count($codeGeneration['files']) . " files...\n";
+            $artifacts = [
+                'files_created' => [],
+                'files_modified' => [],
+                'summary' => $codeGeneration['summary'] ?? 'Code generated successfully',
+                'tests_created' => $codeGeneration['tests_created'] ?? false,
+                'requires_migration' => $codeGeneration['requires_migration'] ?? false,
+            ];
+            
+            foreach ($codeGeneration['files'] as $file) {
+                $path = $file['path'];
+                $content = $file['content'];
+                $action = $file['action'] ?? 'created';
+                
+                // Build full path
+                $fullPath = base_path($path);
+                
+                // Create directory if needed
+                $dir = dirname($fullPath);
+                if (!is_dir($dir)) {
+                    mkdir($dir, 0755, true);
+                }
+                
+                // Write file
+                $bytes = file_put_contents($fullPath, $content);
+                echo "  ✅ {$action}: {$path} ({$bytes} bytes)\n";
+                
+                // Track artifacts
+                $key = $action === 'created' ? 'files_created' : 'files_modified';
+                $artifacts[$key][] = $path;
+            }
+            
+            echo "✅ Dave: Generated " . count($codeGeneration['files']) . " files\n";
+            echo "   Summary: {$artifacts['summary']}\n";
+            
+            // Step 4: Git operations (handled by GitService in parent)
+            $branchName = $this->createFeatureBranch($task);
+            $commitHash = $this->gitCommit($task, $artifacts);
+            $prUrl = $this->createPullRequest($task, $branchName);
+            
+            // Step 5: Mark complete and advance to QA (Sam)
+            $this->completeTask($task, 'qa', 'sam', [
+                'branch' => $branchName,
+                'commit_hash' => $commitHash,
+                'pr_url' => $prUrl,
+                'ai_summary' => $artifacts['summary'],
+                'files_created' => $artifacts['files_created'],
             ]);
-            return [];
+            
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Dave failed task #{$task->id}: {$e->getMessage()}", [
+                'task' => $task->toArray(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            $this->failTask($task, $e->getMessage(), 'develop', 'dave');
         }
     }
-
+    
     /**
-     * Process a single task.
-     * 
-     * @param array<string, mixed> $task
-     * @return array<string, mixed>
+     * Use DaveCoder AI agent with configured model to generate code
      */
-    public function processTask(array $task): array
+    protected function generateCodeWithAI(Task $task): array
     {
-        try {
-            // Dispatch task to job for async processing
-            $job = new ProcessTaskJob($task);
-            $job->handle();
+        $model = $this->getModel();
+        $providerName = $this->getProviderName();  // Get provider NAME string for proper resolution
+        $providerEnum = $this->getProvider();      // Get Lab enum for display
+        
+        echo "🤖 Spawning DaveCoder with {$model} ({$providerEnum->name})...\n";
 
-            return [
-                'status' => 'success',
-                'task_id' => $task['id'] ?? 'unknown',
-                'result' => $job->result ?? null,
-                'processed_at' => now()->toIso8601String(),
-            ];
-        } catch (Throwable $e) {
-            Log::error('DaveAgentWorker processTask failed', [
-                'task' => $task,
-                'exception' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString(),
-            ]);
+        $agent = new DaveCoder;
 
-            return [
-                'status' => 'error',
-                'task_id' => $task['id'] ?? 'unknown',
-                'error' => $e->getMessage(),
-                'failed_at' => now()->toIso8601String(),
-            ];
+        // Build the prompt with system prompt from config
+        $prompt = $this->buildCodeGenerationPrompt($task);
+
+        // Call the AI agent - use provider NAME string for correct config resolution
+        // (ollama-cloud uses OpenAI-compatible API, returns JSON in text)
+        $response = $agent->prompt(
+            $prompt,
+            provider: $providerName,  // Pass string 'ollama-cloud', not Lab::OpenAI
+            model: $model,
+            timeout: 300,  // 5 minutes for code generation
+        );
+        
+        // Parse JSON from text response
+        $text = (string) $response;
+        
+        // Remove markdown code blocks if present (model might wrap JSON)
+        $text = preg_replace('/^```(?:json)?\s*/m', '', $text);
+        $text = preg_replace('/```\s*$/', '', $text);
+        $text = trim($text);
+        
+        // Try to decode JSON
+        $result = json_decode($text, true);
+        
+        // If failed, try to fix common issues
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            $error = json_last_error_msg();
+            
+            // Save problematic JSON for debugging
+            file_put_contents(storage_path('logs/dave-json-error.json'), $text);
+            
+            // Try JSON5 or relaxed parsing (if available)
+            // For now, just provide better error message
+            throw new \Exception("AI returned invalid JSON: {$error}. Saved to logs/dave-json-error.json for inspection.");
         }
+        
+        if (!is_array($result) || empty($result)) {
+            throw new \Exception("AI returned empty or invalid response");
+        }
+        
+        // Ensure required fields exist
+        if (!isset($result['files']) || empty($result['files'])) {
+            throw new \Exception("AI response missing 'files' array");
+        }
+        
+        // Ensure boolean fields are native booleans
+        $result['tests_created'] = (bool) ($result['tests_created'] ?? false);
+        $result['requires_migration'] = (bool) ($result['requires_migration'] ?? false);
+        
+        echo "✅ Parsed " . count($result['files']) . " files from AI response\n";
+        
+        return $result;
     }
+    
+    /**
+     * Build the code generation prompt
+     */
+    protected function buildCodeGenerationPrompt(Task $task): string
+    {
+        $repo = $this->getRepository($task);
+        $repoName = $repo?->name ?? 'LunaOS';
+        $systemPrompt = $this->getSystemPrompt();
+        
+        return <<<PROMPT
+{$systemPrompt}
+
+---
+
+**TASK:** {$task->title}
+
+**DESCRIPTION:** 
+{$task->description}
+
+**PROJECT:** {$repoName}
+
+**CONTEXT:**
+- Assigned to: {$this->name}
+- Current step: {$task->step}
+- Task ID: {$task->id}
+- Priority: {$task->priority}
+- Repository: {$repoName}
+
+**REQUIREMENTS:**
+1. Generate complete, working code
+2. Follow Laravel 12 best practices
+3. Use strict types
+4. Include comprehensive docblocks
+5. Write testable code
+6. Follow existing project structure
+
+**YOUR TOOLS:**
+- WriteFile: Create or modify files
+- ReadFile: Read existing files (if needed)
+- ListDirectory: Explore directory structure (if needed)
+
+**OUTPUT:**
+Return structured JSON with:
+- summary: Brief explanation of implementation
+- files: Array of files with path, content, and action (created/modified)
+- tests_created: Boolean
+- requires_migration: Boolean
+
+**IMPORTANT:**
+- Do NOT include markdown formatting in file contents
+- Return ONLY valid JSON
+- All files must be complete and ready to run
+PROMPT;
+    }
+    
 }
