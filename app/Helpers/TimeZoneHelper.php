@@ -4,116 +4,103 @@ declare(strict_types=1);
 
 namespace App\Helpers;
 
-use Carbon\Carbon;
-use DateTimeInterface;
+use DateTime;
+use DateTimeZone;
 use InvalidArgumentException;
 
 /**
- * TimeZoneHelper provides centralized timezone conversion utilities.
+ * TimeZoneHelper provides utility methods for timezone operations.
  *
- * This helper handles all timezone-related operations for LunaOS,
- * ensuring consistent datetime handling across the application.
- *
- * @package App\Helpers
- * @author LunaOS Team
- * @since 1.0.0
+ * This helper offers simple methods to work with timezones,
+ * including conversion and formatting for display purposes.
  */
 class TimeZoneHelper
 {
     /**
-     * Default timezone used when local timezone cannot be determined.
+     * Default timezone used when no timezone is configured.
      */
     private const DEFAULT_TIMEZONE = 'UTC';
 
     /**
-     * Get the local timezone for the current application context.
+     * Default date format for display.
+     */
+    private const DEFAULT_FORMAT = 'Y-m-d H:i:s';
+
+    /**
+     * Get the local application timezone.
      *
-     * Returns the configured application timezone, falling back to UTC
-     * if not configured. This method caches the result for performance.
+     * Returns the configured application timezone or defaults to UTC.
      *
-     * @return string The timezone identifier (e.g., 'America/New_York', 'UTC')
+     * @return string The timezone identifier (e.g., 'UTC', 'America/New_York')
      */
     public function getLocalTimezone(): string
     {
-        static $cachedTimezone = null;
-
-        if ($cachedTimezone !== null) {
-            return $cachedTimezone;
-        }
-
-        $cachedTimezone = config('app.timezone', self::DEFAULT_TIMEZONE);
-
-        // Validate the timezone is valid
-        if (!in_array($cachedTimezone, timezone_identifiers_list(), true)) {
-            $cachedTimezone = self::DEFAULT_TIMEZONE;
-        }
-
-        return $cachedTimezone;
+        return config('app.timezone', self::DEFAULT_TIMEZONE);
     }
 
     /**
-     * Convert a datetime to UTC timezone.
+     * Convert a datetime string to UTC.
      *
-     * Accepts various datetime formats and converts them to UTC.
-     * Handles strings, Carbon instances, and DateTimeInterface objects.
+     * Takes a datetime string in the application's local timezone
+     * and converts it to UTC format.
      *
-     * @param DateTimeInterface|string $datetime The datetime to convert
-     * @param string|null $sourceTimezone Optional source timezone (defaults to local)
-     * @return Carbon The datetime in UTC timezone
-     * @throws InvalidArgumentException If datetime format is invalid
+     * @param string $datetime The datetime string to convert (format: Y-m-d H:i:s)
+     * @return string The datetime string in UTC format
+     * @throws InvalidArgumentException If the datetime string is invalid
      */
-    public function convertToUTC(DateTimeInterface|string $datetime, ?string $sourceTimezone = null): Carbon
+    public function convertToUTC(string $datetime): string
     {
-        $sourceTz = $sourceTimezone ?? $this->getLocalTimezone();
+        if (empty($datetime)) {
+            throw new InvalidArgumentException('Datetime string cannot be empty');
+        }
 
+        $localTimezone = $this->getLocalTimezone();
+        
         try {
-            if ($datetime instanceof Carbon) {
-                return $datetime->copy()->utc();
-            }
-
-            if ($datetime instanceof DateTimeInterface) {
-                return Carbon::instance($datetime)->utc();
-            }
-
-            // Parse string datetime
-            $parsed = Carbon::parse($datetime, $sourceTz);
-            return $parsed->utc();
+            $date = new DateTime($datetime, new DateTimeZone($localTimezone));
+            $date->setTimezone(new DateTimeZone('UTC'));
+            
+            return $date->format(self::DEFAULT_FORMAT);
         } catch (\Exception $e) {
             throw new InvalidArgumentException(
-                "Invalid datetime format provided: {$datetime}. Error: " . $e->getMessage()
+                sprintf('Invalid datetime string: %s', $datetime),
+                0,
+                $e
             );
         }
     }
 
     /**
-     * Format a datetime for display in the local timezone.
+     * Format a datetime string for display.
      *
-     * Converts the datetime to local timezone and formats it using
-     * the application's configured display format.
+     * Converts a UTC datetime to the local timezone and formats
+     * it for user-friendly display.
      *
-     * @param DateTimeInterface|string $datetime The datetime to format
-     * @param string|null $format Custom format string (optional)
-     * @return string The formatted datetime string
+     * @param string $datetime The UTC datetime string to format (format: Y-m-d H:i:s)
+     * @param string|null $format Optional custom format (defaults to Y-m-d H:i:s)
+     * @return string The formatted datetime string in local timezone
+     * @throws InvalidArgumentException If the datetime string is invalid
      */
-    public function formatForDisplay(DateTimeInterface|string $datetime, ?string $format = null): string
+    public function formatForDisplay(string $datetime, ?string $format = null): string
     {
+        if (empty($datetime)) {
+            throw new InvalidArgumentException('Datetime string cannot be empty');
+        }
+
         $localTimezone = $this->getLocalTimezone();
-
+        $displayFormat = $format ?? self::DEFAULT_FORMAT;
+        
         try {
-            $carbon = $datetime instanceof DateTimeInterface
-                ? Carbon::instance($datetime)
-                : Carbon::parse($datetime);
-
-            // Convert to local timezone
-            $local = $carbon->setTimezone($localTimezone);
-
-            // Use provided format or default display format
-            $displayFormat = $format ?? config('app.datetime_format', 'Y-m-d H:i:s T');
-
-            return $local->format($displayFormat);
+            $date = new DateTime($datetime, new DateTimeZone('UTC'));
+            $date->setTimezone(new DateTimeZone($localTimezone));
+            
+            return $date->format($displayFormat);
         } catch (\Exception $e) {
-            // Return a safe fallback if parsing fails
-            return (string) $datetime;
+            throw new InvalidArgumentException(
+                sprintf('Invalid datetime string: %s', $datetime),
+                0,
+                $e
+            );
         }
     }
 }
