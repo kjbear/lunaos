@@ -229,6 +229,9 @@ trait HasWorkerCapabilities
     
     /**
      * Complete task and advance to next workflow step.
+     * 
+     * CRITICAL: Status must be 'in_progress' (not 'complete') so next agent can pick it up!
+     * Next agent's pollForWork() queries for status IN ['pending', 'in_progress'].
      */
     protected function completeTask(
         Task $task,
@@ -238,7 +241,7 @@ trait HasWorkerCapabilities
         array $artifacts = []
     ): void {
         $task->update([
-            'status' => 'complete',
+            'status' => 'in_progress',  // NOT 'complete' - allows next agent to poll!
             'step' => $nextStep,
             'assigned_to' => $nextAssignee,
             'artifacts_json' => json_encode($artifacts),
