@@ -238,6 +238,7 @@ class TaskList extends Component
             'headers' => $this->headers,
             'sortField' => $this->sortField,
             'sortDirection' => $this->sortDirection,
+            'perPage' => $this->perPage,
         ]);
     }
 }
