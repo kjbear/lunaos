@@ -131,6 +131,15 @@ class DevelopStrategy implements WorkerStrategy
 - Task ID: {$task->id}
 - Priority: {$task->priority}
 
+**⚠️ CRITICAL: FILE MODIFICATION RULES**
+1. For NEW files: Return complete file content ✅
+2. For EXISTING files (routes/web.php, config files, etc.):
+   - READ the current file content first
+   - Return ONLY the new code to ADD/APPEND
+   - Use `// ADD:` marker to show where new code should be inserted
+   - DO NOT replace the entire file
+   - Example: "Add this route AFTER the existing routes:"
+
 **REQUIREMENTS:**
 1. Generate complete, working code
 2. Follow Laravel 12 best practices
@@ -138,6 +147,7 @@ class DevelopStrategy implements WorkerStrategy
 4. Include comprehensive docblocks
 5. Write testable code
 6. Follow existing project structure
+7. NEVER overwrite core framework files unless explicitly required
 
 **OUTPUT:**
 Return structured JSON with:
@@ -155,6 +165,9 @@ PROMPT;
     
     /**
      * Write files to filesystem.
+     * 
+     * CRITICAL SAFETY: Protects core framework files from destructive overwrites.
+     * For existing files, checks if AI is replacing entire file vs patching.
      */
     protected function writeFiles(array $files): array
     {
@@ -163,12 +176,47 @@ PROMPT;
             'files_modified' => [],
         ];
         
+        // Protected files that should NEVER be fully replaced
+        $protectedFiles = [
+            'routes/web.php',
+            'routes/api.php',
+            'config/database.php',
+            'config/app.php',
+            'config/auth.php',
+            '.env',
+        ];
+        
         foreach ($files as $file) {
             $path = $file['path'];
             $content = $file['content'];
             $action = $file['action'] ?? 'created';
             
             $fullPath = base_path($path);
+            
+            // 🛡️ BLOCK destructive overwrites on protected existing files
+            if (in_array($path, $protectedFiles) && file_exists($fullPath)) {
+                $existingContent = file_get_contents($fullPath);
+                $newLines = count(explode("\n", $content));
+                $existingLines = count(explode("\n", $existingContent));
+                
+                // If new content is < 50% of existing, AI probably replaced it
+                if ($newLines < $existingLines * 0.5) {
+                    \Log::warning("⚠️ BLOCKED destructive overwrite", [
+                        'file' => $path,
+                        'task_id' => \Request::route('id') ?? 'unknown',
+                        'new_lines' => $newLines,
+                        'existing_lines' => $existingLines,
+                        'ratio' => round($newLines / $existingLines, 2),
+                    ]);
+                    continue; // SKIP - don't destroy the file
+                }
+                
+                \Log::info("✅ Protected file check passed", [
+                    'file' => $path,
+                    'new_lines' => $newLines,
+                    'existing_lines' => $existingLines,
+                ]);
+            }
             
             // Create directory if needed
             $dir = dirname($fullPath);

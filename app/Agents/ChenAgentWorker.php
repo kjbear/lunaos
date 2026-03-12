@@ -31,7 +31,7 @@ class ChenAgentWorker extends AgentWorker
     
     public array $capabilities = ['deploy', 'staging', 'production', 'docker', 'kubernetes', 'healthcheck', 'rollback'];
     
-    protected string $model = 'qwen3-coder:latest'; // Ollama Cloud model
+    // Model loaded from DB via $agent->model // Ollama Cloud model
     
     /**
      * Poll for deployment tasks

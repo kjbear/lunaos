@@ -30,7 +30,7 @@ class SamAgentWorker extends AgentWorker
     
     public array $capabilities = ['phpunit', 'dusk', 'testing', 'qa', 'validation', 'coverage'];
     
-    protected string $model = 'qwen3-coder:latest'; // Ollama Cloud model
+    // Model loaded from DB via $agent->model // Ollama Cloud model
     
     /**
      * Poll for QA tasks

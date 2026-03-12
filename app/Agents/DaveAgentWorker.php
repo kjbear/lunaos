@@ -30,7 +30,7 @@ class DaveAgentWorker extends AgentWorker
     
     public array $capabilities = ['php', 'laravel', 'livewire', 'blade', 'api', 'refactor', 'bugfix'];
     
-    protected string $model = 'qwen3-coder:latest'; // Ollama Cloud model
+    // Model loaded from DB via $agent->model // Ollama Cloud model
     
     /**
      * Poll for development tasks
